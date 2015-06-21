@@ -1,0 +1,25 @@
+{
+    "name": "phppro/velocity-api-bundle",
+    "type": "symfony-bundle",
+    "description": "Velocity Api Bundle",
+    "keywords": [],
+    "homepage": "http://www.phppro.fr",
+    "license": "MIT",
+    "authors": [
+      {
+        "name": "Olivier Hoareau",
+        "email": "olivier@phppro.fr"
+      }
+    ],
+    "require": {
+        "php": ">=5.5.9",
+        "symfony/config": "~2.7",
+        "symfony/framework-bundle": "~2.7",
+        "phppro/velocity-core": "dev-master"
+    },
+    "autoload": {
+        "psr-4": {
+            "Velocity\\Bundle\\ApiBundle\\": ""
+        }
+    }
+}
