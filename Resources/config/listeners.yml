@@ -1,0 +1,11 @@
+services:
+  api.listener.request:
+    class: %api.ns%\Listener\RequestListener
+    tags:
+      - { name: kernel.event_listener, event: kernel.request, method: onKernelRequest, priority: 100 }
+  api.listener.exception:
+    class: %api.ns%\Listener\ExceptionListener
+    arguments:
+      - @app.exception
+    tags:
+      - { name: kernel.event_listener, event: kernel.exception, method: onKernelException }

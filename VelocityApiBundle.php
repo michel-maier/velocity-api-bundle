@@ -12,10 +12,25 @@
 namespace Velocity\Bundle\ApiBundle;
 
 use Symfony\Component\HttpKernel\Bundle\Bundle;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Velocity\Bundle\ApiBundle\DependencyInjection\Security\Factory\ApiFactory;
+use Velocity\Bundle\ApiBundle\DependencyInjection\Compiler\AnnotationCompilerPass;
 
 /**
+ * Velocity Api Bundle.
+ *
  * @author Olivier Hoareau <olivier@phppro.fr>
  */
 class VelocityApiBundle extends Bundle
 {
+    public function build(ContainerBuilder $container)
+    {
+        parent::build($container);
+
+        $extension = $container->getExtension('security');
+        /** @noinspection PhpUndefinedMethodInspection */
+        $extension->addSecurityListenerFactory(new ApiFactory());
+
+        $container->addCompilerPass(new AnnotationCompilerPass());
+    }
 }

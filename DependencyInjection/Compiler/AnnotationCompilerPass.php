@@ -1,0 +1,102 @@
+<?php
+
+/*
+ * This file is part of the VELOCITY package.
+ *
+ * (c) PHPPRO <opensource@phppro.fr>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+namespace Velocity\Bundle\ApiBundle\DependencyInjection\Compiler;
+
+use JMS\Serializer\Annotation\Type;
+use Doctrine\Common\Annotations\AnnotationReader;
+use Velocity\Bundle\ApiBundle\Annotation\Refresh;
+use Symfony\Component\DependencyInjection\Definition;
+use Velocity\Bundle\ApiBundle\Annotation\EmbeddedReference;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
+
+/**
+ * Annotation Compiler Pass.
+ *
+ * @author Olivier Hoareau <olivier@phppro.fr>
+ */
+class AnnotationCompilerPass implements CompilerPassInterface
+{
+    public function process(ContainerBuilder $container)
+    {
+        $reader = new AnnotationReader();
+
+        $classes = $container->hasParameter('app.models') ? $container->getParameter('app.models') : [];
+
+        if (!is_array($classes)) {
+            $classes = [];
+        }
+
+        $metaDataDefinition = $container->getDefinition('api.metadata');
+
+        foreach($classes as $class) {
+            $rClass = new \ReflectionClass($class);
+            foreach($rClass->getProperties(\ReflectionProperty::IS_PUBLIC) as $rProperty) {
+                foreach($reader->getPropertyAnnotations($rProperty) as $annotation) {
+                    switch(true) {
+                        case $annotation instanceof EmbeddedReference:
+                            $this->registerEmbeddedReference($metaDataDefinition, $class, $rProperty->getName(), $annotation);
+                            break;
+                        case $annotation instanceof Refresh:
+                            $this->registerRefresh($metaDataDefinition, $class, $rProperty->getName(), $annotation);
+                            break;
+                        case $annotation instanceof Type:
+                            $this->registerType($metaDataDefinition, $class, $rProperty->getName(), $annotation);
+                            break;
+                    }
+                }
+            }
+        }
+    }
+    /**
+     * @param Definition $metaDataDefinition
+     * @param $class
+     * @param $property
+     * @param EmbeddedReference $annotation
+     *
+     * @return $this
+     */
+    protected function registerEmbeddedReference(Definition $metaDataDefinition, $class, $property, EmbeddedReference $annotation)
+    {
+        $metaDataDefinition->addMethodCall('addClassPropertyEmbeddedReference', [$class, $property, get_object_vars($annotation)]);
+
+        return $this;
+    }
+    /**
+     * @param Definition $metaDataDefinition
+     * @param $class
+     * @param $property
+     * @param Refresh $annotation
+     *
+     * @return $this
+     */
+    protected function registerRefresh(Definition $metaDataDefinition, $class, $property, Refresh $annotation)
+    {
+        $metaDataDefinition->addMethodCall('addClassPropertyRefresh', [$class, $property, get_object_vars($annotation)]);
+
+        return $this;
+    }
+    /**
+     * @param Definition $metaDataDefinition
+     * @param $class
+     * @param $property
+     * @param Type $annotation
+     *
+     * @return $this
+     */
+    protected function registerType(Definition $metaDataDefinition, $class, $property, Type $annotation)
+    {
+        $metaDataDefinition->addMethodCall('setClassPropertyType', [$class, $property, get_object_vars($annotation)]);
+
+        return $this;
+    }
+}

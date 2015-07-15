@@ -9,18 +9,18 @@
  * file that was distributed with this source code.
  */
 
-namespace Velocity\Bundle\ApiBundle\Controller;
+namespace Velocity\Bundle\ApiBundle\Annotation;
 
-use Velocity\Core\Behaviour\Controller\Base\ErrorControllerTrait;
-
-use Symfony\Bundle\FrameworkBundle\Controller\Controller;
+use Doctrine\Common\Annotations\Annotation;
 
 /**
- * Error management controller.
+ * Refresh annotation
  *
  * @author Olivier Hoareau <olivier@phppro.fr>
+ *
+ * @Annotation
+ * @Target("PROPERTY")
  */
-class ErrorController extends Controller
+final class Refresh extends Annotation
 {
-    use ErrorControllerTrait;
 }

@@ -1,0 +1,15 @@
+parameters:
+
+services:
+  api.command.dbUp:
+    class: %api.ns%\Command\DbUpCommand
+    arguments:
+      - @api.database
+    tags:
+      - { name: console.command }
+  api.command.dbDrop:
+    class: %api.ns%\Command\DbDropCommand
+    arguments:
+      - @api.database
+    tags:
+      - { name: console.command }

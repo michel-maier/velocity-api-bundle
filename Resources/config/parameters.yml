@@ -1,0 +1,12 @@
+parameters:
+  ns: AppBundle
+  api.ns: Velocity\Bundle\ApiBundle
+  jms_serializer.camel_case_naming_strategy.class: JMS\Serializer\Naming\IdenticalPropertyNamingStrategy
+  app.db.dir: "%kernel.root_dir%/../src/AppBundle/Resources/database"
+  app.mongo.server: 'mongodb://localhost:27017'
+  app.mongo.db: api_local
+  app.security.client.secret: myclientsecret
+  app.security.user.secret: myusersecret
+  app.env: local
+
+

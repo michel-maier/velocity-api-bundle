@@ -16,7 +16,7 @@ use Velocity\Core\Twig\Base\TwigBaseExtension;
 /**
  * @author Olivier Hoareau <olivier@phppro.fr>
  */
-class AppExtension extends TwigBaseExtension
+class ApiExtension extends TwigBaseExtension
 {
     /**
      * @return array
@@ -55,6 +55,6 @@ class AppExtension extends TwigBaseExtension
      */
     public function getName()
     {
-        return 'velocity_app';
+        return 'velocity_api';
     }
 }

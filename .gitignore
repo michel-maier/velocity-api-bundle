@@ -2,3 +2,6 @@
 /composer.phar
 /composer.lock
 /vendor/*
+/bin/phploc
+/bin/phpunit
+/bin/security-checker
