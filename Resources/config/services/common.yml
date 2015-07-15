@@ -20,7 +20,7 @@ services:
   api.mongo:
     class: MongoClient
     arguments:
-      - %api.mongo.server%
+      - %app.mongo.server%
   api.database:
     class: %api.ns%\Service\DatabaseService
     arguments:

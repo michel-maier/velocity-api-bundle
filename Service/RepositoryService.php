@@ -6,7 +6,6 @@ use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
 use Velocity\Bundle\ApiBundle\Traits\LoggerServiceAwareTrait;
 use Velocity\Bundle\ApiBundle\Traits\DatabaseServiceAwareTrait;
 use Velocity\Bundle\ApiBundle\Traits\TranslatorAwareTrait;
-use Symfony\Component\Translation\TranslatorInterface;
 use /** @noinspection PhpUndefinedClassInspection */ MongoDuplicateKeyException;
 
 class RepositoryService
@@ -16,24 +15,11 @@ class RepositoryService
     use DatabaseServiceAwareTrait;
     use TranslatorAwareTrait;
     /**
-     * @param DatabaseService     $databaseService
-     * @param TranslatorInterface $translator
-     * @param string              $collectionName
-     * @param string              $idField
-     */
-    public function __construct(DatabaseService $databaseService, TranslatorInterface $translator, $collectionName, $idField = '_id')
-    {
-        $this->setDatabaseService($databaseService);
-        $this->setTranslator($translator);
-        $this->setCollectionName($collectionName);
-        $this->setIdField($idField);
-    }
-    /**
      * @param string $collectionName
      *
      * @return $this
      */
-    protected function setCollectionName($collectionName)
+    public function setCollectionName($collectionName)
     {
         return $this->setParameter('collectionName', $collectionName);
     }
@@ -67,7 +53,7 @@ class RepositoryService
      *
      * @return $this
      */
-    protected function setIdField($idField)
+    public function setIdField($idField)
     {
         return $this->setParameter('idField', $idField);
     }

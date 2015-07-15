@@ -6,6 +6,6 @@ services:
   api.listener.exception:
     class: %api.ns%\Listener\ExceptionListener
     arguments:
-      - @app.exception
+      - @api.exception
     tags:
       - { name: kernel.event_listener, event: kernel.exception, method: onKernelException }

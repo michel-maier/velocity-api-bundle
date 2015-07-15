@@ -221,7 +221,7 @@ class FormService
 
         $namespaces =
               $this->getTypeNamespaces()
-            + ['AppBundle/Form/Type', str_replace('/', '\\', dirname(str_replace('\\', '/', __NAMESPACE__)) . '/Form/Type')]
+            + ['AppBundle\\Form\\Type', str_replace('/', '\\', dirname(str_replace('\\', '/', __NAMESPACE__)) . '/Form/Type')]
         ;
 
         foreach($namespaces as $ns) {

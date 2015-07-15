@@ -30,24 +30,46 @@ use Symfony\Component\Security\Core\Authentication\Provider\AuthenticationProvid
  */
 class ApiAuthenticationProvider implements AuthenticationProviderInterface
 {
-    use RequestServiceAwareTrait;
     use ServiceTrait;
-    /**
-     * @var UserProviderInterface
-     */
-    private $userProvider;
-    /**
-     * @var ClientServiceInterface
-     */
-    private $clientService;
+    use RequestServiceAwareTrait;
     /**
      * @param UserProviderInterface  $userProvider
-     * @param ClientServiceInterface $clientService
      */
-    public function __construct(UserProviderInterface $userProvider, ClientServiceInterface $clientService)
+    public function __construct(UserProviderInterface $userProvider)
     {
-        $this->userProvider = $userProvider;
-        $this->clientService = $clientService;
+        $this->setUserProvider($userProvider);
+    }
+    /**
+     * @param ClientServiceInterface $clientService
+     *
+     * @return $this
+     */
+    public function setClientService(ClientServiceInterface $clientService)
+    {
+        return $this->setService('client', $clientService);
+    }
+    /**
+     * @return ClientServiceInterface
+     */
+    public function getClientService()
+    {
+        return $this->getService('client');
+    }
+    /**
+     * @param UserProviderInterface $clientService
+     *
+     * @return $this
+     */
+    public function setUserProvider(UserProviderInterface $clientService)
+    {
+        return $this->setService('userProvider', $clientService);
+    }
+    /**
+     * @return UserProviderInterface
+     */
+    public function getUserProvider()
+    {
+        return $this->getService('userProvider');
     }
     /**
      * @param TokenInterface $token
@@ -66,7 +88,7 @@ class ApiAuthenticationProvider implements AuthenticationProviderInterface
 
         if ($token->isImpersonating()) {
             /** @var ApiUser $sudoer */
-            $sudoer = $this->userProvider->loadUserByUsername($token->getUsername());
+            $sudoer = $this->getUserProvider()->loadUserByUsername($token->getUsername());
 
             if (!$sudoer->isAllowedToSwitch()) {
                 throw new MissingSudoPrivilegeException;
@@ -78,7 +100,7 @@ class ApiAuthenticationProvider implements AuthenticationProviderInterface
         return new ApiAuthenticatedUserToken(
             $clientTokenInfos,
             $userTokenInfos,
-            $this->userProvider->loadUserByUsername($username)
+            $this->getUserProvider()->loadUserByUsername($username)
         );
     }
     /**
@@ -101,7 +123,7 @@ class ApiAuthenticationProvider implements AuthenticationProviderInterface
         }
 
         if (isset($infos['id'])) {
-            return array_merge($infos, $this->clientService->get($infos['id'], [], ['model' => false]));
+            return array_merge($infos, $this->getClientService()->get($infos['id'], [], ['model' => false]));
         }
 
         return $infos;

@@ -12,10 +12,10 @@
 namespace Velocity\Bundle\ApiBundle\Service\Base;
 
 use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
-use Velocity\Bundle\ApiBundle\Service\FormService;
 use Velocity\Bundle\ApiBundle\Service\MetaDataService;
 use Velocity\Bundle\ApiBundle\Service\RepositoryService;
 use Velocity\Bundle\ApiBundle\Traits\FormServiceAwareTrait;
+use Velocity\Bundle\ApiBundle\Traits\LoggerServiceAwareTrait;
 use Velocity\Bundle\ApiBundle\Service\DocumentServiceInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
@@ -27,28 +27,8 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 class DocumentService implements DocumentServiceInterface
 {
     use ServiceTrait;
+    use LoggerServiceAwareTrait;
     use FormServiceAwareTrait;
-    /**
-     * @param RepositoryService        $repository
-     * @param FormService              $formService
-     * @param MetaDataService          $metaDataService
-     * @param EventDispatcherInterface $eventDispatcher
-     * @param string                   $type
-     */
-    public function __construct(
-        RepositoryService $repository, FormService $formService, MetaDataService $metaDataService, EventDispatcherInterface $eventDispatcher, $type = null
-    )
-    {
-        $this->setRepository($repository);
-        $this->setFormService($formService);
-        $this->setMetaDataService($metaDataService);
-        $this->setEventDispatcher($eventDispatcher);
-        $this->setType(
-            $type ?
-                $type :
-                lcfirst(preg_replace('/Service$/', '', basename(str_replace('\\', '/', get_class($this)))))
-        );
-    }
     /**
      * @param MetaDataService $service
      *
@@ -70,7 +50,7 @@ class DocumentService implements DocumentServiceInterface
      *
      * @return $this
      */
-    protected function setType($type)
+    public function setType($type)
     {
         return $this->setParameter('type', $type);
     }

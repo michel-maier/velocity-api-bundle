@@ -13,6 +13,7 @@ namespace Velocity\Bundle\ApiBundle;
 
 use Symfony\Component\HttpKernel\Bundle\Bundle;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Velocity\Bundle\ApiBundle\DependencyInjection\Compiler\TagCompilerPass;
 use Velocity\Bundle\ApiBundle\DependencyInjection\Security\Factory\ApiFactory;
 use Velocity\Bundle\ApiBundle\DependencyInjection\Compiler\AnnotationCompilerPass;
 
@@ -32,5 +33,6 @@ class VelocityApiBundle extends Bundle
         $extension->addSecurityListenerFactory(new ApiFactory());
 
         $container->addCompilerPass(new AnnotationCompilerPass());
+        $container->addCompilerPass(new TagCompilerPass());
     }
 }

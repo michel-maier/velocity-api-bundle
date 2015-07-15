@@ -14,6 +14,7 @@ namespace Velocity\Bundle\ApiBundle\Service\Base;
 use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
 use Velocity\Bundle\ApiBundle\Exception\ImportException;
 use Velocity\Bundle\ApiBundle\Traits\FormServiceAwareTrait;
+use Velocity\Bundle\ApiBundle\Traits\LoggerServiceAwareTrait;
 use Velocity\Bundle\ApiBundle\Exception\FormValidationException;
 
 /**
@@ -25,6 +26,7 @@ class SubDocumentService
 {
     use ServiceTrait;
     use FormServiceAwareTrait;
+    use LoggerServiceAwareTrait;
     /**
      * @var string
      */
@@ -48,6 +50,18 @@ class SubDocumentService
         $this->subType =
             $subType ? $subType : lcfirst(basename(dirname(str_replace('\\', '/', get_class($this)))));
         $this->fields = [];
+    }
+    public function setType($type)
+    {
+        $this->type = $type;
+
+        return $this;
+    }
+    public function setSubType($subType)
+    {
+        $this->subType = $subType;
+
+        return $this;
     }
     /**
      * @return array
