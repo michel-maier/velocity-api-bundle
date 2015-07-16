@@ -13,6 +13,7 @@ namespace Velocity\Bundle\ApiBundle\Controller\Base;
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Velocity\Bundle\ApiBundle\Service\RequestService;
 use Velocity\Bundle\ApiBundle\Service\DocumentServiceInterface;
 
 /**
@@ -34,6 +35,13 @@ abstract class DocumentController extends RestController
         );
     }
     /**
+     * @return RequestService
+     */
+    protected function getRequestService()
+    {
+        return $this->get('api.request');
+    }
+    /**
      * @param Request $request
      * @param array    $options
      *
@@ -43,11 +51,11 @@ abstract class DocumentController extends RestController
     {
         return $this->returnResponse(
             $this->getService()->find(
-                $request->get('criteria', []),
-                $request->get('fields', []),
-                $request->get('limit', null),
-                intval($request->get('offset', 0)),
-                $request->get('sorts', []),
+                $this->getRequestService()->fetchQueryCriteria($request),
+                $this->getRequestService()->fetchQueryFields($request),
+                $this->getRequestService()->fetchQueryLimit($request),
+                $this->getRequestService()->fetchQueryOffset($request),
+                $this->getRequestService()->fetchQuerySorts($request),
                 $options
             ),
             200,
@@ -65,8 +73,8 @@ abstract class DocumentController extends RestController
     {
         return $this->returnResponse(
             $this->getService()->get(
-                $request->attributes->get('id'),
-                $request->get('fields', []),
+                $this->getRequestService()->fetchRouteParameter($request, 'id'),
+                $this->getRequestService()->fetchQueryFields($request),
                 $options
             ),
             200,
@@ -83,7 +91,7 @@ abstract class DocumentController extends RestController
     protected function handleDelete(Request $request, $options = [])
     {
         $this->getService()->delete(
-            $request->attributes->get('id'),
+            $this->getRequestService()->fetchRouteParameter($request, 'id'),
             $options
         );
         return $this->returnResponse(null, 204);
@@ -112,8 +120,8 @@ abstract class DocumentController extends RestController
     {
         return $this->returnResponse(
             $this->getService()->update(
-                $request->attributes->get('id'),
-                $request->request->all(),
+                $this->getRequestService()->fetchRouteParameter($request, 'id'),
+                $this->getRequestService()->fetchRequestData($request),
                 $options
             ),
             200,
@@ -131,7 +139,7 @@ abstract class DocumentController extends RestController
     {
         return $this->returnResponse(
             $this->getService()->create(
-                $request->request->all(),
+                $this->getRequestService()->fetchRequestData($request),
                 $options
             ),
             200,

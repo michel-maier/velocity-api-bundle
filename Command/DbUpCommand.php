@@ -17,8 +17,7 @@ use Symfony\Component\Console\Input\InputArgument;
 use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Velocity\Bundle\ApiBundle\Service\DatabaseService;
-use Velocity\Bundle\ApiBundle\Traits\DatabaseServiceAwareTrait;
+use Velocity\Bundle\ApiBundle\Service\MigrationService;
 
 /**
  * DB Up Commmand
@@ -28,14 +27,29 @@ use Velocity\Bundle\ApiBundle\Traits\DatabaseServiceAwareTrait;
 class DbUpCommand extends Command
 {
     use ServiceTrait;
-    use DatabaseServiceAwareTrait;
     /**
-     * @param DatabaseService $databaseService
+     * @param MigrationService $migrationService
      */
-    public function __construct(DatabaseService $databaseService)
+    public function __construct(MigrationService $migrationService)
     {
         parent::__construct();
-        $this->setDatabaseService($databaseService);
+        $this->setMigrationService($migrationService);
+    }
+    /**
+     * @param MigrationService $migrationService
+     *
+     * @return $this
+     */
+    public function setMigrationService(MigrationService $migrationService)
+    {
+        return $this->setService('migration', $migrationService);
+    }
+    /**
+     * @return MigrationService
+     */
+    public function getMigrationService()
+    {
+        return $this->getService('migration');
     }
     /**
      *
@@ -56,6 +70,6 @@ class DbUpCommand extends Command
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $this->getDatabaseService()->upgrade();
+        $this->getMigrationService()->upgrade();
     }
 }

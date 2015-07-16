@@ -4,7 +4,7 @@ namespace Velocity\Bundle\ApiBundle\Traits;
 
 use Psr\Log\LoggerInterface;
 
-trait LoggerServiceAwareTrait
+trait LoggerAwareTrait
 {
     /**
      * @param string $key
@@ -24,14 +24,14 @@ trait LoggerServiceAwareTrait
      *
      * @return $this
      */
-    public function setLoggerService(LoggerInterface $service)
+    public function setLogger(LoggerInterface $service)
     {
         return $this->setService('logger', $service);
     }
     /**
      * @return LoggerInterface
      */
-    public function getLoggerService()
+    public function getLogger()
     {
         return $this->getService('logger');
     }
@@ -43,7 +43,7 @@ trait LoggerServiceAwareTrait
      */
     protected function log($msg, $level = 'debug')
     {
-        $this->getLoggerService()->log($level, call_user_func_array('sprintf', func_get_args()));
+        $this->getLogger()->log($level, call_user_func_array('sprintf', func_get_args()));
 
         return $this;
     }

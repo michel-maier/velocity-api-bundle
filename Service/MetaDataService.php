@@ -45,6 +45,26 @@ class MetaDataService
      *
      * @return $this
      */
+    public function addClassPropertyEmbeddedReferenceList($class, $property, $definition)
+    {
+        if (!isset($this->classes[$class])) {
+            $this->classes[$class] = [];
+        }
+        if (!isset($this->classes[$class]['embeddedReferenceLists'])) {
+            $this->classes[$class]['embeddedReferenceLists'] = [];
+        }
+
+        $this->classes[$class]['embeddedReferenceLists'][$property] = $definition;
+
+        return $this;
+    }
+    /**
+     * @param string $class
+     * @param string $property
+     * @param array  $definition
+     *
+     * @return $this
+     */
     public function addClassPropertyRefresh($class, $property, $definition)
     {
         if (!isset($this->classes[$class])) {
@@ -64,6 +84,29 @@ class MetaDataService
 
             $this->classes[$class]['refreshes'][$operation][$property] = true;
         }
+
+        return $this;
+    }
+    /**
+     * @param string $class
+     * @param string $property
+     * @param array  $definition
+     *
+     * @return $this
+     */
+    public function addClassPropertyGenerated($class, $property, $definition)
+    {
+        if (!isset($this->classes[$class])) {
+            $this->classes[$class] = [];
+        }
+        if (!isset($this->classes[$class]['generateds'])) {
+            $this->classes[$class]['generateds'] = [];
+        }
+
+        $definition['type'] = $definition['value'];
+        unset($definition['value']);
+
+        $this->classes[$class]['generateds'][$property] = $definition;
 
         return $this;
     }
@@ -99,6 +142,38 @@ class MetaDataService
 
         return isset($this->classes[$class]['embeddedReferences'])
             ? $this->classes[$class]['embeddedReferences']
+            : []
+        ;
+    }
+    /**
+     * @param string|Object $class
+     *
+     * @return array
+     */
+    public function getGeneratedsByClass($class)
+    {
+        if (is_object($class)) {
+            $class = get_class($class);
+        }
+
+        return isset($this->classes[$class]['generateds'])
+            ? $this->classes[$class]['generateds']
+            : []
+        ;
+    }
+    /**
+     * @param string|Object $class
+     *
+     * @return array
+     */
+    public function getEmbeddedReferenceListsByClass($class)
+    {
+        if (is_object($class)) {
+            $class = get_class($class);
+        }
+
+        return isset($this->classes[$class]['embeddedReferenceLists'])
+            ? $this->classes[$class]['embeddedReferenceLists']
             : []
         ;
     }

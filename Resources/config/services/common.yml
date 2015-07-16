@@ -1,17 +1,19 @@
 services:
   api.metadata:
-    class: %api.ns%\Service\MetaDataService
+    class: Velocity\Bundle\ApiBundle\Service\MetaDataService
   api.exception:
-    class: %api.ns%\Service\ExceptionService
+    class: Velocity\Bundle\ApiBundle\Service\ExceptionService
     arguments:
       - @request_stack
       - @api.form
   api.supervision:
-    class: %api.ns%\Service\SupervisionService
+    class: Velocity\Bundle\ApiBundle\Service\SupervisionService
     arguments:
       - @security.context
+  api.math:
+    class: Velocity\Bundle\ApiBundle\Service\MathService
   api.request:
-    class: %api.ns%\Service\RequestService
+    class: Velocity\Bundle\ApiBundle\Service\RequestService
     arguments:
       - @api.security.provider.user.api
       - @app.client
@@ -22,18 +24,21 @@ services:
     arguments:
       - %app.mongo.server%
   api.database:
-    class: %api.ns%\Service\DatabaseService
+    class: Velocity\Bundle\ApiBundle\Service\DatabaseService
     arguments:
       - @api.mongo
+      - %app.mongo.db%
+  api.migration:
+    class: Velocity\Bundle\ApiBundle\Service\MigrationService
+    arguments:
+      - @api.database
       - @logger
       - @api.form
       - @service_container
-    calls:
-      - [setCollectionName, ['migration']]
-      - [setDatabaseName, ["%app.mongo.db%"]]
-      - [setEnvironment, ["%app.env%"]]
-      - [setDirectory, ["%app.db.dir%"]]
+      - 'migration'
+      - %app.db.dir%
+      - %app.env%
   api.form:
-    class: %api.ns%\Service\FormService
+    class: Velocity\Bundle\ApiBundle\Service\FormService
     arguments:
       - @form.factory

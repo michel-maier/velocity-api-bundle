@@ -15,7 +15,7 @@ use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
 use Velocity\Bundle\ApiBundle\Service\MetaDataService;
 use Velocity\Bundle\ApiBundle\Service\RepositoryService;
 use Velocity\Bundle\ApiBundle\Traits\FormServiceAwareTrait;
-use Velocity\Bundle\ApiBundle\Traits\LoggerServiceAwareTrait;
+use Velocity\Bundle\ApiBundle\Traits\LoggerAwareTrait;
 use Velocity\Bundle\ApiBundle\Service\DocumentServiceInterface;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
@@ -27,7 +27,7 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 class DocumentService implements DocumentServiceInterface
 {
     use ServiceTrait;
-    use LoggerServiceAwareTrait;
+    use LoggerAwareTrait;
     use FormServiceAwareTrait;
     /**
      * @param MetaDataService $service
@@ -151,15 +151,36 @@ class DocumentService implements DocumentServiceInterface
         $doc = $this->createModelInstance($options);
 
         $embeddedReferences = $this->getMetaDataService()->getEmbeddedReferencesByClass($doc);
+        $embeddedReferenceLists = $this->getMetaDataService()->getEmbeddedReferenceListsByClass($doc);
 
         foreach($data as $k => $v) {
             if (isset($embeddedReferences[$k])) {
                 $v = $this->mutateArrayToObject($v, $embeddedReferences[$k]['class']);
             }
+            if (isset($embeddedReferenceLists[$k])) {
+                $v = []; // @todo
+            }
             $doc->$k = $v;
         }
 
         return $doc;
+    }
+    /**
+     * @param array $definition
+     * @param mixed $entireDoc
+     *
+     * @return string
+     */
+    protected function generateValue($definition, $entireDoc)
+    {
+        unset($entireDoc);
+
+        switch($definition['type']) {
+            case 'sha1': return sha1(md5(rand(0, 1000) . microtime(true) . rand(rand(0, 100), 10000)));
+            default:
+                $this->throwException(500, "Unsupported generate type '%s'", $definition['type']);
+                return $this;
+        }
     }
     /**
      * @param array $data
@@ -423,6 +444,28 @@ class DocumentService implements DocumentServiceInterface
         return $doc;
     }
     /**
+     * @param mixed $doc
+     * @param array $options
+     *
+     * @return mixed
+     */
+    protected function onCreateBuildGenerateds($doc, $options = [])
+    {
+        if (!is_object($doc)) {
+            return $doc;
+        }
+
+        unset($options);
+
+        $generateds = $this->getMetaDataService()->getGeneratedsByClass($doc);
+
+        foreach($generateds as $k => $v) {
+            $doc->$k = $this->generateValue($v, $doc);
+        }
+
+        return $doc;
+    }
+    /**
      * @param array $data
      * @param array $options
      *
@@ -436,6 +479,7 @@ class DocumentService implements DocumentServiceInterface
 
         $doc = $this->onCreateFetchEmbeddedReferences($doc, $options);
         $doc = $this->onCreateTriggerRefreshes($doc, $options);
+        $doc = $this->onCreateBuildGenerateds($doc, $options);
 
         $doc  = $this->onCreateBeforeSave($doc, $options);
         $doc  = $this->onCreateSave($doc, $options);

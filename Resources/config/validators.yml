@@ -1,5 +1,5 @@
 services:
   api.validator.mongoId:
-        class: %api.ns%\Validator\Constraints\MongoIdValidator
+        class: Velocity\Bundle\ApiBundle\Validator\Constraints\MongoIdValidator
         tags:
           - { name: validator.constraint_validator, alias: api_mongoId }

@@ -4,12 +4,12 @@ namespace Velocity\Bundle\ApiBundle\Service;
 
 use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
 use Velocity\Bundle\ApiBundle\Security\ApiUserProvider;
-use Velocity\Bundle\ApiBundle\Traits\LoggerServiceAwareTrait;
+use Velocity\Bundle\ApiBundle\Traits\LoggerAwareTrait;
 use Symfony\Component\HttpFoundation\Request;
 
 class RequestService
 {
-    use LoggerServiceAwareTrait;
+    use LoggerAwareTrait;
     use ServiceTrait;
     /**
      * @var string
@@ -594,5 +594,99 @@ class RequestService
                 $token
             )
         ];
+    }
+    /**
+     * @param Request $request
+     * @return array
+     */
+    public function fetchQueryCriteria(Request $request)
+    {
+        $v = $request->get('criteria', []);
+
+        if (!is_array($v)) $v = [];
+
+        return $v;
+    }
+    /**
+     * @param Request $request
+     *
+     * @return array
+     */
+    public function fetchQueryFields(Request $request)
+    {
+        $v = $request->get('fields', []);
+
+        if (!is_array($v) || !count($v)) return [];
+
+        $fields = [];
+
+        foreach($v as $field) {
+            if ('!' === substr($field, 0, 1)) {
+                $fields[substr($field, 1)] = false;
+            } else {
+                $fields[$field] = true;
+            }
+        }
+
+        return $fields;
+    }
+    /**
+     * @param Request $request
+     *
+     * @return null|int
+     */
+    public function fetchQueryLimit(Request $request)
+    {
+        $v = $request->get('limit', null);
+
+        return strlen($v) ? intval($v) : null;
+    }
+    /**
+     * @param Request $request
+     *
+     * @return int
+     */
+    public function fetchQueryOffset(Request $request)
+    {
+        $v = intval($request->get('offset', 0));
+
+        return 0 > $v ? 0 : $v;
+    }
+    /**
+     * @param Request $request
+     *
+     * @return array
+     */
+    public function fetchQuerySorts(Request $request)
+    {
+        $v = $request->get('sorts', []);
+
+        if (!is_array($v) || !count($v)) return [];
+
+        return array_map(
+            function ($a) {
+                return (int)$a;
+            },
+            $v
+        );
+    }
+    /**
+     * @param Request $request
+     *
+     * @return array
+     */
+    public function fetchRequestData(Request $request)
+    {
+        return $request->request->all();
+    }
+    /**
+     * @param Request $request
+     * @param string $parameter
+     *
+     * @return mixed
+     */
+    public function fetchRouteParameter(Request $request, $parameter)
+    {
+        return $request->attributes->get($parameter);
     }
 }

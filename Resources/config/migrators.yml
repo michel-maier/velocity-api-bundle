@@ -1,0 +1,9 @@
+services:
+  api.migrator.php:
+    class: Velocity\Bundle\ApiBundle\Migrator\PhpMigrator
+    tags:
+      - {name: api.migrator, extension: php}
+  api.migrator.yaml:
+    class: Velocity\Bundle\ApiBundle\Migrator\YamlMigrator
+    tags:
+      - {name: api.migrator, extension: yaml}

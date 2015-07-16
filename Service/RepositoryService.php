@@ -3,7 +3,7 @@
 namespace Velocity\Bundle\ApiBundle\Service;
 
 use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
-use Velocity\Bundle\ApiBundle\Traits\LoggerServiceAwareTrait;
+use Velocity\Bundle\ApiBundle\Traits\LoggerAwareTrait;
 use Velocity\Bundle\ApiBundle\Traits\DatabaseServiceAwareTrait;
 use Velocity\Bundle\ApiBundle\Traits\TranslatorAwareTrait;
 use /** @noinspection PhpUndefinedClassInspection */ MongoDuplicateKeyException;
@@ -11,7 +11,7 @@ use /** @noinspection PhpUndefinedClassInspection */ MongoDuplicateKeyException;
 class RepositoryService
 {
     use ServiceTrait;
-    use LoggerServiceAwareTrait;
+    use LoggerAwareTrait;
     use DatabaseServiceAwareTrait;
     use TranslatorAwareTrait;
     /**
@@ -29,17 +29,6 @@ class RepositoryService
     public function getCollectionName()
     {
         return $this->getParameterIfExists('collectionName');
-    }
-    /**
-     * @param string $name
-     *
-     * @return \MongoCollection
-     */
-    protected function getCollection($name = null)
-    {
-        if (!$name) $name = $this->getCollectionName();
-
-        return $this->getDatabaseService()->getCollection($name);
     }
     /**
      * @return string
@@ -80,7 +69,7 @@ class RepositoryService
                 $this->checkDocumentNotExist($realData[$this->getIdField()]);
             }
         } elseif (isset($realData['id'])) {
-            $realData['_id'] = $this->buildId($realData['id']);
+            $realData['_id'] = $realData['id'];
             unset($realData['id']);
         }
         if (isset($realData['unsaved'])) {
@@ -168,13 +157,13 @@ class RepositoryService
                     $this->checkDocumentNotExist($data[$this->getIdField()]);
                 }
             } elseif (isset($data['id'])) {
-                $data['_id'] = $this->buildId($data['id']);
+                $data['_id'] = $data['id'];
                 unset($data['id']);
             }
             $bulkData[$i] = $data;
         }
 
-        $this->batchInsert($bulkData, ['new' => true]);
+        $this->bulkInsert($bulkData, ['new' => true]);
 
         foreach(array_keys($bulkData) as $i) {
             if (!$this->getIdField()) {
@@ -185,21 +174,6 @@ class RepositoryService
 
 
         return $bulkData;
-    }
-    /**
-     * @param string $id
-     *
-     * @return array
-     */
-    protected function getIdCriteria($id)
-    {
-        if ($this->getIdField()) {
-            $criteria = [$this->getIdField() => $id];
-        } else {
-            $criteria = ['_id' => $this->buildId($id)];
-        }
-
-        return $criteria;
     }
     /**
      * @param string $id
@@ -218,7 +192,7 @@ class RepositoryService
             return $this->getDocumentBy($idField, $id, $fields, $criteria);
         } else {
             try {
-                return $this->getDocumentBy('_id', $this->buildId($id), $fields, $criteria);
+                return $this->getDocumentBy('_id', $id, $fields, $criteria);
             } catch (\Exception $e) {
                 if (412 === $e->getCode() && 'Malformed id' === $e->getMessage()) {
                     $this->throwException(
@@ -272,7 +246,7 @@ class RepositoryService
      */
     public function hasDocument($id)
     {
-        return null !== $this->findOne($this->getIdCriteria($id));
+        return null !== $this->findOne([$this->getIdField() => $id]);
     }
     /**
      * @param string $id
@@ -363,12 +337,12 @@ class RepositoryService
                 if (is_array($criteria['id'])) {
                     $or = [];
                     foreach ($criteria['id'] as $i => $_id) {
-                        $or[] = ['_id' => $this->buildId($_id)];
+                        $or[] = ['_id' => $_id];
                     }
                     $criteria['$or'] = $or;
                     unset($criteria['id']);
                 } else {
-                    $criteria['_id'] = $this->buildId($criteria['id']);
+                    $criteria['_id'] = $criteria['id'];
                     unset($criteria['id']);
                 }
             }
@@ -416,7 +390,7 @@ class RepositoryService
      */
     public function deleteDocument($id)
     {
-        $this->remove($this->getIdCriteria($id));
+        $this->remove([$this->getIdField() => $id]);
 
         return $this;
     }
@@ -429,7 +403,7 @@ class RepositoryService
     {
         if (!$this->getIdField()) {
             if (isset($criteria['id'])) {
-                $criteria['_id'] = $this->buildId($criteria['id']);
+                $criteria['_id'] = $criteria['id'];
                 unset($criteria['id']);
             }
         }
@@ -521,7 +495,7 @@ class RepositoryService
      */
     public function updateDocument($id, $data)
     {
-        $this->update($this->getIdCriteria($id), $data);
+        $this->update([$this->getIdField() => $id], $data);
 
         return $this;
     }
@@ -599,7 +573,9 @@ class RepositoryService
      */
     protected function update($criteria, $data = [], $options = [])
     {
-        return $this->getCollection()->update($criteria, $data, $options);
+        return $this->getDatabaseService()->update(
+            $this->getCollectionName(), $criteria, $data, $options
+        );
     }
     /**
      * @param array $criteria
@@ -609,7 +585,9 @@ class RepositoryService
      */
     protected function remove($criteria, $options = [])
     {
-        return $this->getCollection()->remove($criteria, $options);
+        return $this->getDatabaseService()->remove(
+            $this->getCollectionName(), $criteria, $options
+        );
     }
     /**
      * @param array $data
@@ -622,13 +600,15 @@ class RepositoryService
     protected function insert($data, $options = [])
     {
         try {
-            return $this->getCollection()->insert($data, $options);
-        } catch (\Exception $e) {
-            /** @noinspection PhpUndefinedClassInspection */
-            if ($e instanceof MongoDuplicateKeyException) {
-                $this->throwException(412, "{type} already exist", ['{type}' => $this->translate($this->getCollectionName())]);
-            }
-            throw $e;
+            return $this->getDatabaseService()
+                ->insert($this->getCollectionName(), $data, $options);
+        } /** @noinspection PhpUndefinedClassInspection */ catch (MongoDuplicateKeyException $e) {
+            $this->throwException(
+                412,
+                "{type} already exist",
+                ['{type}' => $this->translate($this->getCollectionName())]
+            );
+            return $this;
         }
     }
     /**
@@ -637,30 +617,11 @@ class RepositoryService
      *
      * @return array|bool
      */
-    protected function batchInsert($bulkData, $options = [])
+    protected function bulkInsert($bulkData, $options = [])
     {
-        return $this->getCollection()->batchInsert($bulkData, $options);
-    }
-    /**
-     * @param array $fields
-     *
-     * @return array
-     */
-    protected function buildFieldList($fields)
-    {
-        $_fields = [];
-
-        if (is_array($fields)   && count($fields)) {
-            foreach($fields as $field) {
-                if ('!' === substr($field, 0, 1)) {
-                    $_fields[substr($field, 1)] = false;
-                } else {
-                    $_fields[$field] = true;
-                }
-            }
-        }
-
-        return $_fields;
+        return $this->getDatabaseService()->bulkInsert(
+            $this->getCollectionName(), $bulkData, $options
+        );
     }
     /**
      * @param array    $criteria
@@ -668,31 +629,28 @@ class RepositoryService
      * @param int|null $limit
      * @param int      $offset
      * @param array    $sorts
+     * @param array    $options
      *
      * @return \MongoCursor
      */
-    protected function find($criteria, $fields = [], $limit = null, $offset = 0, $sorts = [])
+    protected function find($criteria, $fields = [], $limit = null, $offset = 0, $sorts = [], $options = [])
     {
-        $cursor = $this->getCollection()->find($criteria);
-
-        $_fields = $this->buildFieldList($fields);
-
-        if (is_array($_fields)  && count($_fields)) $cursor->fields($_fields);
-        if (is_array($sorts)    && count($sorts))   $cursor->sort(array_map(function ($a) { return (int)$a;}, $sorts));
-        if (is_numeric($offset) && $offset > 0)     $cursor->skip($offset);
-        if (is_numeric($limit)  && $limit > 0)      $cursor->limit($limit);
-
-        return $cursor;
+        return $this->getDatabaseService()->find(
+            $this->getCollectionName(), $criteria, $fields, $limit, $offset, $sorts, $options
+        );
     }
     /**
      * @param array $criteria
      * @param array $fields
+     * @param array $options
      *
      * @return \MongoCursor
      */
-    protected function findOne($criteria, $fields = [])
+    protected function findOne($criteria, $fields = [], $options = [])
     {
-        return $this->getCollection()->findOne($criteria, $this->buildFieldList($fields));
+        return $this->getDatabaseService()->findOne(
+            $this->getCollectionName(), $criteria, $fields, $options
+        );
     }
     /**
      * @param array  $data
@@ -747,19 +705,6 @@ class RepositoryService
         return $doc;
     }
     /**
-     * @param string $id
-     *
-     * @return \MongoId
-     */
-    protected function buildId($id)
-    {
-        if (!preg_match('/^[a-f0-9]{24}$/', $id)) {
-            $this->throwException(412, 'Malformed id');
-        }
-
-        return new \MongoId($id);
-    }
-    /**
      * @param array $index
      *
      * @return RepositoryService
@@ -770,10 +715,11 @@ class RepositoryService
     }
     /**
      * @param array $indexes
+     * @param array $options
      *
      * @return $this
      */
-    public function createIndexes($indexes)
+    public function createIndexes($indexes, $options = [])
     {
         foreach($indexes as $index) {
             if (is_string($index)) {
@@ -784,7 +730,8 @@ class RepositoryService
             }
             $fields = $index['field'];
             unset($index['field']);
-            $this->getCollection()->ensureIndex(is_array($fields) ? $fields : [$fields => true], $index);
+            $this->getDatabaseService()
+                ->ensureIndex($this->getCollectionName(), $fields, $index, $options);
         }
 
         return $this;

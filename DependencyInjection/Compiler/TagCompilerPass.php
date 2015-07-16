@@ -32,6 +32,7 @@ class TagCompilerPass implements CompilerPassInterface
         $this->processSubCrudTag($container);
         $this->processProviderClientTag($container);
         $this->processProviderAccountTag($container);
+        $this->processMigratorTag($container);
     }
     /**
      * @param ContainerBuilder $container
@@ -53,7 +54,7 @@ class TagCompilerPass implements CompilerPassInterface
             $definition->addMethodCall('setDatabaseService', [new Reference('api.database')]);
             $definition->addMethodCall('setTranslator', [new Reference('translator')]);
             $definition->addMethodCall('setEventDispatcher', [new Reference('event_dispatcher')]);
-            $definition->addMethodCall('setLoggerService', [new Reference('logger')]);
+            $definition->addMethodCall('setLogger', [new Reference('logger')]);
             $definition->addMethodCall('setCollectionName', [$collectionName]);
             $definition->addMethodCall('setIdField', [$idField]);
         }
@@ -78,7 +79,7 @@ class TagCompilerPass implements CompilerPassInterface
             $definition->addMethodCall('setRepository', [new Reference($repositoryId)]);
             $definition->addMethodCall('setFormService', [new Reference('api.form')]);
             $definition->addMethodCall('setMetaDataService', [new Reference('api.metadata')]);
-            $definition->addMethodCall('setLoggerService', [new Reference('logger')]);
+            $definition->addMethodCall('setLogger', [new Reference('logger')]);
             $definition->addMethodCall('setEventDispatcher', [new Reference('event_dispatcher')]);
         }
     }
@@ -104,7 +105,7 @@ class TagCompilerPass implements CompilerPassInterface
             $definition->addMethodCall('setRepository', [new Reference($repositoryId)]);
             $definition->addMethodCall('setFormService', [new Reference('api.form')]);
             $definition->addMethodCall('setMetaDataService', [new Reference('api.metadata')]);
-            $definition->addMethodCall('setLoggerService', [new Reference('logger')]);
+            $definition->addMethodCall('setLogger', [new Reference('logger')]);
             $definition->addMethodCall('setEventDispatcher', [new Reference('event_dispatcher')]);
         }
     }
@@ -133,6 +134,31 @@ class TagCompilerPass implements CompilerPassInterface
 
         foreach ($container->findTaggedServiceIds('api.provider.client') as $id => $attributes) {
             $authenticationProviderDefinition->addMethodCall('setClientService', [new Reference($id)]);
+        }
+    }
+    /**
+     * @param ContainerBuilder $container
+     */
+    protected function processMigratorTag(ContainerBuilder $container)
+    {
+        $containerAwareInterface    = 'Symfony\\Component\\DependencyInjection\\ContainerAwareInterface';
+        $loggerAwareInterface       = 'Psr\\Log\\LoggerAwareInterface';
+        $migrationServiceDefinition = $container->getDefinition('api.migration');
+
+        foreach ($container->findTaggedServiceIds('api.migrator') as $id => $attributes) {
+            $definition = $container->getDefinition($id);
+            foreach($attributes as $tagAttribute) {
+                $extension = $tagAttribute['extension'];
+                $class = $definition->getClass();
+                $rClass = new \ReflectionClass($class);
+                if ($rClass->isSubclassOf($containerAwareInterface)) {
+                    $definition->addMethodCall('setContainer', [new Reference('service_container')]);
+                }
+                if ($rClass->isSubclassOf($loggerAwareInterface)) {
+                    $definition->addMethodCall('setLogger', [new Reference('logger')]);
+                }
+                $migrationServiceDefinition->addMethodCall('addMigrator', [new Reference($id), $extension]);
+            }
         }
     }
 }

@@ -14,9 +14,11 @@ namespace Velocity\Bundle\ApiBundle\DependencyInjection\Compiler;
 use JMS\Serializer\Annotation\Type;
 use Doctrine\Common\Annotations\AnnotationReader;
 use Velocity\Bundle\ApiBundle\Annotation\Refresh;
+use Velocity\Bundle\ApiBundle\Annotation\Generated;
 use Symfony\Component\DependencyInjection\Definition;
 use Velocity\Bundle\ApiBundle\Annotation\EmbeddedReference;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Velocity\Bundle\ApiBundle\Annotation\EmbeddedReferenceList;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 
 /**
@@ -46,8 +48,14 @@ class AnnotationCompilerPass implements CompilerPassInterface
                         case $annotation instanceof EmbeddedReference:
                             $this->registerEmbeddedReference($metaDataDefinition, $class, $rProperty->getName(), $annotation);
                             break;
+                        case $annotation instanceof EmbeddedReferenceList:
+                            $this->registerEmbeddedReferenceList($metaDataDefinition, $class, $rProperty->getName(), $annotation);
+                            break;
                         case $annotation instanceof Refresh:
                             $this->registerRefresh($metaDataDefinition, $class, $rProperty->getName(), $annotation);
+                            break;
+                        case $annotation instanceof Generated:
+                            $this->registerGenerated($metaDataDefinition, $class, $rProperty->getName(), $annotation);
                             break;
                         case $annotation instanceof Type:
                             $this->registerType($metaDataDefinition, $class, $rProperty->getName(), $annotation);
@@ -75,6 +83,20 @@ class AnnotationCompilerPass implements CompilerPassInterface
      * @param Definition $metaDataDefinition
      * @param $class
      * @param $property
+     * @param EmbeddedReferenceList $annotation
+     *
+     * @return $this
+     */
+    protected function registerEmbeddedReferenceList(Definition $metaDataDefinition, $class, $property, EmbeddedReferenceList $annotation)
+    {
+        $metaDataDefinition->addMethodCall('addClassPropertyEmbeddedReferenceList', [$class, $property, get_object_vars($annotation)]);
+
+        return $this;
+    }
+    /**
+     * @param Definition $metaDataDefinition
+     * @param $class
+     * @param $property
      * @param Refresh $annotation
      *
      * @return $this
@@ -82,6 +104,20 @@ class AnnotationCompilerPass implements CompilerPassInterface
     protected function registerRefresh(Definition $metaDataDefinition, $class, $property, Refresh $annotation)
     {
         $metaDataDefinition->addMethodCall('addClassPropertyRefresh', [$class, $property, get_object_vars($annotation)]);
+
+        return $this;
+    }
+    /**
+     * @param Definition $metaDataDefinition
+     * @param $class
+     * @param $property
+     * @param Generated $annotation
+     *
+     * @return $this
+     */
+    protected function registerGenerated(Definition $metaDataDefinition, $class, $property, Generated $annotation)
+    {
+        $metaDataDefinition->addMethodCall('addClassPropertyGenerated', [$class, $property, get_object_vars($annotation)]);
 
         return $this;
     }

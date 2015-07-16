@@ -2,13 +2,13 @@ parameters:
 
 services:
   api.command.dbUp:
-    class: %api.ns%\Command\DbUpCommand
+    class: Velocity\Bundle\ApiBundle\Command\DbUpCommand
     arguments:
-      - @api.database
+      - @api.migration
     tags:
       - { name: console.command }
   api.command.dbDrop:
-    class: %api.ns%\Command\DbDropCommand
+    class: Velocity\Bundle\ApiBundle\Command\DbDropCommand
     arguments:
       - @api.database
     tags:
