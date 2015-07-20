@@ -21,7 +21,7 @@ use Symfony\Component\Security\Core\Exception\AuthenticationException;
 class MissingUserIdentityException extends AuthenticationException
 {
     /**
-     *
+     * Construct the exception
      */
     public function __construct()
     {

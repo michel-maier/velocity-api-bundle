@@ -14,7 +14,7 @@ namespace Velocity\Bundle\ApiBundle\Traits;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
- * Container Aware Trait.
+ * ContainerAware trait.
  *
  * @author Olivier Hoareau <olivier@phppro.fr>
  */

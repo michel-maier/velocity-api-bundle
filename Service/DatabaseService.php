@@ -304,6 +304,20 @@ class DatabaseService
         );
     }
     /**
+     * Count the documents matching the criteria.
+     *
+     * @param string $collection
+     * @param array  $criteria
+     * @param array  $options
+     *
+     * @return int
+     */
+    public function count($collection, $criteria = [], $options = [])
+    {
+        return $this->find($collection, $criteria, ['_id'], null, 0, [], $options)
+            ->count(true);
+    }
+    /**
      * Ensures the specified index is present on the specified fields of the collection.
      *
      * @param string       $collection

@@ -11,48 +11,25 @@
 
 namespace Velocity\Bundle\ApiBundle\Command;
 
-use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputArgument;
-use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Velocity\Bundle\ApiBundle\Service\MigrationService;
+use Velocity\Bundle\ApiBundle\Command\Base\ApiCommand;
+use Velocity\Bundle\ApiBundle\Traits\MigrationServiceAwareTrait;
 
 /**
  * DB Up Commmand
  *
  * @author Olivier Hoareau <olivier@phppro.fr>
  */
-class DbUpCommand extends Command
+class DbUpCommand extends ApiCommand
 {
-    use ServiceTrait;
+    use MigrationServiceAwareTrait;
     /**
-     * @param MigrationService $migrationService
-     */
-    public function __construct(MigrationService $migrationService)
-    {
-        parent::__construct();
-        $this->setMigrationService($migrationService);
-    }
-    /**
-     * @param MigrationService $migrationService
+     * Configure the command.
      *
-     * @return $this
-     */
-    public function setMigrationService(MigrationService $migrationService)
-    {
-        return $this->setService('migration', $migrationService);
-    }
-    /**
-     * @return MigrationService
-     */
-    public function getMigrationService()
-    {
-        return $this->getService('migration');
-    }
-    /**
-     *
+     * @return void
      */
     protected function configure()
     {
@@ -63,10 +40,12 @@ class DbUpCommand extends Command
         ;
     }
     /**
+     * Execute the command.
+     *
      * @param InputInterface $input
      * @param OutputInterface $output
      *
-     * @return int|null|void
+     * @return void
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {

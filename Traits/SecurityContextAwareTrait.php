@@ -11,14 +11,14 @@
 
 namespace Velocity\Bundle\ApiBundle\Traits;
 
-use Velocity\Bundle\ApiBundle\Service\FormService;
+use Symfony\Component\Security\Core\SecurityContextInterface;
 
 /**
- * FormServiceAware trait.
+ * SecurityContextAware trait.
  *
  * @author Olivier Hoareau <olivier@phppro.fr>
  */
-trait FormServiceAwareTrait
+trait SecurityContextAwareTrait
 {
     /**
      * @param string $key
@@ -34,19 +34,19 @@ trait FormServiceAwareTrait
      */
     protected abstract function getService($key);
     /**
-     * @param FormService $service
+     * @param SecurityContextInterface $securityContextInterface
      *
      * @return $this
      */
-    public function setFormService(FormService $service)
+    public function setSecurityContext(SecurityContextInterface $securityContextInterface)
     {
-        return $this->setService('form', $service);
+        return $this->setService('securityContext', $securityContextInterface);
     }
     /**
-     * @return FormService
+     * @return SecurityContextInterface
      */
-    public function getFormService()
+    public function getSecurityContext()
     {
-        return $this->getService('form');
+        return $this->getService('securityContext');
     }
 }

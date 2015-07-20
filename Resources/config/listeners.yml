@@ -5,7 +5,7 @@ services:
       - { name: kernel.event_listener, event: kernel.request, method: onKernelRequest, priority: 100 }
   api.listener.exception:
     class: Velocity\Bundle\ApiBundle\Listener\ExceptionListener
-    arguments:
-      - @api.exception
+    calls:
+      - [setExceptionService, [@api.exception]]
     tags:
       - { name: kernel.event_listener, event: kernel.exception, method: onKernelException }

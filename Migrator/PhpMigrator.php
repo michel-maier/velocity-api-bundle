@@ -29,6 +29,8 @@ class PhpMigrator implements MigratorInterface, ContainerAwareInterface, LoggerA
     use LoggerAwareTrait;
     use ContainerAwareTrait;
     /**
+     * Process the upgrade path.
+     *
      * @param string $path
      * @param array  $options
      *

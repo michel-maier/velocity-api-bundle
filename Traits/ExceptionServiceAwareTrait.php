@@ -11,14 +11,14 @@
 
 namespace Velocity\Bundle\ApiBundle\Traits;
 
-use Velocity\Bundle\ApiBundle\Service\FormService;
+use Velocity\Bundle\ApiBundle\Service\ExceptionService;
 
 /**
- * FormServiceAware trait.
+ * ExceptionServiceAware trait.
  *
  * @author Olivier Hoareau <olivier@phppro.fr>
  */
-trait FormServiceAwareTrait
+trait ExceptionServiceAwareTrait
 {
     /**
      * @param string $key
@@ -34,19 +34,19 @@ trait FormServiceAwareTrait
      */
     protected abstract function getService($key);
     /**
-     * @param FormService $service
+     * @param ExceptionService $service
      *
      * @return $this
      */
-    public function setFormService(FormService $service)
+    public function setExceptionService(ExceptionService $service)
     {
-        return $this->setService('form', $service);
+        return $this->setService('exception', $service);
     }
     /**
-     * @return FormService
+     * @return ExceptionService
      */
-    public function getFormService()
+    public function getExceptionService()
     {
-        return $this->getService('form');
+        return $this->getService('exception');
     }
 }

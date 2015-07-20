@@ -62,7 +62,7 @@ class ApiUserProvider implements UserProviderInterface
             throw $e;
         }
 
-        return new ApiUser($account);
+        return new ApiUser(is_object($account) ? get_object_vars($account) : $account);
     }
     /**
      * @param string $username

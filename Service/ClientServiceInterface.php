@@ -19,6 +19,8 @@ namespace Velocity\Bundle\ApiBundle\Service;
 interface ClientServiceInterface
 {
     /**
+     * Return the specified client.
+     *
      * @param string $id
      * @param array  $fields
      * @param array  $options

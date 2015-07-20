@@ -25,35 +25,42 @@ use Symfony\Component\Security\Core\Authentication\AuthenticationManagerInterfac
  */
 class ApiListener implements ListenerInterface
 {
-    use RequestServiceAwareTrait;
     use ServiceTrait;
+    use RequestServiceAwareTrait;
     /**
-     * @var SecurityContextInterface
-     */
-    protected $securityContext;
-    /**
-     * @var AuthenticationManagerInterface
-     */
-    protected $authenticationManager;
-    /**
+     * Construct the listener.
+     *
      * @param SecurityContextInterface       $securityContext
      * @param AuthenticationManagerInterface $authenticationManager
      */
     public function __construct(
-        SecurityContextInterface $securityContext, AuthenticationManagerInterface $authenticationManager
+        SecurityContextInterface $securityContext,
+        AuthenticationManagerInterface $authenticationManager
     )
     {
-        $this->securityContext       = $securityContext;
-        $this->authenticationManager = $authenticationManager;
+        $this->setService('securityContext', $securityContext);
+        $this->setService('authenticationManager', $authenticationManager);
     }
     /**
+     * Handle the response.
+     *
      * @param GetResponseEvent $event
+     *
+     * @return void
      */
     public function handle(GetResponseEvent $event)
     {
-        $this->securityContext->setToken(
-            $this->authenticationManager->authenticate(
-                new ApiUnauthenticatedUserToken($this->getRequestService()->parse($event->getRequest()))
+        /** @var SecurityContextInterface $securityContext */
+        $securityContext = $this->getService('securityContext');
+
+        /** @var AuthenticationManagerInterface $authenticationManager */
+        $authenticationManager = $this->getService('authenticationManager');
+
+        $securityContext->setToken(
+            $authenticationManager->authenticate(
+                new ApiUnauthenticatedUserToken(
+                    $this->getRequestService()->parse($event->getRequest())
+                )
             )
         );
     }

@@ -11,14 +11,14 @@
 
 namespace Velocity\Bundle\ApiBundle\Traits;
 
-use Velocity\Bundle\ApiBundle\Service\FormService;
+use Velocity\Bundle\ApiBundle\Service\MetaDataService;
 
 /**
- * FormServiceAware trait.
+ * MetaDataServiceAware trait.
  *
  * @author Olivier Hoareau <olivier@phppro.fr>
  */
-trait FormServiceAwareTrait
+trait MetaDataServiceAwareTrait
 {
     /**
      * @param string $key
@@ -34,19 +34,19 @@ trait FormServiceAwareTrait
      */
     protected abstract function getService($key);
     /**
-     * @param FormService $service
+     * @param MetaDataService $service
      *
      * @return $this
      */
-    public function setFormService(FormService $service)
+    public function setMetaDataService(MetaDataService $service)
     {
-        return $this->setService('form', $service);
+        return $this->setService('metaData', $service);
     }
     /**
-     * @return FormService
+     * @return MetaDataService
      */
-    public function getFormService()
+    public function getMetaDataService()
     {
-        return $this->getService('form');
+        return $this->getService('metaData');
     }
 }

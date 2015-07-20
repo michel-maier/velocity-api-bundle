@@ -16,7 +16,6 @@ services:
     class: Velocity\Bundle\ApiBundle\Service\RequestService
     arguments:
       - @api.security.provider.user.api
-      - @app.client
       - %app.security.client.secret%
       - %app.security.user.secret%
   api.mongo:

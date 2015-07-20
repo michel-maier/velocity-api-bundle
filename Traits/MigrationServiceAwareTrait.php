@@ -11,14 +11,14 @@
 
 namespace Velocity\Bundle\ApiBundle\Traits;
 
-use Velocity\Bundle\ApiBundle\Service\FormService;
+use Velocity\Bundle\ApiBundle\Service\MigrationService;
 
 /**
- * FormServiceAware trait.
+ * MigrationServiceAware trait.
  *
  * @author Olivier Hoareau <olivier@phppro.fr>
  */
-trait FormServiceAwareTrait
+trait MigrationServiceAwareTrait
 {
     /**
      * @param string $key
@@ -34,19 +34,19 @@ trait FormServiceAwareTrait
      */
     protected abstract function getService($key);
     /**
-     * @param FormService $service
+     * @param MigrationService $service
      *
      * @return $this
      */
-    public function setFormService(FormService $service)
+    public function setMigrationService(MigrationService $service)
     {
-        return $this->setService('form', $service);
+        return $this->setService('migration', $service);
     }
     /**
-     * @return FormService
+     * @return MigrationService
      */
-    public function getFormService()
+    public function getMigrationService()
     {
-        return $this->getService('form');
+        return $this->getService('migration');
     }
 }

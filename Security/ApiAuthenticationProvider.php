@@ -11,8 +11,10 @@
 
 namespace Velocity\Bundle\ApiBundle\Security;
 
+use DateTime;
+use Exception;
 use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
-use Velocity\Bundle\ApiBundle\Service\ClientServiceInterface;
+use Velocity\Bundle\ApiBundle\Traits\ClientServiceAwareTrait;
 use Velocity\Bundle\ApiBundle\Traits\RequestServiceAwareTrait;
 use Velocity\Bundle\ApiBundle\Exception\BadUserTokenException;
 use Symfony\Component\Security\Core\User\UserProviderInterface;
@@ -31,8 +33,11 @@ use Symfony\Component\Security\Core\Authentication\Provider\AuthenticationProvid
 class ApiAuthenticationProvider implements AuthenticationProviderInterface
 {
     use ServiceTrait;
+    use ClientServiceAwareTrait;
     use RequestServiceAwareTrait;
     /**
+     * Construct a new authentication provider.
+     *
      * @param UserProviderInterface  $userProvider
      */
     public function __construct(UserProviderInterface $userProvider)
@@ -40,22 +45,8 @@ class ApiAuthenticationProvider implements AuthenticationProviderInterface
         $this->setUserProvider($userProvider);
     }
     /**
-     * @param ClientServiceInterface $clientService
+     * Set the underlying user provider.
      *
-     * @return $this
-     */
-    public function setClientService(ClientServiceInterface $clientService)
-    {
-        return $this->setService('client', $clientService);
-    }
-    /**
-     * @return ClientServiceInterface
-     */
-    public function getClientService()
-    {
-        return $this->getService('client');
-    }
-    /**
      * @param UserProviderInterface $clientService
      *
      * @return $this
@@ -65,6 +56,8 @@ class ApiAuthenticationProvider implements AuthenticationProviderInterface
         return $this->setService('userProvider', $clientService);
     }
     /**
+     * Return the underlying user provider.
+     *
      * @return UserProviderInterface
      */
     public function getUserProvider()
@@ -72,6 +65,8 @@ class ApiAuthenticationProvider implements AuthenticationProviderInterface
         return $this->getService('userProvider');
     }
     /**
+     * Try to authenticate the specified token.
+     *
      * @param TokenInterface $token
      *
      * @return TokenInterface
@@ -104,12 +99,14 @@ class ApiAuthenticationProvider implements AuthenticationProviderInterface
         );
     }
     /**
+     * Validate the specified client token infos.
+     *
      * @param array     $infos
-     * @param \DateTime $now
+     * @param DateTime $now
      *
      * @return array
      *
-     * @throws \Exception
+     * @throws Exception
      */
     protected function validateClientToken($infos, \DateTime $now)
     {
@@ -123,16 +120,20 @@ class ApiAuthenticationProvider implements AuthenticationProviderInterface
         }
 
         if (isset($infos['id'])) {
-            return array_merge($infos, $this->getClientService()->get($infos['id'], [], ['model' => false]));
+            return array_merge($infos, get_object_vars($this->getClientService()->get($infos['id'])));
         }
 
         return $infos;
     }
     /**
+     * Validate the specified user token infos.
+     *
      * @param array     $infos
-     * @param \DateTime $now
+     * @param DateTime $now
      *
      * @return array
+     *
+     * @throws Exception
      */
     protected function validateUserToken($infos, \DateTime $now)
     {
@@ -145,13 +146,11 @@ class ApiAuthenticationProvider implements AuthenticationProviderInterface
             throw new BadUserTokenException;
         }
 
-
-        /**
-        if (isset($infos['id'])) return array_merge($this->getUser($infos['id']), $infos, ['id' => $infos['id']]);
-        */
         return $infos;
     }
     /**
+     * Test if current authentication provider support the specified token.
+     *
      * @param TokenInterface $token
      *
      * @return bool

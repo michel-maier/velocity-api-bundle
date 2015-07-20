@@ -11,9 +11,13 @@
 
 namespace Velocity\Bundle\ApiBundle\DependencyInjection\Compiler;
 
+use Doctrine\Common\Annotations\AnnotationReader;
+use ReflectionClass;
 use Symfony\Component\DependencyInjection\Reference;
+use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
+use Velocity\Bundle\ApiBundle\Annotation\Callback;
 
 /**
  * Tag Compiler Pass.
@@ -23,6 +27,8 @@ use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
 class TagCompilerPass implements CompilerPassInterface
 {
     /**
+     * Process the compiler pass.
+     *
      * @param ContainerBuilder $container
      */
     public function process(ContainerBuilder $container)
@@ -35,12 +41,13 @@ class TagCompilerPass implements CompilerPassInterface
         $this->processMigratorTag($container);
     }
     /**
+     * Process repository tags.
+     *
      * @param ContainerBuilder $container
      */
     protected function processRepositoryTag(ContainerBuilder $container)
     {
         $defaultClass   = 'Velocity\\Bundle\\ApiBundle\\Service\\RepositoryService';
-        $defaultIdField = '_id';
 
         foreach ($container->findTaggedServiceIds('api.repository') as $id => $attributes) {
             $typeName = substr($id, strrpos($id, '.') + 1);
@@ -50,16 +57,16 @@ class TagCompilerPass implements CompilerPassInterface
             }
             $tagAttribute = array_shift($attributes);
             $collectionName = isset($tagAttribute['collection']) ? $tagAttribute['collection'] : $typeName;
-            $idField = isset($tagAttribute['idField']) ? $tagAttribute['idField'] : $defaultIdField;
             $definition->addMethodCall('setDatabaseService', [new Reference('api.database')]);
             $definition->addMethodCall('setTranslator', [new Reference('translator')]);
             $definition->addMethodCall('setEventDispatcher', [new Reference('event_dispatcher')]);
             $definition->addMethodCall('setLogger', [new Reference('logger')]);
             $definition->addMethodCall('setCollectionName', [$collectionName]);
-            $definition->addMethodCall('setIdField', [$idField]);
         }
     }
     /**
+     * Process crud tags.
+     *
      * @param ContainerBuilder $container
      */
     protected function processCrudTag(ContainerBuilder $container)
@@ -75,15 +82,53 @@ class TagCompilerPass implements CompilerPassInterface
             $tagAttribute = array_shift($attributes);
             $type = isset($tagAttribute['type']) ? $tagAttribute['type'] : $typeName;
             $repositoryId = sprintf('app.repository.%s', $type);
+            if (!$container->has($repositoryId)) {
+                $this->createRepositoryDefinition($container, $repositoryId);
+            }
             $definition->addMethodCall('setType', [$type]);
             $definition->addMethodCall('setRepository', [new Reference($repositoryId)]);
             $definition->addMethodCall('setFormService', [new Reference('api.form')]);
             $definition->addMethodCall('setMetaDataService', [new Reference('api.metadata')]);
             $definition->addMethodCall('setLogger', [new Reference('logger')]);
             $definition->addMethodCall('setEventDispatcher', [new Reference('event_dispatcher')]);
+
+            $rClass = new ReflectionClass($definition->getClass());
+            $reader = new AnnotationReader();
+            $metaDataServiceDefinition = $container->getDefinition('api.metadata');
+
+            foreach($rClass->getMethods(\ReflectionMethod::IS_PUBLIC) as $rMethod) {
+                foreach ($reader->getMethodAnnotations($rMethod) as $annotation) {
+                    switch (true) {
+                        case $annotation instanceof Callback:
+                            $metaDataServiceDefinition->addMethodCall('addCallback', ['.' === $annotation->value{0} ? ($type . $annotation->value) : $annotation->value, [new Reference($id), $rMethod->getName()]]);
+                            break;
+                    }
+                }
+            }
+
         }
     }
     /**
+     * Create and register a new repository definition.
+     *
+     * @param ContainerBuilder $container
+     * @param $repositoryId
+     *
+     * @return Definition
+     */
+    protected function createRepositoryDefinition(ContainerBuilder $container, $repositoryId)
+    {
+        $defaultRepositoryClass = 'Velocity\\Bundle\\ApiBundle\\Service\\RepositoryService';
+
+        $definition = new Definition($defaultRepositoryClass);
+
+        $container->setDefinition($repositoryId, $definition);
+
+        return $definition;
+    }
+    /**
+     * Process sub crud tags.
+     *
      * @param ContainerBuilder $container
      */
     protected function processSubCrudTag(ContainerBuilder $container)
@@ -110,6 +155,8 @@ class TagCompilerPass implements CompilerPassInterface
         }
     }
     /**
+     * Process provider account tags.
+     *
      * @param ContainerBuilder $container
      */
     protected function processProviderAccountTag(ContainerBuilder $container)
@@ -126,17 +173,31 @@ class TagCompilerPass implements CompilerPassInterface
         }
     }
     /**
+     * Process provider client tags.
+     *
      * @param ContainerBuilder $container
      */
     protected function processProviderClientTag(ContainerBuilder $container)
     {
         $authenticationProviderDefinition = $container->getDefinition('api.security.authentication.provider');
+        $requestServiceDefinition         = $container->getDefinition('api.request');
 
         foreach ($container->findTaggedServiceIds('api.provider.client') as $id => $attributes) {
-            $authenticationProviderDefinition->addMethodCall('setClientService', [new Reference($id)]);
+            $attribute = array_shift($attributes);
+            if ((isset($attribute['method']) && 'get' !== $attribute['method']) || isset($attribute['format'])) {
+                $ref = new Definition('Velocity\\Bundle\\ApiBundle\\Service\\DecoratedClientService', [new Reference($id), isset($attribute['method']) ? $attribute['method'] : 'get', isset($attribute['format']) ? $attribute['format'] : 'raw']);
+                $refId = 'api.client_' . md5(uniqid());
+                $container->setDefinition($refId, $ref);
+            } else {
+                $refId = $id;
+            }
+            $authenticationProviderDefinition->addMethodCall('setClientService', [new Reference($refId)]);
+            $requestServiceDefinition->addMethodCall('setClientService', [new Reference($refId)]);
         }
     }
     /**
+     * Process migrator tags.
+     *
      * @param ContainerBuilder $container
      */
     protected function processMigratorTag(ContainerBuilder $container)

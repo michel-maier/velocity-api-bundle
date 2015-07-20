@@ -21,6 +21,8 @@ use Exception;
 interface MigratorInterface
 {
     /**
+     * Process the upgrade path.
+     *
      * @param string $path
      * @param array  $options
      *

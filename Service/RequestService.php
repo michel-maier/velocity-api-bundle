@@ -1,16 +1,27 @@
 <?php
 
+/*
+ * This file is part of the VELOCITY package.
+ *
+ * (c) PHPPRO <opensource@phppro.fr>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 namespace Velocity\Bundle\ApiBundle\Service;
 
-use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
-use Velocity\Bundle\ApiBundle\Security\ApiUserProvider;
-use Velocity\Bundle\ApiBundle\Traits\LoggerAwareTrait;
 use Symfony\Component\HttpFoundation\Request;
+use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
+use Velocity\Bundle\ApiBundle\Traits\LoggerAwareTrait;
+use Velocity\Bundle\ApiBundle\Security\ApiUserProvider;
+use Velocity\Bundle\ApiBundle\Traits\ClientServiceAwareTrait;
 
 class RequestService
 {
-    use LoggerAwareTrait;
     use ServiceTrait;
+    use LoggerAwareTrait;
+    use ClientServiceAwareTrait;
     /**
      * @var string
      */
@@ -76,30 +87,12 @@ class RequestService
         return $this->getService('userProvider');
     }
     /**
-     * @param ClientServiceInterface $clientService
-     *
-     * @return $this
-     */
-    public function setClientService(ClientServiceInterface $clientService)
-    {
-        return $this->setService('client', $clientService);
-    }
-    /**
-     * @return ClientServiceInterface
-     */
-    public function getClientService()
-    {
-        return $this->getService('client');
-    }
-    /**
      * @param ApiUserProvider $userProvider
-     * @param ClientServiceInterface $clientService
      * @param string          $clientSecret
      * @param string          $userSecret
      */
-    public function __construct(ApiUserProvider $userProvider, ClientServiceInterface $clientService, $clientSecret = null, $userSecret = null)
+    public function __construct(ApiUserProvider $userProvider, $clientSecret = null, $userSecret = null)
     {
-        $this->setClientService($clientService);
         $this->setClientTokenCreationFunction(function ($id, $expire, $secret) {
             return base64_encode(sha1($id . $expire . $secret));
         });

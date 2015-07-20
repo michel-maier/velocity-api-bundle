@@ -24,7 +24,10 @@ use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 class VelocityApiExtension extends Extension
 {
     /**
-     * {@inheritdoc}
+     * @param array $configs
+     * @param ContainerBuilder $container
+     *
+     * @return void
      */
     public function load(array $configs, ContainerBuilder $container)
     {

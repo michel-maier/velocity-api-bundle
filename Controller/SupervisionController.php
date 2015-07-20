@@ -49,7 +49,7 @@ class SupervisionController extends RestController
      */
     public function pingAction()
     {
-        return $this->returnResponse($this->getSupervisionService()->getPingInfos());
+        return $this->returnResponse($this->getSupervisionService()->ping());
     }
     /**
      * @Route("/supervision/whoami", name="api_supervision_whoami")
@@ -68,6 +68,6 @@ class SupervisionController extends RestController
      */
     public function whoamiAction()
     {
-        return $this->returnResponse($this->getSupervisionService()->getIdentityInfos());
+        return $this->returnResponse($this->getSupervisionService()->getIdentity());
     }
 }

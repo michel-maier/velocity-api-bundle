@@ -11,14 +11,14 @@
 
 namespace Velocity\Bundle\ApiBundle\Traits;
 
-use Velocity\Bundle\ApiBundle\Service\FormService;
+use Velocity\Bundle\ApiBundle\Service\ClientServiceInterface;
 
 /**
- * FormServiceAware trait.
+ * ClientServiceAware trait.
  *
  * @author Olivier Hoareau <olivier@phppro.fr>
  */
-trait FormServiceAwareTrait
+trait ClientServiceAwareTrait
 {
     /**
      * @param string $key
@@ -34,19 +34,19 @@ trait FormServiceAwareTrait
      */
     protected abstract function getService($key);
     /**
-     * @param FormService $service
+     * @param ClientServiceInterface $service
      *
      * @return $this
      */
-    public function setFormService(FormService $service)
+    public function setClientService(ClientServiceInterface $service)
     {
-        return $this->setService('form', $service);
+        return $this->setService('client', $service);
     }
     /**
-     * @return FormService
+     * @return ClientServiceInterface
      */
-    public function getFormService()
+    public function getClientService()
     {
-        return $this->getService('form');
+        return $this->getService('client');
     }
 }

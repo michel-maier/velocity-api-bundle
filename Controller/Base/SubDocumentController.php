@@ -13,7 +13,8 @@ namespace Velocity\Bundle\ApiBundle\Controller\Base;
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Velocity\Bundle\ApiBundle\Service\DocumentServiceInterface;
+use Velocity\Bundle\ApiBundle\Service\RequestService;
+use Velocity\Bundle\ApiBundle\Service\SubDocumentServiceInterface;
 
 /**
  * Sub Document Controller
@@ -25,17 +26,29 @@ abstract class SubDocumentController extends RestController
     /**
      * Returns the implicit document service (based on class name)
      *
-     * @return DocumentServiceInterface
+     * @return SubDocumentServiceInterface
      */
     protected function getService()
     {
         return $this->get(
-            'app.' . preg_replace('/Controller$/', '', basename(str_replace('\\', '/', get_class($this))))
+            'app.' . preg_replace(
+                '/controller$/', '',
+                strtolower(str_replace('\\', '.', substr(get_class($this), strrpos(get_class($this), '\\', 1) + 1)))
+            )
         );
     }
     /**
+     * @return RequestService
+     */
+    protected function getRequestService()
+    {
+        return $this->get('api.request');
+    }
+    /**
+     * Retrieve the documents matching the specified criteria.
+     *
      * @param Request $request
-     * @param array    $options
+     * @param array   $options
      *
      * @return Response
      */
@@ -43,12 +56,12 @@ abstract class SubDocumentController extends RestController
     {
         return $this->returnResponse(
             $this->getService()->find(
-                $request->attributes->get('parentId'),
-                $request->get('criteria', []),
-                $request->get('fields', []),
-                $request->get('limit', null),
-                intval($request->get('offset', 0)),
-                $request->get('sorts', []),
+                $this->getRequestService()->fetchRouteParameter($request, 'parentId'),
+                $this->getRequestService()->fetchQueryCriteria($request),
+                $this->getRequestService()->fetchQueryFields($request),
+                $this->getRequestService()->fetchQueryLimit($request),
+                $this->getRequestService()->fetchQueryOffset($request),
+                $this->getRequestService()->fetchQuerySorts($request),
                 $options
             ),
             200,
@@ -57,18 +70,20 @@ abstract class SubDocumentController extends RestController
         );
     }
     /**
+     * Return the specified document.
+     *
      * @param Request $request
      * @param array   $options
      *
-     * @return mixed
+     * @return Response
      */
     protected function handleGet(Request $request, $options = [])
     {
         return $this->returnResponse(
             $this->getService()->get(
-                $request->attributes->get('parentId'),
-                $request->attributes->get('id'),
-                $request->get('fields', []),
+                $this->getRequestService()->fetchRouteParameter($request, 'parentId'),
+                $this->getRequestService()->fetchRouteParameter($request, 'id'),
+                $this->getRequestService()->fetchQueryFields($request),
                 $options
             ),
             200,
@@ -77,47 +92,53 @@ abstract class SubDocumentController extends RestController
         );
     }
     /**
+     * Delete the specified document.
+     *
      * @param Request $request
      * @param array   $options
      *
-     * @return mixed
+     * @return Response
      */
     protected function handleDelete(Request $request, $options = [])
     {
         $this->getService()->delete(
-            $request->attributes->get('parentId'),
-            $request->attributes->get('id'),
+            $this->getRequestService()->fetchRouteParameter($request, 'parentId'),
+            $this->getRequestService()->fetchRouteParameter($request, 'id'),
             $options
         );
         return $this->returnResponse(null, 204);
     }
     /**
+     * Purge (delete) all the documents.
+     *
      * @param Request $request
      * @param array   $options
      *
-     * @return mixed
+     * @return Response
      */
     protected function handlePurge(Request $request, $options = [])
     {
         $this->getService()->purge(
-            $request->attributes->get('parentId'),
+            $this->getRequestService()->fetchRouteParameter($request, 'parentId'),
             $options
         );
         return $this->returnResponse(null, 204);
     }
     /**
+     * Update the specified document.
+     *
      * @param Request $request
      * @param array   $options
      *
-     * @return mixed
+     * @return Response
      */
     protected function handleUpdate(Request $request, $options = [])
     {
         return $this->returnResponse(
             $this->getService()->update(
-                $request->attributes->get('parentId'),
-                $request->attributes->get('id'),
-                $request->request->all(),
+                $this->getRequestService()->fetchRouteParameter($request, 'parentId'),
+                $this->getRequestService()->fetchRouteParameter($request, 'id'),
+                $this->getRequestService()->fetchRequestData($request),
                 $options
             ),
             200,
@@ -126,17 +147,19 @@ abstract class SubDocumentController extends RestController
         );
     }
     /**
+     * Create a new document.
+     *
      * @param Request $request
      * @param array   $options
      *
-     * @return mixed
+     * @return Response
      */
     protected function handleCreate(Request $request, $options = [])
     {
         return $this->returnResponse(
             $this->getService()->create(
-                $request->attributes->get('parentId'),
-                $request->request->all(),
+                $this->getRequestService()->fetchRouteParameter($request, 'parentId'),
+                $this->getRequestService()->fetchRequestData($request),
                 $options
             ),
             200,

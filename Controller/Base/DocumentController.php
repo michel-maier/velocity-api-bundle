@@ -42,6 +42,8 @@ abstract class DocumentController extends RestController
         return $this->get('api.request');
     }
     /**
+     * Retrieve the documents matching the specified criteria.
+     *
      * @param Request $request
      * @param array    $options
      *
@@ -64,10 +66,12 @@ abstract class DocumentController extends RestController
         );
     }
     /**
+     * Return the specified document.
+     *
      * @param Request $request
      * @param array   $options
      *
-     * @return mixed
+     * @return Response
      */
     protected function handleGet(Request $request, $options = [])
     {
@@ -83,10 +87,12 @@ abstract class DocumentController extends RestController
         );
     }
     /**
+     * Delete the specified document.
+     *
      * @param Request $request
      * @param array   $options
      *
-     * @return mixed
+     * @return Response
      */
     protected function handleDelete(Request $request, $options = [])
     {
@@ -97,10 +103,12 @@ abstract class DocumentController extends RestController
         return $this->returnResponse(null, 204);
     }
     /**
+     * Purge (delete) all the documents.
+     *
      * @param Request $request
      * @param array   $options
      *
-     * @return mixed
+     * @return Response
      */
     protected function handlePurge(Request $request, $options = [])
     {
@@ -111,10 +119,12 @@ abstract class DocumentController extends RestController
         return $this->returnResponse(null, 204);
     }
     /**
+     * Update the specified document.
+     *
      * @param Request $request
      * @param array   $options
      *
-     * @return mixed
+     * @return Response
      */
     protected function handleUpdate(Request $request, $options = [])
     {
@@ -130,10 +140,12 @@ abstract class DocumentController extends RestController
         );
     }
     /**
+     * Create a new document.
+     *
      * @param Request $request
      * @param array   $options
      *
-     * @return mixed
+     * @return Response
      */
     protected function handleCreate(Request $request, $options = [])
     {
