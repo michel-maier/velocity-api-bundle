@@ -1,16 +1,27 @@
 <?php
 
+/*
+ * This file is part of the VELOCITY package.
+ *
+ * (c) PHPPRO <opensource@phppro.fr>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 namespace Velocity\Bundle\ApiBundle\Service;
 
-use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
-use Velocity\Bundle\ApiBundle\Security\ApiUserProvider;
-use Velocity\Bundle\ApiBundle\Traits\LoggerServiceAwareTrait;
 use Symfony\Component\HttpFoundation\Request;
+use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
+use Velocity\Bundle\ApiBundle\Traits\LoggerAwareTrait;
+use Velocity\Bundle\ApiBundle\Security\ApiUserProvider;
+use Velocity\Bundle\ApiBundle\Traits\ClientServiceAwareTrait;
 
 class RequestService
 {
-    use LoggerServiceAwareTrait;
     use ServiceTrait;
+    use LoggerAwareTrait;
+    use ClientServiceAwareTrait;
     /**
      * @var string
      */
@@ -76,30 +87,12 @@ class RequestService
         return $this->getService('userProvider');
     }
     /**
-     * @param ClientServiceInterface $clientService
-     *
-     * @return $this
-     */
-    public function setClientService(ClientServiceInterface $clientService)
-    {
-        return $this->setService('client', $clientService);
-    }
-    /**
-     * @return ClientServiceInterface
-     */
-    public function getClientService()
-    {
-        return $this->getService('client');
-    }
-    /**
      * @param ApiUserProvider $userProvider
-     * @param ClientServiceInterface $clientService
      * @param string          $clientSecret
      * @param string          $userSecret
      */
-    public function __construct(ApiUserProvider $userProvider, ClientServiceInterface $clientService, $clientSecret = null, $userSecret = null)
+    public function __construct(ApiUserProvider $userProvider, $clientSecret = null, $userSecret = null)
     {
-        $this->setClientService($clientService);
         $this->setClientTokenCreationFunction(function ($id, $expire, $secret) {
             return base64_encode(sha1($id . $expire . $secret));
         });
@@ -594,5 +587,99 @@ class RequestService
                 $token
             )
         ];
+    }
+    /**
+     * @param Request $request
+     * @return array
+     */
+    public function fetchQueryCriteria(Request $request)
+    {
+        $v = $request->get('criteria', []);
+
+        if (!is_array($v)) $v = [];
+
+        return $v;
+    }
+    /**
+     * @param Request $request
+     *
+     * @return array
+     */
+    public function fetchQueryFields(Request $request)
+    {
+        $v = $request->get('fields', []);
+
+        if (!is_array($v) || !count($v)) return [];
+
+        $fields = [];
+
+        foreach($v as $field) {
+            if ('!' === substr($field, 0, 1)) {
+                $fields[substr($field, 1)] = false;
+            } else {
+                $fields[$field] = true;
+            }
+        }
+
+        return $fields;
+    }
+    /**
+     * @param Request $request
+     *
+     * @return null|int
+     */
+    public function fetchQueryLimit(Request $request)
+    {
+        $v = $request->get('limit', null);
+
+        return strlen($v) ? intval($v) : null;
+    }
+    /**
+     * @param Request $request
+     *
+     * @return int
+     */
+    public function fetchQueryOffset(Request $request)
+    {
+        $v = intval($request->get('offset', 0));
+
+        return 0 > $v ? 0 : $v;
+    }
+    /**
+     * @param Request $request
+     *
+     * @return array
+     */
+    public function fetchQuerySorts(Request $request)
+    {
+        $v = $request->get('sorts', []);
+
+        if (!is_array($v) || !count($v)) return [];
+
+        return array_map(
+            function ($a) {
+                return (int)$a;
+            },
+            $v
+        );
+    }
+    /**
+     * @param Request $request
+     *
+     * @return array
+     */
+    public function fetchRequestData(Request $request)
+    {
+        return $request->request->all();
+    }
+    /**
+     * @param Request $request
+     * @param string $parameter
+     *
+     * @return mixed
+     */
+    public function fetchRouteParameter(Request $request, $parameter)
+    {
+        return $request->attributes->get($parameter);
     }
 }

@@ -11,34 +11,25 @@
 
 namespace Velocity\Bundle\ApiBundle\Command;
 
-use Symfony\Component\Console\Command\Command;
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputArgument;
-use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
-use Velocity\Bundle\ApiBundle\Service\DatabaseService;
-use Velocity\Bundle\ApiBundle\Traits\DatabaseServiceAwareTrait;
+use Velocity\Bundle\ApiBundle\Command\Base\ApiCommand;
+use Velocity\Bundle\ApiBundle\Traits\MigrationServiceAwareTrait;
 
 /**
  * DB Up Commmand
  *
  * @author Olivier Hoareau <olivier@phppro.fr>
  */
-class DbUpCommand extends Command
+class DbUpCommand extends ApiCommand
 {
-    use ServiceTrait;
-    use DatabaseServiceAwareTrait;
+    use MigrationServiceAwareTrait;
     /**
-     * @param DatabaseService $databaseService
-     */
-    public function __construct(DatabaseService $databaseService)
-    {
-        parent::__construct();
-        $this->setDatabaseService($databaseService);
-    }
-    /**
+     * Configure the command.
      *
+     * @return void
      */
     protected function configure()
     {
@@ -49,13 +40,15 @@ class DbUpCommand extends Command
         ;
     }
     /**
+     * Execute the command.
+     *
      * @param InputInterface $input
      * @param OutputInterface $output
      *
-     * @return int|null|void
+     * @return void
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        $this->getDatabaseService()->upgrade();
+        $this->getMigrationService()->upgrade();
     }
 }

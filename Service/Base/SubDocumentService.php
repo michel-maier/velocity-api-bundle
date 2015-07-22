@@ -14,7 +14,7 @@ namespace Velocity\Bundle\ApiBundle\Service\Base;
 use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
 use Velocity\Bundle\ApiBundle\Exception\ImportException;
 use Velocity\Bundle\ApiBundle\Traits\FormServiceAwareTrait;
-use Velocity\Bundle\ApiBundle\Traits\LoggerServiceAwareTrait;
+use Velocity\Bundle\ApiBundle\Traits\LoggerAwareTrait;
 use Velocity\Bundle\ApiBundle\Exception\FormValidationException;
 
 /**
@@ -26,7 +26,7 @@ class SubDocumentService
 {
     use ServiceTrait;
     use FormServiceAwareTrait;
-    use LoggerServiceAwareTrait;
+    use LoggerAwareTrait;
     /**
      * @var string
      */

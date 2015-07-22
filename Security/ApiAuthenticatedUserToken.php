@@ -64,6 +64,7 @@ class ApiAuthenticatedUserToken extends AbstractToken
      */
     public function getCredentials()
     {
+        /** @noinspection PhpUndefinedMethodInspection */
         return $this->getUser()->getPassword();
     }
 }

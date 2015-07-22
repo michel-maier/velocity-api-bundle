@@ -1,84 +1,44 @@
 <?php
 
+/*
+ * This file is part of the VELOCITY package.
+ *
+ * (c) PHPPRO <opensource@phppro.fr>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 namespace Velocity\Bundle\ApiBundle\Service;
 
+use MongoId;
+use Exception;
 use MongoClient;
 use MongoCollection;
-use Psr\Log\LoggerInterface;
-use Symfony\Component\DependencyInjection\ContainerAwareInterface;
-use Symfony\Component\DependencyInjection\ContainerInterface;
-use Symfony\Component\Yaml\Yaml;
 use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
-use Velocity\Bundle\ApiBundle\Traits\FormServiceAwareTrait;
-use Velocity\Bundle\ApiBundle\Traits\LoggerServiceAwareTrait;
-use Velocity\Bundle\ApiBundle\Exception\FormValidationException;
 
-class DatabaseService implements ContainerAwareInterface
+/**
+ * Database Service.
+ *
+ * @author Olivier Hoareau <olivier@phppro.fr>
+ */
+class DatabaseService
 {
     use ServiceTrait;
-    use FormServiceAwareTrait;
-    use LoggerServiceAwareTrait;
     /**
-     * @param MongoClient        $mongoClient
-     * @param LoggerInterface    $logger
-     * @param ContainerInterface $container
+     * Constructs a new service
+     *
+     * @param MongoClient $mongoClient
+     * @param string      $databaseName
      */
-    public function __construct(MongoClient $mongoClient, LoggerInterface $logger, FormService $formService, ContainerInterface $container)
+    public function __construct(MongoClient $mongoClient, $databaseName)
     {
         $this->setMongoClient($mongoClient);
-        $this->setLoggerService($logger);
-        $this->setFormService($formService);
-        $this->setContainer($container);
+        $this->setDatabaseName($databaseName);
     }
     /**
-     * @param ContainerInterface $container
+     * Return the underlying database name.
      *
-     * @return $this
-     */
-    public function setContainer(ContainerInterface $container = null)
-    {
-        return $this->setService('container', $container);
-    }
-    /**
-     * @return ContainerInterface
-     */
-    public function getContainer()
-    {
-        return $this->getService('container');
-    }
-    /**
-     * @return string
-     */
-    public function getDirectory()
-    {
-        return $this->getParameter('directory');
-    }
-    /**
-     * @param string $value
-     *
-     * @return $this
-     */
-    public function setDirectory($value)
-    {
-        return $this->setParameter('directory', $value);
-    }
-    /**
-     * @return string
-     */
-    public function getEnvironment()
-    {
-        return $this->getParameter('environment');
-    }
-    /**
-     * @param string $value
-     *
-     * @return $this
-     */
-    public function setEnvironment($value)
-    {
-        return $this->setParameter('environment', $value);
-    }
-    /**
      * @return string
      */
     public function getDatabaseName()
@@ -86,31 +46,19 @@ class DatabaseService implements ContainerAwareInterface
         return $this->getParameter('databaseName');
     }
     /**
-     * @param string $value
+     * Set the underlying database name.
+     *
+     * @param string $databaseName
      *
      * @return $this
      */
-    public function setDatabaseName($value)
+    public function setDatabaseName($databaseName)
     {
-        return $this->setParameter('databaseName', $value);
+        return $this->setParameter('databaseName', $databaseName);
     }
     /**
-     * @return string
-     */
-    public function getCollectionName()
-    {
-        return $this->getParameter('collectionName');
-    }
-    /**
-     * @param string $value
+     * Return the underlying Mongo Client (connection).
      *
-     * @return $this
-     */
-    public function setCollectionName($value)
-    {
-        return $this->setParameter('collectionName', $value);
-    }
-    /**
      * @return MongoClient
      */
     public function getMongoClient()
@@ -118,6 +66,8 @@ class DatabaseService implements ContainerAwareInterface
         return $this->getService('mongoClient');
     }
     /**
+     * Set the underlying Mongo Client (connection).
+     *
      * @param MongoClient $service
      *
      * @return $this
@@ -127,225 +77,261 @@ class DatabaseService implements ContainerAwareInterface
         return $this->setService('mongoClient', $service);
     }
     /**
+     * Drop the current (or the specified) database.
+     *
      * @param string $name
      *
      * @return $this
      */
     public function drop($name = null)
     {
-        $realName = null === $name ? $this->getDatabaseName() : $name;
-
-        $this->log(sprintf("Dropping database '%s'", $realName), 'info');
-        $this->getMongoClient()->dropDB($realName);
+        $this->getMongoClient()
+            ->selectDB(null === $name ? $this->getDatabaseName() : $name)
+            ->drop()
+        ;
 
         return $this;
     }
     /**
+     * Returns the specified Mongo Collection.
+     *
      * @param string $name
-     * @param string $db
+     * @param array  $options
      *
      * @return MongoCollection
      */
-    public function getCollection($name = null, $db = null)
+    public function getCollection($name, $options = [])
     {
         return $this->getMongoClient()->selectCollection(
-            null === $db   ? $this->getDatabaseName()   : $db,
-            null === $name ? $this->getCollectionName() : $name
+            isset($options['db']) ? $options['db'] : $this->getDatabaseName(),
+            $name
         );
     }
     /**
-     * @return $this
+     * Ensure specified id is a MongoId (convert to MongoId if is string).
      *
-     * @throws \Exception
+     * @param string $id
+     *
+     * @return \MongoId
+     *
+     * @throws Exception if malformed
      */
-    public function upgrade()
+    protected function ensureMongoId($id)
     {
-        $dir = $this->getDirectory();
-        $env = $this->getEnvironment();
-
-        $appliedDiffs = [];
-
-        foreach($this->getCollection()->find() as $doc) {
-            $appliedDiffs[$doc['id']] = true;
+        if (is_object($id) && $id instanceof MongoId) {
+            return $id;
         }
 
-        $files = [];
-
-        foreach(scandir($dir) as $item) {
-            $realPath = $dir . '/' . $item;
-            if ('.' === $item || '..' === $item || false === is_file($realPath)) {
-                continue;
-            }
-            $extension = null;
-            if (false !== strpos($item, '.')) {
-                $extension = strtolower(substr($item, strrpos($item, '.') + 1));
-            }
-            if (true === isset($appliedDiffs[$item])) {
-                continue;
-            }
-            $envName  = 'common';
-
-            if (false !== strrpos($item, '__')) {
-                $envName  = substr($item, strrpos($item, '__') + 2);
-                if ($extension) {
-                    $envName = substr($envName, 0, strrpos($envName, '.'));
-                }
-            }
-            $envNames = array_fill_keys(preg_split('/[,_]/', strtolower($envName)), true);
-
-            if (!isset($envNames['common']) && !isset($envNames[$env])) {
-                continue;
-            }
-
-            $files[$item] = ['path' => $realPath, 'extension' => $extension];
+        if (!preg_match('/^[a-f0-9]{24}$/', $id)) {
+            $this->throwException(412, 'Malformed id');
         }
 
-        ksort($files);
-
-        foreach($files as $fileId => $file) {
-            switch($file['extension']) {
-                case 'yaml':
-                    $this->log(sprintf("+ %s", $fileId), 'info');
-                    $this->applyYamlDiffFile($file['path']);
-                    $this->getCollection()->insert(
-                        ['id' => $fileId, 'date' => date('c'), 'md5' => md5_file($file['path'])]
-                    );
-                    break;
-                case 'php':
-                    $this->log(sprintf("+ %s", $fileId), 'info');
-                    $this->applyPhpDiffFile($file['path']);
-                    $this->getCollection()->insert(
-                        ['id' => $fileId, 'date' => date('c'), 'md5' => md5_file($file['path'])]
-                    );
-                    break;
-                case 'disabled': break;
-                default:     $this->throwException(412, "Unknown database diff file type '%s'", $file['extension']);
-            }
-        }
-
-        return $this;
+        return new MongoId($id);
     }
     /**
-     * @param string $path
+     * Ensure criteria are well formed (array).
      *
-     * @return $this
+     * @param array $criteria
+     *
+     * @return array
      */
-    protected function applyPhpDiffFile($path)
+    protected function buildCriteria($criteria)
     {
-        $container  = $this->getContainer();
-        $logger     = $this->getLoggerService();
-        $dispatcher = $this->getEventDispatcher();
-
-        if (!is_file($path)) {
-            $this->throwException(404, "Unknown PHP Diff file '%s'", $path);
+        if (!is_array($criteria)) {
+            return [];
         }
 
-        include $path;
+        if (isset($criteria['_id'])) {
+            $criteria['_id'] = $this->ensureMongoId($criteria['_id']);
+        }
 
-        unset($container);
-        unset($logger);
-        unset($dispatcher);
-
-        return $this;
-    }
-    /**
-     * @param string $path
-     *
-     * @return $this
-     */
-    protected function applyYamlDiffFile($path)
-    {
-        $data = Yaml::parse(file_get_contents($path));
-
-        if (isset($data['db']) && is_array($data['db'])) {
-            foreach($data['db'] as $type => $items) {
-                $subSubType = null;
-                $officialType = $type;
-                if (substr_count($type, '_') > 1) {
-                    $officialType = substr($type, 0, strpos($type, '_', strpos($type, '_') + 1));
-                    $subSubType = substr($type, strpos($type, '_', strpos($type, '_') + 1) + 1);
-                }
-                $service = $this->getContainer()->get(sprintf('app.%s', str_replace('_', '.', $officialType)));
-                foreach($items as $id => $item) {
-                    if (!is_numeric($id) && !isset($item['id'])) {
-                        $item['id'] = $id;
-                    }
-                    $parentTypes = [];
-                    if (false !== strpos($type, '_')) {
-                        $parentTypes = explode('_', $type);
-                        array_pop($parentTypes);
-                    }
-                    try {
-                        switch (count($parentTypes)) {
-                            case 0:
-                                if (isset($item['id']) && 'index' === $item['id']) {
-                                    unset($item['id']);
-                                    $indexList = [];
-                                    foreach($item as $kkk => $vvv) {
-                                        $indexList[] = is_string($vvv) ? $vvv : $vvv['field'];
-                                    }
-                                    $this->log(sprintf("  + @index %s (%s)", $type, join(',', $indexList)), 'info');
-                                    $service->getRepository()->createIndexes($item);
-                                    continue;
-                                }
-                                if (!isset($item['id']) || !$service->has($item['id'])) {
-                                    $this->log(sprintf("  + %s %s", $type, is_numeric($id) ? reset($item) : (string)$id), 'info');
-                                    $service->create($item);
-                                } else {
-                                    $itemId = $item['id'];
-                                    $this->log(sprintf("  . %s %s", $type, $itemId), 'info');
-                                    unset($item['id']);
-                                    $service->update($itemId, $item);
-                                    $item['id'] = $itemId;
-                                }
-                                break;
-                            case 1:
-                                if (!isset($item['id'])) {
-                                    $this->throwException(500, 'Missing sub type id');
-                                }
-                                if (false === strpos($item['id'], '_')) {
-                                    $this->throwException(500, "Missing parent id for '%s'", $item['id']);
-                                }
-                                list($itemId, $subItemId) = explode('_', $item['id'], 2);
-                                if (!$service->has($itemId, $subItemId)) {
-                                    $item['id'] = $subItemId;
-                                    $service->create($itemId, $item);
-                                } else {
-                                    unset($item['id']);
-                                    $service->update($itemId, $subItemId, $item);
-                                }
-                                break;
-                            case 2:
-                                if (!isset($item['id'])) {
-                                    $this->throwException(500, "Missing sub sub type id");
-                                }
-                                if (false === strpos($item['id'], '_')) {
-                                    $this->throwException(500, "Missing parent id for '%s'", $item['id']);
-                                }
-                                list($itemId, $subItemId, $subSubItemId) = explode('_', $item['id'], 3);
-                                $method = sprintf('has%s', ucfirst($subSubType));
-                                if (!method_exists($service, $method) || !$service->$method($itemId, $subItemId, $subSubItemId)) {
-                                    $item['id'] = $subSubItemId;
-                                    $service->{'create' . ucfirst($subSubType)}($itemId, $subItemId, $item);
-                                } else {
-                                    unset($item['id']);
-                                    $service->update($itemId, $subItemId, $subSubItemId, $item);
-                                }
-                                break;
-                            default:
-                                $this->throwException(500, "Unsupported type '%s' (too much parent levels)", $type);
-                        }
-                    } catch (\Exception $e) {
-                        $extraDescription = null;
-                        if ($e instanceof FormValidationException) {
-                            $extraDescription = $this->getFormService()->getErrorsAsString($e);
-                        }
-                        $this->throwException($e->getCode(), "Error when processing document '%s' of type '%s': %s", $id, $type, $e->getMessage() . ($extraDescription ? (PHP_EOL.PHP_EOL) : null) . $extraDescription);
-                    }
+        if (isset($criteria['$or']) && is_array($criteria['$or'])) {
+            foreach($criteria['$or'] as $a => $b) {
+                if (isset($b['_id'])) {
+                    $criteria['$or'][$a]['_id'] = $this->ensureMongoId($b['_id']);
                 }
             }
         }
 
-        return $this;
+        return $criteria;
+    }
+    /**
+     * Ensure document data are well formed (array).
+     *
+     * @param array $data
+     *
+     * @return array
+     */
+    protected function buildData($data)
+    {
+        if (!is_array($data) || !count($data)) {
+            return [];
+        }
+
+        if (isset($data['_id'])) {
+            $data['_id'] = $this->ensureMongoId($data['_id']);
+        }
+
+        return $data;
+    }
+    /**
+     * Ensure documents data are well formed (array).
+     *
+     * @param array $bulkData
+     *
+     * @return array
+     */
+    protected function buildBulkData($bulkData)
+    {
+        if (!is_array($bulkData) || !count($bulkData)) {
+            return [];
+        }
+
+        foreach($bulkData as $a => $b) {
+            $bulkData[$a] = $this->buildData($b);
+        }
+
+        return $bulkData;
+    }
+    /**
+     * Update (the first matching criteria) a document of the specified collection.
+     *
+     * @param string $collection
+     * @param array  $criteria
+     * @param array  $data
+     * @param array  $options
+     *
+     * @return bool
+     */
+    public function update($collection, $criteria = [], $data = [], $options = [])
+    {
+        return $this->getCollection($collection, $options)->update(
+            $this->buildCriteria($criteria),
+            $this->buildData($data),
+            $options
+        );
+    }
+    /**
+     * Remove (the first matching criteria) a document of the specified collection.
+     *
+     * @param string $collection
+     * @param array  $criteria
+     * @param array  $options
+     * @return array|bool
+     */
+    public function remove($collection, $criteria = [], $options = [])
+    {
+        return $this->getCollection($collection, $options)->remove(
+            $this->buildCriteria($criteria),
+            $options
+        );
+    }
+    /**
+     * Insert a single document into the specified collection.
+     *
+     * @param string $collection
+     * @param array  $data
+     * @param array  $options
+     * @return array|bool
+     */
+    public function insert($collection, $data = [], $options = [])
+    {
+        return $this->getCollection($collection, $options)->insert(
+            $this->buildData($data),
+            $options
+        );
+    }
+    /**
+     * Insert a list of documents into the specified collection.
+     *
+     * @param string $collection
+     * @param array  $bulkData
+     * @param array  $options
+     *
+     * @return mixed
+     */
+    public function bulkInsert($collection, $bulkData = [], $options = [])
+    {
+        return $this->getCollection($collection, $options)->batchInsert(
+            $this->buildBulkData($bulkData),
+            $options
+        );
+    }
+    /**
+     * Retrieve (if match criteria) a list of documents from the specified collection.
+     *
+     * @param string   $collection
+     * @param array    $criteria
+     * @param array    $fields
+     * @param null|int $limit
+     * @param int      $offset
+     * @param array    $sorts
+     * @param array    $options
+     *
+     * @return \MongoCursor
+     */
+    public function find(
+        $collection, $criteria = [], $fields = [], $limit = null, $offset = 0,
+        $sorts = [], $options = []
+    )
+    {
+        $cursor = $this->getCollection($collection, $options)->find(
+            $this->buildCriteria($criteria)
+        );
+
+        if (is_array($fields)   && count($fields)) $cursor->fields($fields);
+        if (is_array($sorts)    && count($sorts))  $cursor->sort($sorts);
+        if (is_numeric($offset) && $offset > 0)    $cursor->skip($offset);
+        if (is_numeric($limit)  && $limit > 0)     $cursor->limit($limit);
+
+        return $cursor;
+    }
+    /**
+     * Retrieve (if match criteria) one document from the specified collection.
+     *
+     * @param string $collection
+     * @param array  $criteria
+     * @param array  $fields
+     * @param array  $options
+     *
+     * @return array|null
+     */
+    public function findOne($collection, $criteria = [], $fields = [], $options = [])
+    {
+        return $this->getCollection($collection, $options)->findOne(
+            $this->buildCriteria($criteria),
+            $fields
+        );
+    }
+    /**
+     * Count the documents matching the criteria.
+     *
+     * @param string $collection
+     * @param array  $criteria
+     * @param array  $options
+     *
+     * @return int
+     */
+    public function count($collection, $criteria = [], $options = [])
+    {
+        return $this->find($collection, $criteria, ['_id'], null, 0, [], $options)
+            ->count(true);
+    }
+    /**
+     * Ensures the specified index is present on the specified fields of the collection.
+     *
+     * @param string       $collection
+     * @param string|array $fields
+     * @param mixed        $index
+     * @param array        $options
+     *
+     * @return bool
+     */
+    public function ensureIndex($collection, $fields, $index, $options = [])
+    {
+        return $this->getCollection($collection, $options)->ensureIndex(
+            is_array($fields) ? $fields : [$fields => true],
+            $index
+        );
     }
 }

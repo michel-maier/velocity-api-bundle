@@ -1,20 +1,35 @@
 <?php
 
+/*
+ * This file is part of the VELOCITY package.
+ *
+ * (c) PHPPRO <opensource@phppro.fr>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
 namespace Velocity\Bundle\ApiBundle\Service;
 
+use Exception;
+use MongoCursor;
 use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
-use Velocity\Bundle\ApiBundle\Traits\LoggerServiceAwareTrait;
-use Velocity\Bundle\ApiBundle\Traits\DatabaseServiceAwareTrait;
+use Velocity\Bundle\ApiBundle\Traits\LoggerAwareTrait;
 use Velocity\Bundle\ApiBundle\Traits\TranslatorAwareTrait;
+use Velocity\Bundle\ApiBundle\Repository\RepositoryInterface;
+use Velocity\Bundle\ApiBundle\Traits\DatabaseServiceAwareTrait;
 use /** @noinspection PhpUndefinedClassInspection */ MongoDuplicateKeyException;
 
-class RepositoryService
+class RepositoryService implements RepositoryInterface
 {
     use ServiceTrait;
-    use LoggerServiceAwareTrait;
+    use LoggerAwareTrait;
     use DatabaseServiceAwareTrait;
     use TranslatorAwareTrait;
+
     /**
+     * Set the underlying collection name.
+     *
      * @param string $collectionName
      *
      * @return $this
@@ -24,520 +39,426 @@ class RepositoryService
         return $this->setParameter('collectionName', $collectionName);
     }
     /**
+     * Return the underlying collection name.
+     *
      * @return string
      */
     public function getCollectionName()
     {
-        return $this->getParameterIfExists('collectionName');
+        return $this->getParameter('collectionName');
     }
     /**
-     * @param string $name
+     * Create a new document based on specified data.
      *
-     * @return \MongoCollection
-     */
-    protected function getCollection($name = null)
-    {
-        if (!$name) $name = $this->getCollectionName();
-
-        return $this->getDatabaseService()->getCollection($name);
-    }
-    /**
-     * @return string
-     */
-    public function getIdField()
-    {
-        return $this->getParameter('idField');
-    }
-    /**
-     * @param string $idField
-     *
-     * @return $this
-     */
-    public function setIdField($idField)
-    {
-        return $this->setParameter('idField', $idField);
-    }
-    /**
      * @param array $data
+     * @param array $options
      *
      * @return array
      */
-    public function createDocument($data)
+    public function create($data, $options = [])
     {
-        $wasObject = false;
-        $realData  = $data;
-
-        if (is_object($realData)) {
-            $wasObject = true;
-            $realData  = get_object_vars($realData);
+        try {
+            return $this->getDatabaseService()
+                ->insert($this->getCollectionName(), $data, $options + ['new' => true]);
+        } /** @noinspection PhpUndefinedClassInspection */ catch (MongoDuplicateKeyException $e) {
+            $this->throwException(
+                412,
+                "{type} already exist",
+                ['{type}' => $this->translate($this->getCollectionName())]
+            );
+            return $this;
         }
-
-        $unsaved = null;
-
-        if (!is_array($realData)) $realData = [];
-        if ('_id' !== $this->getIdField()) {
-            if (isset($realData[$this->getIdField()])) {
-                $this->checkDocumentNotExist($realData[$this->getIdField()]);
-            }
-        } elseif (isset($realData['id'])) {
-            $realData['_id'] = $this->buildId($realData['id']);
-            unset($realData['id']);
-        }
-        if (isset($realData['unsaved'])) {
-            $unsaved = $realData['unsaved'];
-        }
-        unset($realData['unsaved']);
-
-        $realData = $this->convert($realData);
-        $this->insert($realData, ['new' => true]);
-
-        if (null !== $unsaved) {
-            $realData['unsaved'] = $unsaved;
-        }
-
-        if ('_id' === $this->getIdField()) {
-            $realData['id'] = (string)$realData['_id'];
-            unset($realData['_id']);
-        }
-
-        $realData = $this->revert($realData);
-
-        if ($wasObject) {
-            foreach($realData as $k => $v) {
-                $data->$k = $v;
-            }
-        } else {
-            $data = $realData;
-        }
-
-        return $data;
     }
     /**
-     * @param mixed $data
+     * Create multiple new documents based on specified bulk data.
      *
-     * @return mixed
+     * @param array $bulkData
+     * @param array $options
+     *
+     * @return array
      */
-    protected function convert($data)
+    public function createBulk($bulkData, $options = [])
     {
-        foreach($data as $k => $v) {
-            if (null === $v) {
-                unset($data[$k]);
-                continue;
-            }
-            if ('Date' === substr($k, -4)) {
-                $data = $this->convertDataDateTimeFieldToMongoDateWithTimeZone($data, $k);
-            } elseif (is_array($data[$k])) {
-                $data[$k] = $this->convert($data[$k]);
-            }
+        try {
+            return $this->getDatabaseService()->bulkInsert(
+                $this->getCollectionName(), $bulkData, $options + ['new' => true]
+            );
+        } /** @noinspection PhpUndefinedClassInspection */ catch (MongoDuplicateKeyException $e) {
+            $this->throwException(
+                412,
+                "{type} already exist",
+                ['{type}' => $this->translate($this->getCollectionName())]
+            );
+            return $this;
         }
-
-        return $data;
     }
     /**
-     * @param mixed $doc
+     * Retrieve specified document by id.
      *
-     * @return mixed
+     * @param string $id
+     * @param array $fields
+     * @param array $options
+     *
+     * @return array
+     *
+     * @throws Exception
      */
-    protected function revert($doc)
+    public function get($id, $fields = [], $options = [])
     {
-        foreach(array_keys($doc) as $k) {
-            if (!isset($doc[$k])) continue; // if key was removed by previous iteration
-            if ('Date' === substr($k, -4)) {
-                $doc = $this->revertDocumentMongoDateWithTimeZoneFieldToDateTime($doc, $k);
-            } elseif (is_array($doc[$k])) {
-                $doc[$k] = $this->revert($doc[$k]);
-            }
-        }
+        return $this->getBy('_id', $id, $fields, $options);
+    }
+    /**
+     * Retrieve specified document by specified field.
+     *
+     * @param string $fieldName
+     * @param mixed $fieldValue
+     * @param array $fields
+     * @param array $options
+     *
+     * @return array
+     *
+     * @throws Exception
+     */
+    public function getBy($fieldName, $fieldValue, $fields = [], $options = [])
+    {
+        $doc = $this->getDatabaseService()->findOne(
+            $this->getCollectionName(), [$fieldName => $fieldValue], $fields, $options
+        );
+
+        if (null === $doc) $this->throwException(
+            404,
+            "Unknown %s with %s '%s'",
+            $this->getCollectionName(), $fieldName, $fieldValue
+        );
 
         return $doc;
     }
     /**
-     * @param array $bulkData
+     * Retrieve random document.
+     *
+     * @param array $fields
+     * @param array $criteria
+     * @param array $options
      *
      * @return array
+     *
+     * @throws Exception
      */
-    public function createDocumentBulk($bulkData)
+    public function getRandom($fields = [], $criteria = [], $options = [])
     {
-        if (!is_array($bulkData)) $bulkData = [];
+        srand(microtime(true));
 
-        foreach($bulkData as $i => $data) {
-            if (!is_array($data)) $data = [];
+        $ids     = $this->find($criteria, ['id']);
+        $index   = rand(0, count($ids) - 1);
+        $keys    = array_keys($ids);
 
-            if ($this->getIdField()) {
-                if (isset($data[$this->getIdField()])) {
-                    $this->checkDocumentNotExist($data[$this->getIdField()]);
-                }
-            } elseif (isset($data['id'])) {
-                $data['_id'] = $this->buildId($data['id']);
-                unset($data['id']);
-            }
-            $bulkData[$i] = $data;
-        }
-
-        $this->batchInsert($bulkData, ['new' => true]);
-
-        foreach(array_keys($bulkData) as $i) {
-            if (!$this->getIdField()) {
-                $bulkData[$i]['id'] = (string)$bulkData[$i]['_id'];
-            }
-            unset($bulkData[$i]['_id']);
-        }
-
-
-        return $bulkData;
+        return $this->get($ids[$keys[$index]]['id'], $fields, $criteria);
     }
     /**
+     * Test if specified document exist.
+     *
      * @param string $id
-     *
-     * @return array
-     */
-    protected function getIdCriteria($id)
-    {
-        if ($this->getIdField()) {
-            $criteria = [$this->getIdField() => $id];
-        } else {
-            $criteria = ['_id' => $this->buildId($id)];
-        }
-
-        return $criteria;
-    }
-    /**
-     * @param string $id
-     * @param array  $fields
-     * @param array  $criteria
-     *
-     * @return null|array
-     *
-     * @throws \Exception
-     */
-    public function getDocument($id, $fields = [], $criteria = [])
-    {
-        $idField = $this->getIdField();
-
-        if ($idField && '_id' !== $idField) {
-            return $this->getDocumentBy($idField, $id, $fields, $criteria);
-        } else {
-            try {
-                return $this->getDocumentBy('_id', $this->buildId($id), $fields, $criteria);
-            } catch (\Exception $e) {
-                if (412 === $e->getCode() && 'Malformed id' === $e->getMessage()) {
-                    $this->throwException(
-                        404, "Unknown %s with %s '%s'", $this->getCollectionName(), 'id', $id
-                    );
-                    return $this; // never reached
-                } else {
-                    throw $e;
-                }
-            }
-        }
-    }
-    /**
-     * @param string $fieldName
-     * @param mixed  $fieldValue
-     * @param array  $fields
-     * @param array  $criteria
-     *
-     * @return null|array
-     *
-     * @throws \Exception
-     */
-    public function getDocumentBy($fieldName, $fieldValue, $fields = [], $criteria = [])
-    {
-        try {
-            $doc = $this->findOne([$fieldName => $fieldValue] + $criteria, $fields);
-        } catch (\Exception $e) {
-            if (412 === $e->getCode() && 'Malformed id' === $e->getMessage()) {
-                $doc = null;
-            } else {
-                throw $e;
-            }
-        }
-
-        if (!$doc) $this->throwException(
-            404, "Unknown %s with %s '%s'", $this->getCollectionName(), $fieldName, $fieldValue
-        );
-
-        if ('_id' === $this->getIdField()) {
-            $doc['id'] = (string)$doc['_id'];
-        }
-
-        unset($doc['_id']);
-
-        return $this->revert($doc);
-    }
-    /**
-     * @param string $id
+     * @param array $options
      *
      * @return bool
      */
-    public function hasDocument($id)
+    public function has($id, $options = [])
     {
-        return null !== $this->findOne($this->getIdCriteria($id));
+        return null !== $this->getDatabaseService()->findOne(
+            $this->getCollectionName(), ['_id' => $id], [], $options
+        );
     }
     /**
+     * Test if specified document not exist.
+     *
      * @param string $id
+     * @param array $options
+     *
+     * @return bool
+     */
+    public function hasNot($id, $options = [])
+    {
+        return !$this->has($id, $options);
+    }
+    /**
+     * Check if specified document exist.
+     *
+     * @param string $id
+     * @param array $options
      *
      * @return $this
      */
-    public function checkDocumentExist($id)
+    public function checkExist($id, $options = [])
     {
-        if (!$this->hasDocument($id)) {
-            $this->throwException("Unknown %s '%s'", $this->getCollectionName(), $id);
+        if (!$this->has($id)) {
+            $this->throwException(
+                404,
+                "Unknown %s '%s'",
+                $this->getCollectionName(), $id
+            );
         }
 
         return $this;
     }
     /**
+     * Check if specified document not exist.
+     *
      * @param string $id
+     * @param array $options
      *
      * @return $this
      */
-    public function checkDocumentNotExist($id)
+    public function checkNotExist($id, $options = [])
     {
-        if ($this->hasDocument($id)) {
-            $this->throwTranslatedException(412, "{type} '{id}' already exist", ['type' => $this->getCollectionName(), 'id' => $id]);
+        if ($this->has($id, $options)) {
+            $this->throwException(
+                412,
+                "{type} '{id}' already exist",
+                ['type' => $this->getCollectionName(), 'id' => $id]
+            );
         }
 
         return $this;
     }
     /**
-     * @param array    $criteria
+     * Count documents matching specified criteria.
+     *
+     * @param array $criteria
+     * @param array $options
      *
      * @return int
      */
-    public function countDocuments($criteria = [])
+    public function count($criteria = [], $options = [])
     {
-        return $this->getDocumentCursor($criteria, ['id'])->count();
+        return $this->getDatabaseService()
+            ->count($this->getCollectionName(), $criteria);
     }
     /**
-     * @param array    $criteria
-     * @param array    $fields
-     * @param int|null $limit
-     * @param int      $offset
-     * @param array    $sorts
-     * @param \Closure $eachCallback
+     * Retrieve the documents matching the specified criteria, and optionally filter page.
      *
-     * @return array
-     */
-    public function listDocuments(
-        $criteria = [], $fields = [], $limit = null, $offset = 0, $sorts = [], \Closure $eachCallback = null
-    )
-    {
-        $cursor    = $this->getDocumentCursor($criteria, $fields, $limit, $offset, $sorts);
-        $documents = [];
-
-        foreach($cursor as $document) {
-
-            $idField = $this->getIdField();
-
-            if ('_id' === $idField) {
-                $document['id'] = (string)$document['_id'];
-                $idField = 'id';
-            }
-
-            unset($document['_id']);
-            $document = $this->revert($document);
-            $currentId = $document[$idField];
-            if ($eachCallback) $document = $eachCallback($document);
-            $documents[$currentId] = $document;
-        }
-
-        return $documents;
-    }
-
-    /**
-     * @param array    $criteria
-     * @param array    $fields
-     * @param int|null $limit
-     * @param int      $offset
-     * @param array    $sorts
-     *
-     * @return \MongoCursor
-     */
-    public function getDocumentCursor(
-        $criteria = [], $fields = [], $limit = null, $offset = 0, $sorts = []
-    )
-    {
-        if (!$this->getIdField()) {
-            if (isset($criteria['id'])) {
-                if (is_array($criteria['id'])) {
-                    $or = [];
-                    foreach ($criteria['id'] as $i => $_id) {
-                        $or[] = ['_id' => $this->buildId($_id)];
-                    }
-                    $criteria['$or'] = $or;
-                    unset($criteria['id']);
-                } else {
-                    $criteria['_id'] = $this->buildId($criteria['id']);
-                    unset($criteria['id']);
-                }
-            }
-        }
-
-        foreach ($criteria as $criteriaKey => $criteriaValue) {
-            if (false !== strpos($criteriaKey, ':')) {
-                unset($criteria[$criteriaKey]);
-                list($criteriaKey, $criteriaValueType) = explode(':', $criteriaKey, 2);
-                switch (trim($criteriaValueType)) {
-                    case 'int':
-                        $criteriaValue = (int)$criteriaValue;
-                        break;
-                    case 'string':
-                        $criteriaValue = (string)$criteriaValue;
-                        break;
-                    case 'bool':
-                        $criteriaValue = (bool)$criteriaValue;
-                        break;
-                    case 'array':
-                        $criteriaValue = json_decode($criteriaValue, true);
-                        break;
-                    case 'float':
-                        $criteriaValue = (double)$criteriaValue;
-                        break;
-                    default:
-                        break;
-                }
-                $criteria[$criteriaKey] = $criteriaValue;
-            }
-            if ('*empty*' === $criteriaValue) {
-                $criteriaValue = ['$exists' => false];
-            } elseif ('*notempty*' === $criteriaValue) {
-                $criteriaValue = ['$exists' => true];
-            }
-            $criteria[$criteriaKey] = $criteriaValue;
-        }
-
-        return $this->find($criteria, $fields, $limit, $offset, $sorts);
-    }
-    /**
-     * @param string $id
-     *
-     * @return array
-     */
-    public function deleteDocument($id)
-    {
-        $this->remove($this->getIdCriteria($id));
-
-        return $this;
-    }
-    /**
      * @param array $criteria
+     * @param array $fields
+     * @param int|null $limit
+     * @param int $offset
+     * @param array $sorts
+     * @param array $options
+     *
+     * @return MongoCursor
+     */
+    public function find(
+        $criteria = [], $fields = [], $limit = null, $offset = 0, $sorts = [],
+        $options = []
+    )
+    {
+        return $this->getDatabaseService()->find(
+            $this->getCollectionName(), $criteria, $fields, $limit, $offset, $sorts, $options
+        );
+    }
+    /**
+     * Delete the specified document.
+     *
+     * @param string $id
+     * @param array $options
      *
      * @return array
      */
-    public function deleteDocuments($criteria = [])
+    public function delete($id, $options = [])
     {
-        if (!$this->getIdField()) {
-            if (isset($criteria['id'])) {
-                $criteria['_id'] = $this->buildId($criteria['id']);
-                unset($criteria['id']);
-            }
-        }
-
-        $this->remove($criteria);
+        $this->getDatabaseService()->remove(
+            $this->getCollectionName(), ['_id' => $id], ['justOne' => true] + $options
+        );
 
         return $this;
     }
     /**
+     * Delete documents matching specified criteria.
+     *
+     * @param array $criteria
+     * @param array $options
+     *
+     * @return array
+     */
+    public function deleteFound($criteria, $options = [])
+    {
+        $this->getDatabaseService()->remove($criteria, $options);
+
+        return $this;
+    }
+    /**
+     * Set the specified property of the specified document.
+     *
      * @param string $id
      * @param string $property
-     * @param mixed  $value
+     * @param mixed $value
+     * @param array $options
      *
      * @return $this
      */
-    public function setDocumentProperty($id, $property, $value)
+    public function setProperty($id, $property, $value, $options = [])
     {
-        $this->updateDocument($id, ['$set' => [$property => $value]]);
-
-        return $this;
+        return $this->update($id, ['$set' => [$property => $value]], $options);
     }
     /**
+     * Set the specified properties of the specified document.
+     *
      * @param string $id
-     * @param array  $values
+     * @param array $values
+     * @param array $options
      *
      * @return $this
      */
-    public function setDocumentProperties($id, $values)
+    public function setProperties($id, $values, $options = [])
     {
         if (!count($values)) {
             return $this;
         }
 
-        $this->updateDocument($id, ['$set' => $values]);
-
-        return $this;
+        return $this->update($id, ['$set' => $values]);
     }
     /**
+     * Increment specified property of the specified document.
+     *
      * @param string $id
      * @param string $property
-     * @param mixed  $value
+     * @param mixed $value
+     * @param array $options
      *
      * @return $this
      */
-    public function incrementDocumentProperty($id, $property, $value = 1)
+    public function incrementProperty($id, $property, $value = 1, $options = [])
     {
-        $this->updateDocument($id, ['$inc' => [$property => $value]]);
-
-        return $this;
+        return $this->update($id, ['$inc' => [$property => $value]], $options);
     }
     /**
+     * Decrement specified property of the specified document.
+     *
      * @param string $id
-     * @param array  $values
+     * @param string $property
+     * @param mixed $value
+     * @param array $options
      *
      * @return $this
      */
-    public function incrementMultipleDocumentProperties($id, $values)
+    public function decrementProperty($id, $property, $value = 1, $options = [])
+    {
+        return $this->update($id, ['$inc' => [$property => - $value]], $options);
+    }
+    /**
+     * Increment specified properties of the specified document.
+     *
+     * @param string $id
+     * @param array $values
+     * @param array $options
+     *
+     * @return $this
+     */
+    public function incrementProperties($id, $values, $options = [])
     {
         if (!count($values)) {
             return $this;
         }
 
-        $this->updateDocument($id, ['$inc' => $values]);
-
-        return $this;
-
+        return $this->update($id, ['$inc' => $values], $options);
     }
     /**
-     * @param string       $id
+     * Decrement specified properties of the specified document.
+     *
+     * @param string $id
+     * @param array $values
+     * @param array $options
+     *
+     * @return $this
+     */
+    public function decrementProperties($id, $values, $options = [])
+    {
+        if (!count($values)) {
+            return $this;
+        }
+
+        return $this->update($id, [
+            '$inc' => array_map(function ($v) { return - $v;}, $values)],
+            $options
+        );
+    }
+    /**
+     * Unset the specified property of the specified document.
+     *
+     * @param string $id
      * @param string|array $property
+     * @param array $options
      *
      * @return $this
      */
-    public function unsetDocumentProperty($id, $property)
+    public function unsetProperty($id, $property, $options = [])
     {
-        if (!is_array($property)) {
-            $property = [$property];
+        return $this->update($id, ['$unset' => [$property => '']], $options);
+    }
+    /**
+     * Update the specified document with the specified data.
+     *
+     * @param string $id
+     * @param array $data
+     * @param array $options
+     *
+     * @return $this
+     */
+    public function update($id, $data, $options = [])
+    {
+        return $this->update(['_id' => $id], ['$set' => $data], ['upsert' => false] + $options);
+    }
+    /**
+     * Update multiple document specified with their data.
+     *
+     * @param array $bulkData
+     * @param array $options
+     *
+     * @return array
+     */
+    public function updateBulk($bulkData, $options = [])
+    {
+        $docs = [];
+
+        foreach($bulkData as $id => $data) {
+            $docs[$id] = $this->update($id, $data, $options);
         }
 
-        $this->updateDocument($id, ['$unset' => array_fill_keys($property, '')]);
-
-        return $this;
+        return $docs;
     }
     /**
-     * @param string $id
-     * @param array  $data
+     * Delete multiple document specified with their id.
      *
-     * @return $this
+     * @param array $bulkIds
+     * @param array $options
+     *
+     * @return array
      */
-    public function updateDocument($id, $data)
+    public function deleteBulk($bulkIds, $options = [])
     {
-        $this->update($this->getIdCriteria($id), $data);
+        $properties  = [];
 
-        return $this;
+        foreach($bulkIds as $id) {
+            $properties[$id] = ['id' => $id];
+        }
+
+        $this->deleteFound(['$or' => array_keys($properties)], $options);
+
+        return $properties;
     }
     /**
+     * Return the specified property of the specified document.
+     *
      * @param string $id
      * @param string $property
+     * @param array $options
      *
      * @return mixed
      *
-     * @throws \RuntimeException
+     * @throws Exception
      */
-    public function getDocumentProperty($id, $property)
+    public function getProperty($id, $property, $options = [])
     {
-        $document = $this->getDocument($id, [$property]);
-
-        $value = $document;
+        $document = $this->get($id, [$property], $options);
+        $value    = $document;
 
         foreach(explode('.', $property) as $key) {
             if (!isset($value[$key]))
@@ -555,225 +476,72 @@ class RepositoryService
         return $value;
     }
     /**
+     * Test if specified property is present in specified document.
+     *
      * @param string $id
      * @param string $property
+     * @param array $options
      *
      * @return bool
      */
-    public function hasDocumentProperty($id, $property)
+    public function hasProperty($id, $property, $options = [])
     {
-        $document = $this->getDocument($id, [$property]);
-
-        $value = $document;
+        $document = $this->get($id, [$property], $options);
+        $value    = $document;
 
         foreach(explode('.', $property) as $key) {
-            if (!isset($value[$key])) return false;
+            if (!isset($value[$key])) {
+                return false;
+            }
             $value = $value[$key];
         }
 
         return true;
     }
     /**
+     * Check if specified property is present in specified document.
+     *
      * @param string $id
      * @param string $property
+     * @param array $options
      *
      * @return $this
      */
-    public function checkDocumentPropertyExist($id, $property)
+    public function checkPropertyExist($id, $property, $options = [])
     {
-        if (!$this->hasDocumentProperty($id, $property)) {
+        if (!$this->hasProperty($id, $property, $options)) {
             $this->throwException(
                 412,
-                "Unknown %s in %s '%s'", str_replace('.', ' ', $property), $this->getCollectionName(), $id
+                "Unknown %s in %s '%s'",
+                str_replace('.', ' ', $property),
+                $this->getCollectionName(),
+                $id
             );
         }
 
         return $this;
     }
     /**
-     * @param array $criteria
-     * @param array $data
-     * @param array $options
+     * Create the specified index.
      *
-     * @return bool
-     */
-    protected function update($criteria, $data = [], $options = [])
-    {
-        return $this->getCollection()->update($criteria, $data, $options);
-    }
-    /**
-     * @param array $criteria
-     * @param array $options
-     *
-     * @return bool
-     */
-    protected function remove($criteria, $options = [])
-    {
-        return $this->getCollection()->remove($criteria, $options);
-    }
-    /**
-     * @param array $data
-     * @param array $options
-     *
-     * @return array|bool
-     *
-     * @throws \Exception
-     */
-    protected function insert($data, $options = [])
-    {
-        try {
-            return $this->getCollection()->insert($data, $options);
-        } catch (\Exception $e) {
-            /** @noinspection PhpUndefinedClassInspection */
-            if ($e instanceof MongoDuplicateKeyException) {
-                $this->throwException(412, "{type} already exist", ['{type}' => $this->translate($this->getCollectionName())]);
-            }
-            throw $e;
-        }
-    }
-    /**
-     * @param array $bulkData
-     * @param array $options
-     *
-     * @return array|bool
-     */
-    protected function batchInsert($bulkData, $options = [])
-    {
-        return $this->getCollection()->batchInsert($bulkData, $options);
-    }
-    /**
-     * @param array $fields
-     *
-     * @return array
-     */
-    protected function buildFieldList($fields)
-    {
-        $_fields = [];
-
-        if (is_array($fields)   && count($fields)) {
-            foreach($fields as $field) {
-                if ('!' === substr($field, 0, 1)) {
-                    $_fields[substr($field, 1)] = false;
-                } else {
-                    $_fields[$field] = true;
-                }
-            }
-        }
-
-        return $_fields;
-    }
-    /**
-     * @param array    $criteria
-     * @param array    $fields
-     * @param int|null $limit
-     * @param int      $offset
-     * @param array    $sorts
-     *
-     * @return \MongoCursor
-     */
-    protected function find($criteria, $fields = [], $limit = null, $offset = 0, $sorts = [])
-    {
-        $cursor = $this->getCollection()->find($criteria);
-
-        $_fields = $this->buildFieldList($fields);
-
-        if (is_array($_fields)  && count($_fields)) $cursor->fields($_fields);
-        if (is_array($sorts)    && count($sorts))   $cursor->sort(array_map(function ($a) { return (int)$a;}, $sorts));
-        if (is_numeric($offset) && $offset > 0)     $cursor->skip($offset);
-        if (is_numeric($limit)  && $limit > 0)      $cursor->limit($limit);
-
-        return $cursor;
-    }
-    /**
-     * @param array $criteria
-     * @param array $fields
-     *
-     * @return \MongoCursor
-     */
-    protected function findOne($criteria, $fields = [])
-    {
-        return $this->getCollection()->findOne($criteria, $this->buildFieldList($fields));
-    }
-    /**
-     * @param array  $data
-     * @param string $fieldName
-     *
-     * @return array
-     */
-    protected function convertDataDateTimeFieldToMongoDateWithTimeZone($data, $fieldName)
-    {
-        if (!isset($data[$fieldName])) $this->throwException(412, "Missing date time field '%s'", $fieldName);
-
-        if (!$data[$fieldName] instanceof \DateTime)
-            $this->throwException(412, "Field '%s' must be a valid DateTime", $fieldName);
-
-        /** @var \DateTime $date */
-        $date = $data[$fieldName];
-
-        $data[$fieldName] = new \MongoDate($date->getTimestamp());
-        $data[sprintf('%s_tz', $fieldName)] = $date->getTimezone()->getName();
-
-        return $data;
-    }
-    /**
-     * @param array  $doc
-     * @param string $fieldName
-     *
-     * @return array
-     */
-    protected function revertDocumentMongoDateWithTimeZoneFieldToDateTime($doc, $fieldName)
-    {
-        if (!isset($doc[$fieldName])) $this->throwException(412, "Missing mongo date field '%s'", $fieldName);
-
-        if (!isset($doc[sprintf('%s_tz', $fieldName)])) {
-            $doc[sprintf('%s_tz', $fieldName)] = date_default_timezone_get();
-        }
-
-        if (!$doc[$fieldName] instanceof \MongoDate)
-            $this->throwException(412, "Field '%s' must be a valid MongoDate", $fieldName);
-
-        /** @var \MongoDate $mongoDate */
-        $mongoDate = $doc[$fieldName];
-
-        $date = new \DateTime(sprintf('@%d', $mongoDate->sec), new \DateTimeZone('UTC'));
-
-        $doc[$fieldName] = date_create_from_format(
-            \DateTime::ISO8601,
-            preg_replace('/(Z$|\+0000$)/', $doc[sprintf('%s_tz', $fieldName)], $date->format(\DateTime::ISO8601))
-        );
-
-        unset($doc[sprintf('%s_tz', $fieldName)]);
-
-        return $doc;
-    }
-    /**
-     * @param string $id
-     *
-     * @return \MongoId
-     */
-    protected function buildId($id)
-    {
-        if (!preg_match('/^[a-f0-9]{24}$/', $id)) {
-            $this->throwException(412, 'Malformed id');
-        }
-
-        return new \MongoId($id);
-    }
-    /**
      * @param array $index
+     * @param array $options
      *
-     * @return RepositoryService
+     * @return $this
      */
-    public function createIndex($index)
+    public function createIndex($index, $options = [])
     {
         return $this->createIndexes([$index]);
     }
     /**
+     * Create the specified indexes.
+     *
      * @param array $indexes
+     * @param array $options
      *
      * @return $this
      */
-    public function createIndexes($indexes)
+    public function createIndexes($indexes, $options = [])
     {
         foreach($indexes as $index) {
             if (is_string($index)) {
@@ -784,7 +552,8 @@ class RepositoryService
             }
             $fields = $index['field'];
             unset($index['field']);
-            $this->getCollection()->ensureIndex(is_array($fields) ? $fields : [$fields => true], $index);
+            $this->getDatabaseService()
+                ->ensureIndex($this->getCollectionName(), $fields, $index, $options);
         }
 
         return $this;

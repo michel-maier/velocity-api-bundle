@@ -11,6 +11,8 @@
 
 namespace Velocity\Bundle\ApiBundle\Security;
 
+use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
+
 /**
  * API Decorated Account Provider.
  *
@@ -18,14 +20,7 @@ namespace Velocity\Bundle\ApiBundle\Security;
  */
 class ApiDecoratedAccountProvider
 {
-    /**
-     * @var mixed
-     */
-    protected $method;
-    /**
-     * @var string
-     */
-    protected $accountProvider;
+    use ServiceTrait;
     /**
      * @param mixed  $accountProvider
      * @param string $method
@@ -33,19 +28,26 @@ class ApiDecoratedAccountProvider
     public function __construct($accountProvider, $method = 'get')
     {
         if (!method_exists($accountProvider, $method)) {
-            throw new \RuntimeException(sprintf("Missing method %s::%s()", get_class($accountProvider), $method), 500);
+            $this->throwException(
+                500,
+                "Missing method %s::%s()",
+                get_class($accountProvider),
+                $method
+            );
         }
 
-        $this->accountProvider = $accountProvider;
-        $this->method          = $method;
+        $this->setParameter('accountProvider', $accountProvider);
+        $this->setParameter('method',          $method);
     }
     /**
+     * Return the specified account.
+     *
      * @param string $id
      *
      * @return mixed
      */
     public function get($id)
     {
-        return $this->accountProvider->{$this->method}($id);
+        return $this->getParameter('accountProvider')->{$this->getParameter('method')}($id);
     }
 }

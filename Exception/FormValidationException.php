@@ -25,6 +25,8 @@ class FormValidationException extends \RuntimeException
      */
     protected $form;
     /**
+     * Construct the exception
+     *
      * @param FormInterface $form
      */
     public function __construct(FormInterface $form)
@@ -34,6 +36,8 @@ class FormValidationException extends \RuntimeException
         $this->form = $form;
     }
     /**
+     * Return the underlying form.
+     *
      * @return FormInterface
      */
     public function getForm()

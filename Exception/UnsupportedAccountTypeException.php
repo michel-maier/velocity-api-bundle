@@ -21,6 +21,8 @@ use Symfony\Component\Security\Core\Exception\AuthenticationException;
 class UnsupportedAccountTypeException extends AuthenticationException
 {
     /**
+     * Construct the exception
+     *
      * @param string $type
      */
     public function __construct($type)

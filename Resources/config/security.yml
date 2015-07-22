@@ -1,16 +1,16 @@
 services:
   api.security.provider.user.api:
-    class: %api_ns%\Security\ApiUserProvider
+    class: Velocity\Bundle\ApiBundle\Security\ApiUserProvider
 
   api.security.authentication.provider:
-    class: %api_ns%\Security\ApiAuthenticationProvider
+    class: Velocity\Bundle\ApiBundle\Security\ApiAuthenticationProvider
     arguments:
       - @api.security.provider.user.api
     calls:
       - [setEventDispatcher, [@event_dispatcher]]
       - [setRequestService, [@api.request]]
   api.security.authentication.listener:
-    class: %api_ns%\Security\ApiListener
+    class: Velocity\Bundle\ApiBundle\Security\ApiListener
     arguments:
       - @security.context
       - @security.authentication.manager

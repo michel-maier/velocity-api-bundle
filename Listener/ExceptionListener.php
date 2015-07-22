@@ -12,7 +12,7 @@
 namespace Velocity\Bundle\ApiBundle\Listener;
 
 use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
-use Velocity\Bundle\ApiBundle\Service\ExceptionService;
+use Velocity\Bundle\ApiBundle\Traits\ExceptionServiceAwareTrait;
 use Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent;
 
 /**
@@ -23,34 +23,18 @@ use Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent;
 class ExceptionListener
 {
     use ServiceTrait;
+    use ExceptionServiceAwareTrait;
     /**
-     * @param ExceptionService $exceptionService
+     * Kernel exception event callback.
      *
-     * @return $this
-     */
-    public function setExceptionService(ExceptionService $exceptionService)
-    {
-        return $this->setService('exception', $exceptionService);
-    }
-    /**
-     * @return ExceptionService
-     */
-    public function getExceptionService()
-    {
-        return $this->getService('exception');
-    }
-    /**
-     * @param ExceptionService $exceptionService
-     */
-    public function __construct(ExceptionService $exceptionService)
-    {
-        $this->setExceptionService($exceptionService);
-    }
-    /**
      * @param GetResponseForExceptionEvent $event
+     *
+     * @return void
      */
     public function onKernelException(GetResponseForExceptionEvent $event)
     {
-        $event->setResponse($this->getExceptionService()->convertToResponse($event->getException()));
+        $event->setResponse(
+            $this->getExceptionService()->convertToResponse($event->getException())
+        );
     }
 }

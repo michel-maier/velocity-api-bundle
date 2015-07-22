@@ -11,6 +11,7 @@
 
 namespace Velocity\Bundle\ApiBundle\Listener;
 
+use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
 
@@ -21,8 +22,13 @@ use Symfony\Component\HttpKernel\Event\GetResponseEvent;
  */
 class RequestListener
 {
+    use ServiceTrait;
     /**
+     * Kernel request event callback.
+     *
      * @param GetResponseEvent $event
+     *
+     * @return void
      */
     public function onKernelRequest(GetResponseEvent $event)
     {
@@ -36,7 +42,11 @@ class RequestListener
 
         if (json_last_error() !== JSON_ERROR_NONE) {
             $event->setResponse(new JsonResponse(
-                ['code' => 412, 'status' => 'exception', 'message' => 'Malformed data (json syntax)'],
+                [
+                    'code'    => 412,
+                    'status'  => 'exception',
+                    'message' => 'Malformed data (json syntax)',
+                ],
                 412
             ));
         } elseif (is_array($data)) {

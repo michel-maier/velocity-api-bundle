@@ -23,6 +23,8 @@ class ImportException extends \RuntimeException
      */
     protected $errors;
     /**
+     * Construct the exception
+     *
      * @param array $errors
      */
     public function __construct(array $errors = [])
@@ -32,6 +34,8 @@ class ImportException extends \RuntimeException
         $this->errors = $errors;
     }
     /**
+     * Return the errors.
+     *
      * @return array
      */
     public function getErrors()

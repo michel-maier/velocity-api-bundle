@@ -21,7 +21,7 @@ use Symfony\Component\Security\Core\Exception\AccessDeniedException;
 class MissingUserPrivilegeException extends AccessDeniedException
 {
     /**
-     *
+     * Construct the exception
      */
     public function __construct()
     {

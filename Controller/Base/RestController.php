@@ -24,6 +24,8 @@ use Velocity\Bundle\ApiBundle\Service\ExceptionService;
 abstract class RestController extends BaseController
 {
     /**
+     * Return the serializer (json).
+     *
      * @return SerializerInterface
      */
     protected function getSerializer()
@@ -31,6 +33,8 @@ abstract class RestController extends BaseController
         return $this->get('jms_serializer');
     }
     /**
+     * Return the exception service.
+     *
      * @return ExceptionService
      */
     protected function getExceptionService()
@@ -38,7 +42,7 @@ abstract class RestController extends BaseController
         return $this->get('api.exception');
     }
     /**
-     * Returns the http response
+     * Returns the http response.
      *
      * @param mixed $data
      * @param int   $code

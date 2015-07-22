@@ -62,7 +62,7 @@ class ApiUserProvider implements UserProviderInterface
             throw $e;
         }
 
-        return new ApiUser($account);
+        return new ApiUser(is_object($account) ? get_object_vars($account) : $account);
     }
     /**
      * @param string $username
@@ -92,7 +92,13 @@ class ApiUserProvider implements UserProviderInterface
             );
         }
 
-        return $accountProvider->{$method}($this->unformat($realUsername, $format));
+        $a = $accountProvider->{$method}($this->unformat($realUsername, $format));
+
+        if (is_object($a)) {
+            $a = get_object_vars($a);
+        }
+
+        return $a;
     }
     /**
      * @param string $value

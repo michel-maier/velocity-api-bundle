@@ -24,7 +24,10 @@ use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 class VelocityApiExtension extends Extension
 {
     /**
-     * {@inheritdoc}
+     * @param array $configs
+     * @param ContainerBuilder $container
+     *
+     * @return void
      */
     public function load(array $configs, ContainerBuilder $container)
     {
@@ -40,6 +43,7 @@ class VelocityApiExtension extends Extension
         $loader->load('forms.yml');
         $loader->load('commands.yml');
         $loader->load('validators.yml');
+        $loader->load('migrators.yml');
         $loader->load('listeners.yml');
     }
 }

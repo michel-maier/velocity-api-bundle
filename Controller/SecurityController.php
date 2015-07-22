@@ -55,7 +55,8 @@ class SecurityController extends RestController
         return $this->returnResponse(
             null,
             204,
-            $this->getRequestService()->createClientTokenFromRequestAndReturnHeaders($request)
+            $this->getRequestService()
+                ->createClientTokenFromRequestAndReturnHeaders($request)
         );
     }
     /**
@@ -80,7 +81,8 @@ class SecurityController extends RestController
         return $this->returnResponse(
             null,
             204,
-            $this->getRequestService()->createUserTokenFromRequestAndReturnHeaders($request)
+            $this->getRequestService()
+                ->createUserTokenFromRequestAndReturnHeaders($request)
         );
     }
 }

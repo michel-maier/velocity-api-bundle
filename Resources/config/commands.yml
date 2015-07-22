@@ -2,6 +2,7 @@ parameters:
 
 services:
   api.command.dbUp:
+<<<<<<< HEAD
     class: %api_ns%\Command\DbUpCommand
     arguments:
       - @api.database
@@ -11,5 +12,16 @@ services:
     class: %api_ns%\Command\DbDropCommand
     arguments:
       - @api.database
+=======
+    class: Velocity\Bundle\ApiBundle\Command\DbUpCommand
+    calls:
+      - [setMigrationService, [@api.migration]]
+    tags:
+      - { name: console.command }
+  api.command.dbDrop:
+    class: Velocity\Bundle\ApiBundle\Command\DbDropCommand
+    calls:
+      - [setDatabaseService, [@api.database]]
+>>>>>>> c4cd1d5a552f09fcdf524e03462f1c73c6c6720b
     tags:
       - { name: console.command }

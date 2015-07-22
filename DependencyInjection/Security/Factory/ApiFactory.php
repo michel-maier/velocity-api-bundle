@@ -24,6 +24,17 @@ use Symfony\Bundle\SecurityBundle\DependencyInjection\Security\Factory\SecurityF
  */
 class ApiFactory implements SecurityFactoryInterface
 {
+    /**
+     * Create a new API Factory.
+     *
+     * @param ContainerBuilder $container
+     * @param $id
+     * @param $config
+     * @param $userProvider
+     * @param $defaultEntryPoint
+     *
+     * @return array
+     */
     public function create(ContainerBuilder $container, $id, $config, $userProvider, $defaultEntryPoint)
     {
         $providerId = 'api.security.authentication.provider.api.'.$id;
@@ -37,17 +48,29 @@ class ApiFactory implements SecurityFactoryInterface
 
         return array($providerId, $listenerId, $defaultEntryPoint);
     }
-
+    /**
+     * Return the position.
+     *
+     * @return string
+     */
     public function getPosition()
     {
         return 'pre_auth';
     }
-
+    /**
+     * Return the key.
+     *
+     * @return string
+     */
     public function getKey()
     {
         return 'api';
     }
-
+    /**
+     * @param NodeDefinition $node
+     *
+     * @return void
+     */
     public function addConfiguration(NodeDefinition $node)
     {
     }

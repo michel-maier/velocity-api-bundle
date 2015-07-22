@@ -1,33 +1,63 @@
 services:
   api.metadata:
+<<<<<<< HEAD
     class: %api_ns%\Service\MetaDataService
   api.exception:
     class: %api_ns%\Service\ExceptionService
+=======
+    class: Velocity\Bundle\ApiBundle\Service\MetaDataService
+  api.exception:
+    class: Velocity\Bundle\ApiBundle\Service\ExceptionService
+>>>>>>> c4cd1d5a552f09fcdf524e03462f1c73c6c6720b
     arguments:
       - @request_stack
       - @api.form
   api.supervision:
+<<<<<<< HEAD
     class: %api_ns%\Service\SupervisionService
+=======
+    class: Velocity\Bundle\ApiBundle\Service\SupervisionService
+>>>>>>> c4cd1d5a552f09fcdf524e03462f1c73c6c6720b
     arguments:
       - @security.context
+  api.math:
+    class: Velocity\Bundle\ApiBundle\Service\MathService
   api.request:
+<<<<<<< HEAD
     class: %api_ns%\Service\RequestService
     arguments:
       - @api.security.provider.user.api
       - @app.client
       - %app_security_client_secret%
       - %app_security_user_secret%
+=======
+    class: Velocity\Bundle\ApiBundle\Service\RequestService
+    arguments:
+      - @api.security.provider.user.api
+      - %app.security.client.secret%
+      - %app.security.user.secret%
+>>>>>>> c4cd1d5a552f09fcdf524e03462f1c73c6c6720b
   api.mongo:
     class: MongoClient
     arguments:
       - %app_mongo_server%
   api.database:
+<<<<<<< HEAD
     class: %api_ns%\Service\DatabaseService
+=======
+    class: Velocity\Bundle\ApiBundle\Service\DatabaseService
+>>>>>>> c4cd1d5a552f09fcdf524e03462f1c73c6c6720b
     arguments:
       - @api.mongo
+      - %app.mongo.db%
+  api.migration:
+    class: Velocity\Bundle\ApiBundle\Service\MigrationService
+    arguments:
+      - @api.database
       - @logger
       - @api.form
       - @service_container
+<<<<<<< HEAD
     calls:
       - [setCollectionName, ['migration']]
       - [setDatabaseName, ["%app_mongo_db%"]]
@@ -35,5 +65,12 @@ services:
       - [setDirectory, ["%app_db_dir%"]]
   api.form:
     class: %api_ns%\Service\FormService
+=======
+      - 'migration'
+      - %app.db.dir%
+      - %app.env%
+  api.form:
+    class: Velocity\Bundle\ApiBundle\Service\FormService
+>>>>>>> c4cd1d5a552f09fcdf524e03462f1c73c6c6720b
     arguments:
       - @form.factory
