@@ -1,28 +1,28 @@
 services:
   api.metadata:
-    class: %api.ns%\Service\MetaDataService
+    class: %api_ns%\Service\MetaDataService
   api.exception:
-    class: %api.ns%\Service\ExceptionService
+    class: %api_ns%\Service\ExceptionService
     arguments:
       - @request_stack
       - @api.form
   api.supervision:
-    class: %api.ns%\Service\SupervisionService
+    class: %api_ns%\Service\SupervisionService
     arguments:
       - @security.context
   api.request:
-    class: %api.ns%\Service\RequestService
+    class: %api_ns%\Service\RequestService
     arguments:
       - @api.security.provider.user.api
       - @app.client
-      - %app.security.client.secret%
-      - %app.security.user.secret%
+      - %app_security_client_secret%
+      - %app_security_user_secret%
   api.mongo:
     class: MongoClient
     arguments:
-      - %app.mongo.server%
+      - %app_mongo_server%
   api.database:
-    class: %api.ns%\Service\DatabaseService
+    class: %api_ns%\Service\DatabaseService
     arguments:
       - @api.mongo
       - @logger
@@ -30,10 +30,10 @@ services:
       - @service_container
     calls:
       - [setCollectionName, ['migration']]
-      - [setDatabaseName, ["%app.mongo.db%"]]
-      - [setEnvironment, ["%app.env%"]]
-      - [setDirectory, ["%app.db.dir%"]]
+      - [setDatabaseName, ["%app_mongo_db%"]]
+      - [setEnvironment, ["%app_env%"]]
+      - [setDirectory, ["%app_db_dir%"]]
   api.form:
-    class: %api.ns%\Service\FormService
+    class: %api_ns%\Service\FormService
     arguments:
       - @form.factory

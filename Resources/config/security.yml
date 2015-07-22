@@ -1,16 +1,16 @@
 services:
   api.security.provider.user.api:
-    class: %api.ns%\Security\ApiUserProvider
+    class: %api_ns%\Security\ApiUserProvider
 
   api.security.authentication.provider:
-    class: %api.ns%\Security\ApiAuthenticationProvider
+    class: %api_ns%\Security\ApiAuthenticationProvider
     arguments:
       - @api.security.provider.user.api
     calls:
       - [setEventDispatcher, [@event_dispatcher]]
       - [setRequestService, [@api.request]]
   api.security.authentication.listener:
-    class: %api.ns%\Security\ApiListener
+    class: %api_ns%\Security\ApiListener
     arguments:
       - @security.context
       - @security.authentication.manager
