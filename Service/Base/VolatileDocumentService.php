@@ -124,9 +124,7 @@ class VolatileDocumentService implements MetaDataServiceAwareInterface
      */
     protected function completeCreate($doc, $array, $options = [])
     {
-        $array = $this->callback('create.save.after', $array, $options);
-
-        $doc->id = (string)$array['_id'];
+        $this->callback('create.save.after', $array, $options);
 
         $doc = $this->callback('created', $doc, $options);
 
