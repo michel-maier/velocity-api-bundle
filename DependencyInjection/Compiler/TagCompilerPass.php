@@ -36,7 +36,10 @@ class TagCompilerPass implements CompilerPassInterface
         $this->processRepositoryTag($container);
         $this->processCrudTag($container);
         $this->processSubCrudTag($container);
+        $this->processSubSubCrudTag($container);
         $this->processVolatileTag($container);
+        $this->processSubVolatileTag($container);
+        $this->processSubSubVolatileTag($container);
         $this->processProviderClientTag($container);
         $this->processProviderAccountTag($container);
         $this->processMigratorTag($container);
@@ -156,6 +159,36 @@ class TagCompilerPass implements CompilerPassInterface
         }
     }
     /**
+     * Process sub crud tags.
+     *
+     * @param ContainerBuilder $container
+     */
+    protected function processSubSubCrudTag(ContainerBuilder $container)
+    {
+        $defaultClass = 'Velocity\\Bundle\\ApiBundle\\Service\\Base\\SubSubDocumentService';
+
+        foreach ($container->findTaggedServiceIds('api.crud.sub.sub') as $id => $attributes) {
+            $tokens = explode('.', $id);
+            $subSubTypeName = array_pop($tokens);
+            $subTypeName = array_pop($tokens);
+            $typeName = array_pop($tokens);
+            $definition = $container->getDefinition($id);
+            if (!$definition->getClass()) {
+                $definition->setClass($defaultClass);
+            }
+            $tagAttribute = array_shift($attributes);
+            $repositoryId = isset($tagAttribute['repo']) ? $tagAttribute['repo'] : (sprintf('app.repository.%s', $typeName));
+            $definition->addMethodCall('setType', [$typeName]);
+            $definition->addMethodCall('setSubType', [$subTypeName]);
+            $definition->addMethodCall('setSubSubType', [$subSubTypeName]);
+            $definition->addMethodCall('setRepository', [new Reference($repositoryId)]);
+            $definition->addMethodCall('setFormService', [new Reference('api.form')]);
+            $definition->addMethodCall('setMetaDataService', [new Reference('api.metadata')]);
+            $definition->addMethodCall('setLogger', [new Reference('logger')]);
+            $definition->addMethodCall('setEventDispatcher', [new Reference('event_dispatcher')]);
+        }
+    }
+    /**
      * Process volatile tags.
      *
      * @param ContainerBuilder $container
@@ -187,6 +220,95 @@ class TagCompilerPass implements CompilerPassInterface
                     switch (true) {
                         case $annotation instanceof Callback:
                             $metaDataServiceDefinition->addMethodCall('addCallback', ['.' === $annotation->value{0} ? ($type . $annotation->value) : $annotation->value, [new Reference($id), $rMethod->getName()]]);
+                            break;
+                    }
+                }
+            }
+
+        }
+    }
+    /**
+     * Process sub volatile tags.
+     *
+     * @param ContainerBuilder $container
+     */
+    protected function processSubVolatileTag(ContainerBuilder $container)
+    {
+        $defaultClass = 'Velocity\\Bundle\\ApiBundle\\Service\\Base\\VolatileSubDocumentService';
+
+        foreach ($container->findTaggedServiceIds('api.volatile.sub') as $id => $attributes) {
+            $tokens = explode('.', $id);
+            $subTypeName = array_pop($tokens);
+            $typeName = array_pop($tokens);
+            $definition = $container->getDefinition($id);
+            if (!$definition->getClass()) {
+                $definition->setClass($defaultClass);
+            }
+            $tagAttribute = array_shift($attributes);
+            $type = isset($tagAttribute['type']) ? $tagAttribute['type'] : $typeName;
+            $subType = isset($tagAttribute['subType']) ? $tagAttribute['subType'] : $subTypeName;
+            $definition->addMethodCall('setType', [$type]);
+            $definition->addMethodCall('setSubType', [$subType]);
+            $definition->addMethodCall('setFormService', [new Reference('api.form')]);
+            $definition->addMethodCall('setMetaDataService', [new Reference('api.metadata')]);
+            $definition->addMethodCall('setLogger', [new Reference('logger')]);
+            $definition->addMethodCall('setEventDispatcher', [new Reference('event_dispatcher')]);
+
+            $rClass = new ReflectionClass($definition->getClass());
+            $reader = new AnnotationReader();
+            $metaDataServiceDefinition = $container->getDefinition('api.metadata');
+
+            foreach($rClass->getMethods(\ReflectionMethod::IS_PUBLIC) as $rMethod) {
+                foreach ($reader->getMethodAnnotations($rMethod) as $annotation) {
+                    switch (true) {
+                        case $annotation instanceof Callback:
+                            $metaDataServiceDefinition->addMethodCall('addCallback', ['.' === $annotation->value{0} ? ($type . '.' . $subType . $annotation->value) : $annotation->value, [new Reference($id), $rMethod->getName()]]);
+                            break;
+                    }
+                }
+            }
+
+        }
+    }
+    /**
+     * Process sub sub volatile tags.
+     *
+     * @param ContainerBuilder $container
+     */
+    protected function processSubSubVolatileTag(ContainerBuilder $container)
+    {
+        $defaultClass = 'Velocity\\Bundle\\ApiBundle\\Service\\Base\\VolatileSubSubDocumentService';
+
+        foreach ($container->findTaggedServiceIds('api.volatile.sub.sub') as $id => $attributes) {
+            $tokens = explode('.', $id);
+            $subSubTypeName = array_pop($tokens);
+            $subTypeName = array_pop($tokens);
+            $typeName = array_pop($tokens);
+            $definition = $container->getDefinition($id);
+            if (!$definition->getClass()) {
+                $definition->setClass($defaultClass);
+            }
+            $tagAttribute = array_shift($attributes);
+            $type = isset($tagAttribute['type']) ? $tagAttribute['type'] : $typeName;
+            $subType = isset($tagAttribute['subType']) ? $tagAttribute['subType'] : $subTypeName;
+            $subSubType = isset($tagAttribute['subSubType']) ? $tagAttribute['subSubType'] : $subSubTypeName;
+            $definition->addMethodCall('setType', [$type]);
+            $definition->addMethodCall('setSubType', [$subType]);
+            $definition->addMethodCall('setSubSubType', [$subSubType]);
+            $definition->addMethodCall('setFormService', [new Reference('api.form')]);
+            $definition->addMethodCall('setMetaDataService', [new Reference('api.metadata')]);
+            $definition->addMethodCall('setLogger', [new Reference('logger')]);
+            $definition->addMethodCall('setEventDispatcher', [new Reference('event_dispatcher')]);
+
+            $rClass = new ReflectionClass($definition->getClass());
+            $reader = new AnnotationReader();
+            $metaDataServiceDefinition = $container->getDefinition('api.metadata');
+
+            foreach($rClass->getMethods(\ReflectionMethod::IS_PUBLIC) as $rMethod) {
+                foreach ($reader->getMethodAnnotations($rMethod) as $annotation) {
+                    switch (true) {
+                        case $annotation instanceof Callback:
+                            $metaDataServiceDefinition->addMethodCall('addCallback', ['.' === $annotation->value{0} ? ($type . '.' . $subType . '.' . $subSubType . $annotation->value) : $annotation->value, [new Reference($id), $rMethod->getName()]]);
                             break;
                     }
                 }
