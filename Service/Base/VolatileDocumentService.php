@@ -110,6 +110,7 @@ class VolatileDocumentService implements MetaDataServiceAwareInterface
         $doc   = $this->getFormService()->validate($this->getType(), 'create', $data, [], true, $options);
         $doc   = $this->callback('create.validate.after', $doc, $options);
         $doc   = $this->getMetaDataService()->refresh($doc, $options);
+        $doc   = $this->callback('save.before', $doc, $options);
         $array = $this->getMetaDataService()->convertObjectToArray($doc, $options + ['removeNulls' => true]);
         $array = $this->callback('create.save.before', $array, $options);
 
@@ -126,6 +127,7 @@ class VolatileDocumentService implements MetaDataServiceAwareInterface
     {
         $this->callback('create.save.after', $array, $options);
 
+        $doc = $this->callback('save.after', $doc, $options);
         $doc = $this->callback('created', $doc, $options);
 
         $this->event('created.refresh', $doc);

@@ -12,6 +12,8 @@ services:
       - @security.context
   api.math:
     class: Velocity\Bundle\ApiBundle\Service\MathService
+  api.date:
+    class: Velocity\Bundle\ApiBundle\Service\DateService
   api.request:
     class: Velocity\Bundle\ApiBundle\Service\RequestService
     arguments:
