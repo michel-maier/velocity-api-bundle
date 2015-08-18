@@ -36,6 +36,7 @@ class TagCompilerPass implements CompilerPassInterface
         $this->processRepositoryTag($container);
         $this->processCrudTag($container);
         $this->processSubCrudTag($container);
+        $this->processVolatileTag($container);
         $this->processProviderClientTag($container);
         $this->processProviderAccountTag($container);
         $this->processMigratorTag($container);
@@ -71,7 +72,7 @@ class TagCompilerPass implements CompilerPassInterface
      */
     protected function processCrudTag(ContainerBuilder $container)
     {
-        $defaultClass = 'Velocity\\Bundle\\ApiBundle\\Service\\DocumentService';
+        $defaultClass = 'Velocity\\Bundle\\ApiBundle\\Service\\Base\\DocumentService';
 
         foreach ($container->findTaggedServiceIds('api.crud') as $id => $attributes) {
             $typeName = substr($id, strrpos($id, '.') + 1);
@@ -133,7 +134,7 @@ class TagCompilerPass implements CompilerPassInterface
      */
     protected function processSubCrudTag(ContainerBuilder $container)
     {
-        $defaultClass = 'Velocity\\Bundle\\ApiBundle\\Service\\SubDocumentService';
+        $defaultClass = 'Velocity\\Bundle\\ApiBundle\\Service\\Base\\SubDocumentService';
 
         foreach ($container->findTaggedServiceIds('api.crud.sub') as $id => $attributes) {
             $tokens = explode('.', $id);
@@ -152,6 +153,45 @@ class TagCompilerPass implements CompilerPassInterface
             $definition->addMethodCall('setMetaDataService', [new Reference('api.metadata')]);
             $definition->addMethodCall('setLogger', [new Reference('logger')]);
             $definition->addMethodCall('setEventDispatcher', [new Reference('event_dispatcher')]);
+        }
+    }
+    /**
+     * Process volatile tags.
+     *
+     * @param ContainerBuilder $container
+     */
+    protected function processVolatileTag(ContainerBuilder $container)
+    {
+        $defaultClass = 'Velocity\\Bundle\\ApiBundle\\Service\\Base\\VolatileDocumentService';
+
+        foreach ($container->findTaggedServiceIds('api.volatile') as $id => $attributes) {
+            $typeName = substr($id, strrpos($id, '.') + 1);
+            $definition = $container->getDefinition($id);
+            if (!$definition->getClass()) {
+                $definition->setClass($defaultClass);
+            }
+            $tagAttribute = array_shift($attributes);
+            $type = isset($tagAttribute['type']) ? $tagAttribute['type'] : $typeName;
+            $definition->addMethodCall('setType', [$type]);
+            $definition->addMethodCall('setFormService', [new Reference('api.form')]);
+            $definition->addMethodCall('setMetaDataService', [new Reference('api.metadata')]);
+            $definition->addMethodCall('setLogger', [new Reference('logger')]);
+            $definition->addMethodCall('setEventDispatcher', [new Reference('event_dispatcher')]);
+
+            $rClass = new ReflectionClass($definition->getClass());
+            $reader = new AnnotationReader();
+            $metaDataServiceDefinition = $container->getDefinition('api.metadata');
+
+            foreach($rClass->getMethods(\ReflectionMethod::IS_PUBLIC) as $rMethod) {
+                foreach ($reader->getMethodAnnotations($rMethod) as $annotation) {
+                    switch (true) {
+                        case $annotation instanceof Callback:
+                            $metaDataServiceDefinition->addMethodCall('addCallback', ['.' === $annotation->value{0} ? ($type . $annotation->value) : $annotation->value, [new Reference($id), $rMethod->getName()]]);
+                            break;
+                    }
+                }
+            }
+
         }
     }
     /**
