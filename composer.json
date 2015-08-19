@@ -21,6 +21,7 @@
     "php": ">=5.5.9",
     "symfony/symfony": "2.7.*",
     "phppro/velocity-core": "dev-master",
+    "phppro/symfony-form-types": "dev-master",
     "symfony/monolog-bundle": "~2.4",
     "sensio/distribution-bundle": "~4.0",
     "sensio/framework-extra-bundle": "~3.0,>=3.0.2",
