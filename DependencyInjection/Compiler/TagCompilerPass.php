@@ -106,6 +106,32 @@ class TagCompilerPass implements CompilerPassInterface
                         case $annotation instanceof Callback:
                             $metaDataServiceDefinition->addMethodCall('addCallback', ['.' === $annotation->value{0} ? ($type . $annotation->value) : $annotation->value, [new Reference($id), $rMethod->getName()]]);
                             break;
+
+                        // wip
+                        case $annotation instanceof Callback\AfterSave:
+                            $metaDataServiceDefinition->addMethodCall('addCallback', ['.' === $annotation->value{0} ? ($type . $annotation->value) : $annotation->value, [new Reference($id), $rMethod->getName()]]);
+                            break;
+                        case $annotation instanceof Callback\BeforeCreateSave:
+                            $metaDataServiceDefinition->addMethodCall('addCallback', ['.' === $annotation->value{0} ? ($type . $annotation->value) : $annotation->value, [new Reference($id), $rMethod->getName()]]);
+                            break;
+                        case $annotation instanceof Callback\BeforeDelete:
+                            $metaDataServiceDefinition->addMethodCall('addCallback', ['.' === $annotation->value{0} ? ($type . $annotation->value) : $annotation->value, [new Reference($id), $rMethod->getName()]]);
+                            break;
+                        case $annotation instanceof Callback\BeforeSave:
+                            $metaDataServiceDefinition->addMethodCall('addCallback', ['.' === $annotation->value{0} ? ($type . $annotation->value) : $annotation->value, [new Reference($id), $rMethod->getName()]]);
+                            break;
+                        case $annotation instanceof Callback\Created:
+                            $metaDataServiceDefinition->addMethodCall('addCallback', ['.' === $annotation->value{0} ? ($type . $annotation->value) : $annotation->value, [new Reference($id), $rMethod->getName()]]);
+                            break;
+                        case $annotation instanceof Callback\Deleted:
+                            $metaDataServiceDefinition->addMethodCall('addCallback', ['.' === $annotation->value{0} ? ($type . $annotation->value) : $annotation->value, [new Reference($id), $rMethod->getName()]]);
+                            break;
+                        case $annotation instanceof Callback\Saved:
+                            $metaDataServiceDefinition->addMethodCall('addCallback', ['.' === $annotation->value{0} ? ($type . $annotation->value) : $annotation->value, [new Reference($id), $rMethod->getName()]]);
+                            break;
+                        case $annotation instanceof Callback\Updated:
+                            $metaDataServiceDefinition->addMethodCall('addCallback', ['.' === $annotation->value{0} ? ($type . $annotation->value) : $annotation->value, [new Reference($id), $rMethod->getName()]]);
+                            break;
                     }
                 }
             }
