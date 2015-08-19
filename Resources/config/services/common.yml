@@ -43,3 +43,6 @@ services:
     class: Velocity\Bundle\ApiBundle\Service\FormService
     arguments:
       - @form.factory
+  api.password:
+    class: Velocity\Bundle\ApiBundle\Service\PasswordService
+
