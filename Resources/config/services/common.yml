@@ -20,6 +20,19 @@ services:
       - @api.security.provider.user.api
       - %app_security_client_secret%
       - %app_security_user_secret%
+  api.factory:
+    class: Velocity\Bundle\ApiBundle\Service\ServiceFactoryService
+  api.mangoPayApi:
+    factory_service: api.serviceFactory
+    factory_method: createMangoPayApi
+    arguments:
+      - %app_mango_env%
+      - %app_mango_client_id%
+      - %app_mango_client_password%
+  api.mangoPay:
+    class: Velocity\Bundle\ApiBundle\Service\MangoPayService
+    arguments:
+      - @api.mangoPayApi
   api.mongo:
     class: MongoClient
     arguments:

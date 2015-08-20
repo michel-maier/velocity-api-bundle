@@ -1,12 +1,21 @@
 parameters:
+  app_env: local
   ns: AppBundle
   api_ns: Velocity\Bundle\ApiBundle
   jms_serializer.camel_case_naming_strategy.class: JMS\Serializer\Naming\IdenticalPropertyNamingStrategy
   app_db_dir: "%kernel.root_dir%/../src/AppBundle/Resources/database"
-  app_mongo_server: 'mongodb://localhost:27017'
-  app_mongo_db: api_local
+
+  # Security
   app_security_client_secret: myclientsecret
   app_security_user_secret: myusersecret
-  app_env: local
+
+  # MongoDB
+  app_mongo_server: 'mongodb://localhost:27017'
+  app_mongo_db: api_local
+
+  # MangoPay
+  app_mango_env: sandbox
+  app_mango_client_id: myclientid
+  app_mango_client_password: myclientpass
 
 
