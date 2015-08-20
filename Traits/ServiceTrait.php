@@ -23,7 +23,7 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 trait ServiceTrait
 {
     use MissingMethodCatcherTrait;
-    use TranslatedExceptionThrowerTrait;
+    use ExceptionThrowerTrait;
     /**
      * @var array
      */

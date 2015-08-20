@@ -32,15 +32,6 @@ trait ExceptionThrowerTrait
      */
     protected function createException($code, $msg, ...$params)
     {
-        if (method_exists($this, 'translate')) {
-            if (1 === count($params) && is_array($params[0])) {
-                $params = array_shift($params);
-            }
-            $msg = $this->translate($msg, $params);
-        } else {
-            $msg = call_user_func_array('sprintf', array_merge([$msg], $params));
-        }
-
-        throw new RuntimeException($msg, $code);
+        throw new RuntimeException(call_user_func_array('sprintf', array_merge([$msg], $params)), $code);
     }
 }
