@@ -11,6 +11,7 @@
 
 namespace Velocity\Bundle\ApiBundle\Service;
 
+use Exception;
 use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
 
 /**
@@ -47,6 +48,8 @@ class PasswordService
      * @param array  $options
      *
      * @return string
+     *
+     * @throws Exception
      */
     public function encrypt($raw, array $options = [])
     {
@@ -59,9 +62,7 @@ class PasswordService
                 return $this->encryptWithDefault($raw, $options);
         }
 
-        /** @noinspection PhpMethodParametersCountMismatchInspection */
-        /** @noinspection PhpVoidFunctionResultUsedInspection */
-        return throw $this->createException(
+        throw $this->createException(
             412, "Unsupported algorithm '%s'", $options['algorithm']
         );
     }
@@ -73,6 +74,8 @@ class PasswordService
      * @param array $options
      *
      * @return string
+     *
+     * @throws Exception
      */
     public function generate(array $data = [], array $options = [])
     {
@@ -91,9 +94,7 @@ class PasswordService
                 return $this->generateWithSpecial($data, $options);
         }
 
-        /** @noinspection PhpMethodParametersCountMismatchInspection */
-        /** @noinspection PhpVoidFunctionResultUsedInspection */
-        return throw $this->createException(
+        throw $this->createException(
             412, "Unsupported generator '%s'", $options['generator']
         );
     }
