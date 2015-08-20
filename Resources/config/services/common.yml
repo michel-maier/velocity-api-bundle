@@ -24,7 +24,7 @@ services:
     class: Velocity\Bundle\ApiBundle\Service\ServiceFactoryService
   api.mangoPayApi:
     class: MangoPay\MangoPayApi
-    factory_service: api.serviceFactory
+    factory_service: api.factory
     factory_method: createMangoPayApi
     arguments:
       - %app_mango_env%
