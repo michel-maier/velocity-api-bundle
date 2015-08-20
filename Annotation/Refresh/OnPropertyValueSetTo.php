@@ -21,7 +21,7 @@ use Doctrine\Common\Annotations\Annotation;
  * @Annotation
  * @Target("PROPERTY")
  */
-final class Refresh extends Annotation
+final class OnPropertyValueSetTo extends Annotation
 {
     public $unset = false;
 }
