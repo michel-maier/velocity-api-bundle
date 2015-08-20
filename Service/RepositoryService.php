@@ -61,7 +61,7 @@ class RepositoryService implements RepositoryInterface
             return $this->getDatabaseService()
                 ->insert($this->getCollectionName(), $data, $options + ['new' => true]);
         } /** @noinspection PhpUndefinedClassInspection */ catch (MongoDuplicateKeyException $e) {
-            $this->throwException(
+            throw $this->createException(
                 412,
                 "{type} already exist",
                 ['{type}' => $this->translate($this->getCollectionName())]
@@ -84,7 +84,7 @@ class RepositoryService implements RepositoryInterface
                 $this->getCollectionName(), $bulkData, $options + ['new' => true]
             );
         } /** @noinspection PhpUndefinedClassInspection */ catch (MongoDuplicateKeyException $e) {
-            $this->throwException(
+            throw $this->createException(
                 412,
                 "{type} already exist",
                 ['{type}' => $this->translate($this->getCollectionName())]
@@ -125,7 +125,7 @@ class RepositoryService implements RepositoryInterface
             $this->getCollectionName(), [$fieldName => $fieldValue], $fields, $options
         );
 
-        if (null === $doc) $this->throwException(
+        if (null === $doc) throw $this->createException(
             404,
             "Unknown %s with %s '%s'",
             $this->getCollectionName(), $fieldName, $fieldValue
@@ -191,7 +191,7 @@ class RepositoryService implements RepositoryInterface
     public function checkExist($id, $options = [])
     {
         if (!$this->has($id)) {
-            $this->throwException(
+            throw $this->createException(
                 404,
                 "Unknown %s '%s'",
                 $this->getCollectionName(), $id
@@ -211,7 +211,7 @@ class RepositoryService implements RepositoryInterface
     public function checkNotExist($id, $options = [])
     {
         if ($this->has($id, $options)) {
-            $this->throwException(
+            throw $this->createException(
                 412,
                 "{type} '{id}' already exist",
                 ['type' => $this->getCollectionName(), 'id' => $id]
@@ -462,7 +462,7 @@ class RepositoryService implements RepositoryInterface
 
         foreach(explode('.', $property) as $key) {
             if (!isset($value[$key]))
-                $this->throwException(
+                throw $this->createException(
                     412,
                     "Unknown %s in %s '%s'",
                     str_replace('.', ' ', $property),
@@ -510,7 +510,7 @@ class RepositoryService implements RepositoryInterface
     public function checkPropertyExist($id, $property, $options = [])
     {
         if (!$this->hasProperty($id, $property, $options)) {
-            $this->throwException(
+            throw $this->createException(
                 412,
                 "Unknown %s in %s '%s'",
                 str_replace('.', ' ', $property),
@@ -548,7 +548,7 @@ class RepositoryService implements RepositoryInterface
                 $index = ['field' => $index];
             }
             if (!is_array($index)) {
-                $this->throwException(412, "Malformed index definition");
+                throw $this->createException(412, "Malformed index definition");
             }
             $fields = $index['field'];
             unset($index['field']);

@@ -11,6 +11,7 @@
 
 namespace Velocity\Bundle\ApiBundle\Security;
 
+use Exception;
 use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
 
 /**
@@ -24,11 +25,13 @@ class ApiDecoratedAccountProvider
     /**
      * @param mixed  $accountProvider
      * @param string $method
+     *
+     * @throws Exception
      */
     public function __construct($accountProvider, $method = 'get')
     {
         if (!method_exists($accountProvider, $method)) {
-            $this->throwException(
+            throw $this->createException(
                 500,
                 "Missing method %s::%s()",
                 get_class($accountProvider),

@@ -103,7 +103,7 @@ class MigrationService implements ContainerAwareInterface
     public function getMigratorByExtension($extension)
     {
         if (!isset($this->migrators[$extension])) {
-            $this->throwException(
+            throw $this->createException(
                 412, "No migrator registered for extension '%s'", $extension
             );
         }
@@ -236,7 +236,7 @@ class MigrationService implements ContainerAwareInterface
                 ;
             }
         } catch (FormValidationException $e) {
-            $this->throwException(
+            throw $this->createException(
                 $e->getCode(),
                 "Error when processing document: %s%s",
                 $e->getMessage(),

@@ -253,7 +253,7 @@ class FormService
         }
 
         if (null === $builder) {
-            $this->throwException(500, "Missing form type '%s' (mode: %s)", $type, $mode);
+            throw $this->createException(500, "Missing form type '%s' (mode: %s)", $type, $mode);
         }
 
         return $builder;

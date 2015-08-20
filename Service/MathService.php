@@ -124,7 +124,7 @@ class MathService
         }elseif (1 < $rank && $rank <= 100) {
             $p = $rank * .01;
         }else {
-            $this->throwException('math.percentile.malformed', $rank);
+            throw $this->createException('math.percentile.malformed', $rank);
         }
 
         if (0 === count($population)){
@@ -137,7 +137,7 @@ class MathService
             $data = array();
             foreach($population as $item) {
                 if (false === isset($item[$field])) {
-                    $this->throwException(
+                    throw $this->createException(
                         'math.population.field.unknown',
                         $field,
                         $item

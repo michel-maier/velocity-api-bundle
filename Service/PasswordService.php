@@ -61,7 +61,7 @@ class PasswordService
 
         /** @noinspection PhpMethodParametersCountMismatchInspection */
         /** @noinspection PhpVoidFunctionResultUsedInspection */
-        return $this->throwException(
+        return throw $this->createException(
             412, "Unsupported algorithm '%s'", $options['algorithm']
         );
     }
@@ -93,7 +93,7 @@ class PasswordService
 
         /** @noinspection PhpMethodParametersCountMismatchInspection */
         /** @noinspection PhpVoidFunctionResultUsedInspection */
-        return $this->throwException(
+        return throw $this->createException(
             412, "Unsupported generator '%s'", $options['generator']
         );
     }

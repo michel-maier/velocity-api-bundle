@@ -201,11 +201,11 @@ class DocumentService implements DocumentServiceInterface, MetaDataServiceAwareI
     protected function checkBulkData($bulkData, $options = [])
     {
         if (!is_array($bulkData)) {
-            $this->throwException(412, "Missing bulk data");
+            throw $this->createException(412, "Missing bulk data");
         }
 
         if (!count($bulkData)) {
-            $this->throwException(412, "No data to process");
+            throw $this->createException(412, "No data to process");
         }
 
         unset($options);

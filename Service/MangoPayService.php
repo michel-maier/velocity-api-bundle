@@ -189,7 +189,7 @@ class MangoPayService
                 break;
             default:
                 /** @noinspection PhpMethodParametersCountMismatchInspection */
-                $this->throwException(500, "Unsupported bank account type '%s'", $data['type']);
+                throw $this->createException(500, "Unsupported bank account type '%s'", $data['type']);
         }
 
         return $this->prepareResult(

@@ -239,11 +239,11 @@ class SubDocumentService
     protected function checkBulkData($bulkData, $options = [])
     {
         if (!is_array($bulkData)) {
-            $this->throwException(412, "Missing bulk data");
+            throw $this->createException(412, "Missing bulk data");
         }
 
         if (!count($bulkData)) {
-            $this->throwException(412, "No data to process");
+            throw $this->createException(412, "No data to process");
         }
 
         unset($options);
@@ -483,7 +483,7 @@ class SubDocumentService
     public function purge($parentId, $criteria = [], $options = [])
     {
         if ([] !== $criteria) {
-            $this->throwException(500, "Purging sub documents with criteria not supported.");
+            throw $this->createException(500, "Purging sub documents with criteria not supported.");
         }
 
         $this->getRepository()->setProperty($parentId, $this->getRepoKey(), (object)[]);
@@ -736,7 +736,7 @@ class SubDocumentService
     public function checkExist($parentId, $id, $options = [])
     {
         if ($this->hasNot($parentId, $id, $options))
-            $this->throwException(
+            throw $this->createException(
                 404,
                 "Unknown %s '%s' for %s '%s'", $this->getSubType(), $id, $this->getType(), $parentId
             );
@@ -757,7 +757,7 @@ class SubDocumentService
     public function checkNotExist($parentId, $id, $options = [])
     {
         if ($this->has($parentId, $id, $options))
-            $this->throwException(
+            throw $this->createException(
                 404,
                 "%s '%s' already exist for %s '%s'", ucfirst($this->getSubType()), $id, $this->getType(), $parentId
             );

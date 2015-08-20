@@ -11,6 +11,8 @@
 
 namespace Velocity\Bundle\ApiBundle\Traits;
 
+use Exception;
+
 /**
  * MissingMethodCatcher trait.
  *
@@ -21,18 +23,19 @@ trait MissingMethodCatcherTrait
     /**
      * @param int    $code
      * @param string $msg
+     * @param array  $params
      *
-     * @return void
+     * @return Exception
      */
-    protected abstract function throwException($code, $msg);
+    protected abstract function createException($code, $msg, ...$params);
     /**
      * @param string $name
      * @param array  $args
      *
-     * @throws \RuntimeException
+     * @throws Exception
      */
     public function __call($name, $args)
     {
-        $this->throwException(500, 'Unknown method %s::%s()', get_class($this), $name);
+        throw $this->createException(500, 'Unknown method %s::%s()', get_class($this), $name);
     }
 }

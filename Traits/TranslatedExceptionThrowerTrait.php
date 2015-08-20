@@ -43,6 +43,6 @@ trait TranslatedExceptionThrowerTrait
             $method = 'sprintf';
         }
 
-        $this->throwException($code, call_user_func_array($method, $args));
+        throw $this->createException($code, call_user_func_array($method, $args));
     }
 }

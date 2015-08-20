@@ -30,7 +30,7 @@ class DecoratedClientService implements ClientServiceInterface
     public function __construct($clientService, $method = 'get', $format = 'raw')
     {
         if (!method_exists($clientService, $method)) {
-            $this->throwException(
+            throw $this->createException(
                 500,
                 "Missing method %s::%s()",
                 get_class($clientService),

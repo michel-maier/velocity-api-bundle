@@ -88,10 +88,10 @@ class YamlMigrator implements MigratorInterface, ContainerAwareInterface, Logger
                             break;
                         case 1:
                             if (!isset($item['id'])) {
-                                $this->throwException(500, 'Missing sub type id');
+                                throw $this->createException(500, 'Missing sub type id');
                             }
                             if (false === strpos($item['id'], '_')) {
-                                $this->throwException(500, "Missing parent id for '%s'", $item['id']);
+                                throw $this->createException(500, "Missing parent id for '%s'", $item['id']);
                             }
                             list($itemId, $subItemId) = explode('_', $item['id'], 2);
                             if (!$service->has($itemId, $subItemId)) {
@@ -104,10 +104,10 @@ class YamlMigrator implements MigratorInterface, ContainerAwareInterface, Logger
                             break;
                         case 2:
                             if (!isset($item['id'])) {
-                                $this->throwException(500, "Missing sub sub type id");
+                                throw $this->createException(500, "Missing sub sub type id");
                             }
                             if (false === strpos($item['id'], '_')) {
-                                $this->throwException(500, "Missing parent id for '%s'", $item['id']);
+                                throw $this->createException(500, "Missing parent id for '%s'", $item['id']);
                             }
                             list($itemId, $subItemId, $subSubItemId) = explode('_', $item['id'], 3);
                             $method = sprintf('has%s', ucfirst($subSubType));
@@ -120,7 +120,7 @@ class YamlMigrator implements MigratorInterface, ContainerAwareInterface, Logger
                             }
                             break;
                         default:
-                            $this->throwException(500, "Unsupported type '%s' (too much parent levels)", $type);
+                            throw $this->createException(500, "Unsupported type '%s' (too much parent levels)", $type);
                     }
                 }
             }

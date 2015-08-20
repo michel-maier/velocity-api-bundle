@@ -11,6 +11,9 @@
 
 namespace Velocity\Bundle\ApiBundle\Traits;
 
+use Exception;
+use RuntimeException;
+
 /**
  * ExceptionThrower trait.
  *
@@ -21,26 +24,23 @@ trait ExceptionThrowerTrait
     /**
      * @param int    $code
      * @param string $msg
+     * @param array  $params
      *
-     * @throws \RuntimeException
+     * @throws Exception
      *
      * @return mixed
      */
-    protected function throwException($code, $msg)
+    protected function createException($code, $msg, ...$params)
     {
-        $args = func_get_args();
-
-        $code = array_shift($args);
-
         if (method_exists($this, 'translate')) {
-            $pattern = array_shift($args);
-            if (1 === count($args) && is_array($args[0])) {
-                $args = array_shift($args);
+            if (1 === count($params) && is_array($params[0])) {
+                $params = array_shift($params);
             }
-            $msg = $this->translate($pattern, $args);
-            array_unshift($args, $msg);
+            $msg = $this->translate($msg, $params);
+        } else {
+            $msg = call_user_func_array('sprintf', array_merge([$msg], $params));
         }
 
-        throw new \RuntimeException(ucfirst(call_user_func_array('sprintf', $args)), $code);
+        throw new RuntimeException($msg, $code);
     }
 }

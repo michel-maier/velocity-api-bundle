@@ -369,7 +369,7 @@ class MetaDataService
             $type = $this->getTypeByClassAndProperty($doc, $property);
             switch($type) {
                 case "DateTime<'c'>": $doc->$property = new \DateTime(); break;
-                default: $this->throwException(500, sprintf("Unable to refresh model property '%s': unsupported type '%s'", $property, $type));
+                default: throw $this->createException(500, sprintf("Unable to refresh model property '%s': unsupported type '%s'", $property, $type));
             }
         }
 
@@ -422,7 +422,7 @@ class MetaDataService
     public function convertObjectToArray($doc, $options = [])
     {
         if (!is_object($doc)) {
-            $this->throwException(412, "Not a valid object");
+            throw $this->createException(412, "Not a valid object");
         }
 
         $removeNulls = isset($options['removeNulls']) && true === $options['removeNulls'];
@@ -510,7 +510,7 @@ class MetaDataService
         switch($definition['type']) {
             case 'sha1': return sha1(md5(rand(0, 1000) . microtime(true) . rand(rand(0, 100), 10000)));
             default:
-                $this->throwException(500, "Unsupported generate type '%s'", $definition['type']);
+                throw $this->createException(500, "Unsupported generate type '%s'", $definition['type']);
                 return $this;
         }
     }
@@ -577,10 +577,10 @@ class MetaDataService
      */
     protected function convertDataDateTimeFieldToMongoDateWithTimeZone($data, $fieldName)
     {
-        if (!isset($data[$fieldName])) $this->throwException(412, "Missing date time field '%s'", $fieldName);
+        if (!isset($data[$fieldName])) throw $this->createException(412, "Missing date time field '%s'", $fieldName);
 
         if (!$data[$fieldName] instanceof \DateTime)
-            $this->throwException(412, "Field '%s' must be a valid DateTime", $fieldName);
+            throw $this->createException(412, "Field '%s' must be a valid DateTime", $fieldName);
 
         /** @var \DateTime $date */
         $date = $data[$fieldName];
@@ -598,14 +598,14 @@ class MetaDataService
      */
     protected function revertDocumentMongoDateWithTimeZoneFieldToDateTime($doc, $fieldName)
     {
-        if (!isset($doc[$fieldName])) $this->throwException(412, "Missing mongo date field '%s'", $fieldName);
+        if (!isset($doc[$fieldName])) throw $this->createException(412, "Missing mongo date field '%s'", $fieldName);
 
         if (!isset($doc[sprintf('%s_tz', $fieldName)])) {
             $doc[sprintf('%s_tz', $fieldName)] = date_default_timezone_get();
         }
 
         if (!$doc[$fieldName] instanceof \MongoDate)
-            $this->throwException(412, "Field '%s' must be a valid MongoDate", $fieldName);
+            throw $this->createException(412, "Field '%s' must be a valid MongoDate", $fieldName);
 
         /** @var \MongoDate $mongoDate */
         $mongoDate = $doc[$fieldName];

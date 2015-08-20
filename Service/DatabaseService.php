@@ -123,7 +123,7 @@ class DatabaseService
         }
 
         if (!preg_match('/^[a-f0-9]{24}$/', $id)) {
-            $this->throwException(412, 'Malformed id');
+            throw $this->createException(412, 'Malformed id');
         }
 
         return new MongoId($id);
