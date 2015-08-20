@@ -13,19 +13,19 @@ namespace Velocity\Bundle\ApiBundle\Service;
 
 use Exception;
 use MongoCursor;
+use MongoDuplicateKeyException;
+use Velocity\Bundle\ApiBundle\Traits\ServiceAware;
 use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
 use Velocity\Bundle\ApiBundle\Traits\LoggerAwareTrait;
 use Velocity\Bundle\ApiBundle\Traits\TranslatorAwareTrait;
 use Velocity\Bundle\ApiBundle\Repository\RepositoryInterface;
-use Velocity\Bundle\ApiBundle\Traits\DatabaseServiceAwareTrait;
-use /** @noinspection PhpUndefinedClassInspection */ MongoDuplicateKeyException;
 
 class RepositoryService implements RepositoryInterface
 {
     use ServiceTrait;
     use LoggerAwareTrait;
-    use DatabaseServiceAwareTrait;
     use TranslatorAwareTrait;
+    use ServiceAware\DatabaseServiceAwareTrait;
 
     /**
      * Set the underlying collection name.
@@ -54,19 +54,20 @@ class RepositoryService implements RepositoryInterface
      * @param array $options
      *
      * @return array
+     *
+     * @throws Exception
      */
     public function create($data, $options = [])
     {
         try {
             return $this->getDatabaseService()
                 ->insert($this->getCollectionName(), $data, $options + ['new' => true]);
-        } /** @noinspection PhpUndefinedClassInspection */ catch (MongoDuplicateKeyException $e) {
+        } catch (MongoDuplicateKeyException $e) {
             throw $this->createException(
                 412,
                 "{type} already exist",
                 ['{type}' => $this->translate($this->getCollectionName())]
             );
-            return $this;
         }
     }
     /**
@@ -76,6 +77,8 @@ class RepositoryService implements RepositoryInterface
      * @param array $options
      *
      * @return array
+     *
+     * @throws Exception
      */
     public function createBulk($bulkData, $options = [])
     {
@@ -83,13 +86,12 @@ class RepositoryService implements RepositoryInterface
             return $this->getDatabaseService()->bulkInsert(
                 $this->getCollectionName(), $bulkData, $options + ['new' => true]
             );
-        } /** @noinspection PhpUndefinedClassInspection */ catch (MongoDuplicateKeyException $e) {
+        } catch (MongoDuplicateKeyException $e) {
             throw $this->createException(
                 412,
                 "{type} already exist",
                 ['{type}' => $this->translate($this->getCollectionName())]
             );
-            return $this;
         }
     }
     /**
@@ -148,11 +150,22 @@ class RepositoryService implements RepositoryInterface
     {
         srand(microtime(true));
 
-        $ids     = $this->find($criteria, ['id']);
-        $index   = rand(0, count($ids) - 1);
-        $keys    = array_keys($ids);
+        $docs     = $this->find($criteria, ['_id']);
+        $index   = rand(0, $docs->count() - 1);
 
-        return $this->get($ids[$keys[$index]]['id'], $fields, $criteria);
+        $current = 0;
+
+        $document = null;
+
+        foreach($docs as $doc) {
+            if ($current === $index) {
+                $document = $doc;
+                break;
+            }
+            $current++;
+        }
+
+        return $this->get($document['_id'], $fields, $criteria);
     }
     /**
      * Test if specified document exist.
@@ -187,6 +200,8 @@ class RepositoryService implements RepositoryInterface
      * @param array $options
      *
      * @return $this
+     *
+     * @throws Exception
      */
     public function checkExist($id, $options = [])
     {
@@ -207,6 +222,8 @@ class RepositoryService implements RepositoryInterface
      * @param array $options
      *
      * @return $this
+     *
+     * @throws Exception
      */
     public function checkNotExist($id, $options = [])
     {
@@ -506,6 +523,8 @@ class RepositoryService implements RepositoryInterface
      * @param array $options
      *
      * @return $this
+     *
+     * @throws Exception
      */
     public function checkPropertyExist($id, $property, $options = [])
     {
@@ -540,6 +559,8 @@ class RepositoryService implements RepositoryInterface
      * @param array $options
      *
      * @return $this
+     *
+     * @throws Exception
      */
     public function createIndexes($indexes, $options = [])
     {

@@ -11,10 +11,10 @@
 
 namespace Velocity\Bundle\ApiBundle\Command;
 
+use Velocity\Bundle\ApiBundle\Traits\ServiceAware;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Velocity\Bundle\ApiBundle\Command\Base\ApiCommand;
-use Velocity\Bundle\ApiBundle\Traits\DatabaseServiceAwareTrait;
 
 /**
  * DB Drop Commmand
@@ -23,7 +23,7 @@ use Velocity\Bundle\ApiBundle\Traits\DatabaseServiceAwareTrait;
  */
 class DbDropCommand extends ApiCommand
 {
-    use DatabaseServiceAwareTrait;
+    use ServiceAware\DatabaseServiceAwareTrait;
     /**
      * Configure the command
      *

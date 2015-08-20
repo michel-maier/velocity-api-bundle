@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Velocity\Bundle\ApiBundle\Traits;
+namespace Velocity\Bundle\ApiBundle\Traits\ServiceAware;
 
 use Velocity\Bundle\ApiBundle\Service\DatabaseService;
 
