@@ -14,6 +14,7 @@ namespace Velocity\Bundle\ApiBundle\Controller\Base;
 use JMS\Serializer\SerializerInterface;
 use JMS\Serializer\SerializationContext;
 use Symfony\Component\HttpFoundation\Response;
+use Velocity\Bundle\ApiBundle\Service\RequestService;
 use Velocity\Bundle\ApiBundle\Service\ExceptionService;
 
 /**
@@ -40,6 +41,13 @@ abstract class RestController extends BaseController
     protected function getExceptionService()
     {
         return $this->get('api.exception');
+    }
+    /**
+     * @return RequestService
+     */
+    protected function getRequestService()
+    {
+        return $this->get('api.request');
     }
     /**
      * Returns the http response.

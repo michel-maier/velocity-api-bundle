@@ -13,7 +13,6 @@ namespace Velocity\Bundle\ApiBundle\Controller\Base;
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Velocity\Bundle\ApiBundle\Service\RequestService;
 use Velocity\Bundle\ApiBundle\Service\DocumentServiceInterface;
 
 /**
@@ -33,13 +32,6 @@ abstract class DocumentController extends RestController
         return $this->get(
             'app.' . preg_replace('/Controller$/', '', basename(str_replace('\\', '/', get_class($this))))
         );
-    }
-    /**
-     * @return RequestService
-     */
-    protected function getRequestService()
-    {
-        return $this->get('api.request');
     }
     /**
      * Retrieve the documents matching the specified criteria.
