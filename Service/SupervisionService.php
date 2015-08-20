@@ -13,9 +13,9 @@ namespace Velocity\Bundle\ApiBundle\Service;
 
 use DateTime;
 use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
-use Velocity\Bundle\ApiBundle\Traits\SecurityContextAwareTrait;
-use Symfony\Component\Security\Core\SecurityContextInterface;
+use Velocity\Bundle\ApiBundle\Traits\TokenStorageAwareTrait;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 /**
  * Supervision Service.
@@ -25,15 +25,15 @@ use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 class SupervisionService
 {
     use ServiceTrait;
-    use SecurityContextAwareTrait;
+    use TokenStorageAwareTrait;
     /**
      * Construct a new service.
      *
-     * @param SecurityContextInterface $securityContext
+     * @param TokenStorageInterface $tokenStorage
      */
-    public function __construct(SecurityContextInterface $securityContext)
+    public function __construct(TokenStorageInterface $tokenStorage)
     {
-        $this->setSecurityContext($securityContext);
+        $this->setTokenStorage($tokenStorage);
     }
     /**
      * Returns useful information for Ping request.
@@ -62,6 +62,6 @@ class SupervisionService
      */
     public function getIdentity()
     {
-        return $this->getSecurityContext()->getToken();
+        return $this->getTokenStorage()->getToken();
     }
 }

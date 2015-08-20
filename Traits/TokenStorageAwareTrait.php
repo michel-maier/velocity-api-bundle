@@ -11,14 +11,14 @@
 
 namespace Velocity\Bundle\ApiBundle\Traits;
 
-use Symfony\Component\Security\Core\SecurityContextInterface;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 /**
- * SecurityContextAware trait.
+ * TokenStorageAware trait.
  *
  * @author Olivier Hoareau <olivier@phppro.fr>
  */
-trait SecurityContextAwareTrait
+trait TokenStorageAwareTrait
 {
     /**
      * @param string $key
@@ -34,19 +34,19 @@ trait SecurityContextAwareTrait
      */
     protected abstract function getService($key);
     /**
-     * @param SecurityContextInterface $securityContextInterface
+     * @param TokenStorageInterface $tokenStorageInterface
      *
      * @return $this
      */
-    public function setSecurityContext(SecurityContextInterface $securityContextInterface)
+    public function setTokenStorage(TokenStorageInterface $tokenStorageInterface)
     {
-        return $this->setService('securityContext', $securityContextInterface);
+        return $this->setService('tokenStorage', $tokenStorageInterface);
     }
     /**
-     * @return SecurityContextInterface
+     * @return TokenStorageInterface
      */
-    public function getSecurityContext()
+    public function getTokenStorage()
     {
-        return $this->getService('securityContext');
+        return $this->getService('tokenStorage');
     }
 }

@@ -13,10 +13,10 @@ namespace Velocity\Bundle\ApiBundle\Security;
 
 use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
-use Symfony\Component\Security\Core\SecurityContextInterface;
 use Velocity\Bundle\ApiBundle\Traits\RequestServiceAwareTrait;
 use Symfony\Component\Security\Http\Firewall\ListenerInterface;
 use Symfony\Component\Security\Core\Authentication\AuthenticationManagerInterface;
+use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 /**
  * API Listener.
@@ -30,15 +30,15 @@ class ApiListener implements ListenerInterface
     /**
      * Construct the listener.
      *
-     * @param SecurityContextInterface       $securityContext
+     * @param TokenStorageInterface          $tokenStorage
      * @param AuthenticationManagerInterface $authenticationManager
      */
     public function __construct(
-        SecurityContextInterface $securityContext,
+        TokenStorageInterface $tokenStorage,
         AuthenticationManagerInterface $authenticationManager
     )
     {
-        $this->setService('securityContext', $securityContext);
+        $this->setService('tokenStorage', $tokenStorage);
         $this->setService('authenticationManager', $authenticationManager);
     }
     /**
@@ -50,13 +50,13 @@ class ApiListener implements ListenerInterface
      */
     public function handle(GetResponseEvent $event)
     {
-        /** @var SecurityContextInterface $securityContext */
-        $securityContext = $this->getService('securityContext');
+        /** @var TokenStorageInterface $tokenStorage */
+        $tokenStorage = $this->getService('tokenStorage');
 
         /** @var AuthenticationManagerInterface $authenticationManager */
         $authenticationManager = $this->getService('authenticationManager');
 
-        $securityContext->setToken(
+        $tokenStorage->setToken(
             $authenticationManager->authenticate(
                 new ApiUnauthenticatedUserToken(
                     $this->getRequestService()->parse($event->getRequest())

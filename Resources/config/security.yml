@@ -12,7 +12,7 @@ services:
   api.security.authentication.listener:
     class: Velocity\Bundle\ApiBundle\Security\ApiListener
     arguments:
-      - @security.context
+      - @security.token_storage
       - @security.authentication.manager
     calls:
       - [setEventDispatcher, [@event_dispatcher]]
