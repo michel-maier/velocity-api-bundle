@@ -43,6 +43,7 @@ services:
     arguments:
       - @api.mongo
       - %app_mongo_db%
+      - %app_mongo_db_random%
   api.migration:
     class: Velocity\Bundle\ApiBundle\Service\MigrationService
     arguments:

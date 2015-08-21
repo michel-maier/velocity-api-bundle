@@ -30,10 +30,16 @@ class DatabaseService
      *
      * @param MongoClient $mongoClient
      * @param string      $databaseName
+     * @param bool        $randomDatabaseName
      */
-    public function __construct(MongoClient $mongoClient, $databaseName)
+    public function __construct(MongoClient $mongoClient, $databaseName, $randomDatabaseName = false)
     {
         $this->setMongoClient($mongoClient);
+
+        if (true === $randomDatabaseName) {
+            $databaseName .= '_' . ((int)microtime(true)) . '_' . md5(rand(0, 10000));
+        }
+
         $this->setDatabaseName($databaseName);
     }
     /**
