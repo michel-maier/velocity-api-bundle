@@ -37,9 +37,16 @@ class DatabaseService
         $this->setMongoClient($mongoClient);
 
         if (true === $randomDatabaseName) {
-            $databaseName .= '_' . ((int)microtime(true)) . '_' . md5(rand(0, 10000));
+            $databaseName .= '_' . ((int)microtime(true)) . '_' . substr(md5(rand(0, 10000)), -8);
         }
 
+        if (64 <= strlen($databaseName)) {
+            throw $this->createException(
+                500,
+                "Database name is too long, maximum is 64 characters (found: %d)", strlen($databaseName)
+            );
+        }
+        
         $this->setDatabaseName($databaseName);
     }
     /**
