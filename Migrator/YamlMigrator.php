@@ -55,8 +55,14 @@ class YamlMigrator implements MigratorInterface, ContainerAwareInterface, Logger
                 }
                 $service = $this->getContainer()->get(sprintf('app.%s', str_replace('_', '.', $officialType)));
                 foreach($items as $id => $item) {
+                    $propertyName = null;
                     if (!is_numeric($id) && !isset($item['id'])) {
-                        $item['id'] = $id;
+                        if (false !== strpos($id, '/')) {
+                            list($propertyName, $propertyValue) = explode('/', $id, 2);
+                            $item[$propertyName] = $propertyValue;
+                        } else {
+                            $item['id'] = $id;
+                        }
                     }
                     $parentTypes = [];
                     if (false !== strpos($type, '_')) {
@@ -75,7 +81,22 @@ class YamlMigrator implements MigratorInterface, ContainerAwareInterface, Logger
                                 $service->getRepository()->createIndexes($item);
                                 continue;
                             }
-                            if (!isset($item['id']) || !$service->has($item['id'])) {
+                            if (!isset($item['id'])) {
+                                if (isset($propertyName)) {
+                                    $propertyValue = $item[$propertyName];
+                                    if ($service->hasBy($propertyName, $item[$propertyName])) {
+                                        unset($item[$propertyName]);
+                                        $this->log(sprintf("  . %s %s=%s", $type, $propertyName, $propertyValue), 'info');
+                                        $service->updateBy($propertyName, $propertyValue, $item);
+                                    } else {
+                                        $this->log(sprintf("  + %s %s=%s", $type, $propertyName, $propertyValue), 'info');
+                                        $service->create($item);
+                                    }
+                                } else {
+                                    $this->log(sprintf("  + %s %s", $type, is_numeric($id) ? reset($item) : (string)$id), 'info');
+                                    $service->create($item);
+                                }
+                            } elseif (!$service->has($item['id'])) {
                                 $this->log(sprintf("  + %s %s", $type, is_numeric($id) ? reset($item) : (string)$id), 'info');
                                 $service->create($item);
                             } else {

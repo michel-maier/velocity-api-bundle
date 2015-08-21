@@ -177,8 +177,21 @@ class RepositoryService implements RepositoryInterface
      */
     public function has($id, $options = [])
     {
+        return $this->hasBy('_id', $id, $options);
+    }
+    /**
+     * Test if specified document exist by specified field.
+     *
+     * @param string $fieldName
+     * @param mixed  $fieldValue
+     * @param array  $options
+     *
+     * @return bool
+     */
+    public function hasBy($fieldName, $fieldValue, $options = [])
+    {
         return null !== $this->getDatabaseService()->findOne(
-            $this->getCollectionName(), ['_id' => $id], [], $options
+            $this->getCollectionName(), [$fieldName => $fieldValue], [], $options
         );
     }
     /**
@@ -313,7 +326,7 @@ class RepositoryService implements RepositoryInterface
      */
     public function setProperty($id, $property, $value, $options = [])
     {
-        return $this->update($id, ['$set' => [$property => $value]], $options);
+        return $this->alter($id, ['$set' => [$property => $value]], $options);
     }
     /**
      * Set the specified properties of the specified document.
@@ -330,7 +343,7 @@ class RepositoryService implements RepositoryInterface
             return $this;
         }
 
-        return $this->update($id, ['$set' => $values]);
+        return $this->alter($id, ['$set' => $values]);
     }
     /**
      * Increment specified property of the specified document.
@@ -344,7 +357,7 @@ class RepositoryService implements RepositoryInterface
      */
     public function incrementProperty($id, $property, $value = 1, $options = [])
     {
-        return $this->update($id, ['$inc' => [$property => $value]], $options);
+        return $this->alter($id, ['$inc' => [$property => $value]], $options);
     }
     /**
      * Decrement specified property of the specified document.
@@ -358,7 +371,7 @@ class RepositoryService implements RepositoryInterface
      */
     public function decrementProperty($id, $property, $value = 1, $options = [])
     {
-        return $this->update($id, ['$inc' => [$property => - $value]], $options);
+        return $this->alter($id, ['$inc' => [$property => - $value]], $options);
     }
     /**
      * Increment specified properties of the specified document.
@@ -375,7 +388,7 @@ class RepositoryService implements RepositoryInterface
             return $this;
         }
 
-        return $this->update($id, ['$inc' => $values], $options);
+        return $this->alter($id, ['$inc' => $values], $options);
     }
     /**
      * Decrement specified properties of the specified document.
@@ -392,7 +405,7 @@ class RepositoryService implements RepositoryInterface
             return $this;
         }
 
-        return $this->update($id, [
+        return $this->alter($id, [
             '$inc' => array_map(function ($v) { return - $v;}, $values)],
             $options
         );
@@ -408,7 +421,7 @@ class RepositoryService implements RepositoryInterface
      */
     public function unsetProperty($id, $property, $options = [])
     {
-        return $this->update($id, ['$unset' => [$property => '']], $options);
+        return $this->alter($id, ['$unset' => [$property => '']], $options);
     }
     /**
      * Update the specified document with the specified data.
@@ -421,7 +434,22 @@ class RepositoryService implements RepositoryInterface
      */
     public function update($id, $data, $options = [])
     {
-        return $this->update(['_id' => $id], ['$set' => $data], ['upsert' => false] + $options);
+        return $this->alter($id, ['$set' => $data], ['upsert' => false] + $options);
+    }
+    /**
+     * Alter (raw update) the specified document with the specified data.
+     *
+     * @param string $id
+     * @param array $data
+     * @param array $options
+     *
+     * @return $this
+     */
+    public function alter($id, $data, $options = [])
+    {
+        return $this->getDatabaseService()->update(
+            $this->getCollectionName(), ['_id' => $id], $data, ['upsert' => false] + $options
+        );
     }
     /**
      * Update multiple document specified with their data.

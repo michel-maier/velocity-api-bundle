@@ -86,6 +86,16 @@ interface RepositoryInterface
      */
     public function has($id, $options = []);
     /**
+     * Test if specified document exist by specified field.
+     *
+     * @param string $fieldName
+     * @param mixed  $fieldValue
+     * @param array  $options
+     *
+     * @return bool
+     */
+    public function hasBy($fieldName, $fieldValue, $options = []);
+    /**
      * Test if specified document not exist.
      *
      * @param string $id

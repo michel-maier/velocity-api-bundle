@@ -435,6 +435,20 @@ class SubDocumentService
         );
     }
     /**
+     * Test if specified document exist by specified field.
+     *
+     * @param string $parentId
+     * @param string $fieldName
+     * @param mixed  $fieldValue
+     * @param array  $options
+     *
+     * @return bool
+     */
+    public function hasBy($parentId, $fieldName, $fieldValue, $options = [])
+    {
+        return count($this->find($parentId, [$fieldName => $fieldValue], 1, 0, $options));
+    }
+    /**
      * Test if specified document does not exist.
      *
      * @param string $parentId
@@ -565,6 +579,29 @@ class SubDocumentService
         $this->getRepository()->update($id, ['$set' => $array], $options);
 
         return $this->completeUpdate($parentId, $id, $doc, $array, $old, $options);
+    }
+    /**
+     * @param mixed $parentId
+     * @param mixed $fieldName
+     * @param mixed $fieldValue
+     * @param array $data
+     * @param array $options
+     *
+     * @return $this
+     */
+    public function updateBy($parentId, $fieldName, $fieldValue, $data, $options = [])
+    {
+        $docs = $this->find($parentId, [$fieldName => $fieldValue], ['id'], $options);
+
+        if (!count($docs)) {
+            throw $this->createException(
+                404,
+                "Unknown %s with %s '%s' in %s '%s'", $this->getSubType(),
+                $fieldName, $fieldValue, $this->getType(), $parentId
+            );
+        }
+
+        return $this->update($parentId, array_shift($docs)->id, $data, $options);
     }
     /**
      * @param string $parentId

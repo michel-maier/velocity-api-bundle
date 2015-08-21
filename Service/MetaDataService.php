@@ -381,8 +381,38 @@ class MetaDataService
      *
      * @return mixed
      */
+    protected function convertScalarProperties($doc, $options = [])
+    {
+        if (!is_object($doc)) {
+            return $doc;
+        }
+
+        unset($options);
+
+        $types = isset($this->classes[get_class($doc)]['types']) ? $this->classes[get_class($doc)]['types'] : [];
+
+        foreach ($types as $property => $type) {
+            if (property_exists($doc, $property) && null === $doc->$property) {
+                continue;
+            }
+            switch($type) {
+                case "DateTime<'c'>":
+                    if ('' === $doc->$property) $doc->$property = null;
+                    break;
+            }
+        }
+
+        return $doc;
+    }
+    /**
+     * @param mixed $doc
+     * @param array $options
+     *
+     * @return mixed
+     */
     public function refresh($doc, $options = [])
     {
+        $doc   = $this->convertScalarProperties($doc, $options);
         $doc   = $this->fetchEmbeddedReferences($doc, $options);
         $doc   = $this->triggerRefreshes($doc, $options);
         $doc   = $this->buildGenerateds($doc, $options);
@@ -579,7 +609,7 @@ class MetaDataService
     {
         if (!isset($data[$fieldName])) throw $this->createException(412, "Missing date time field '%s'", $fieldName);
 
-        if (!$data[$fieldName] instanceof \DateTime)
+        if (null !== $data[$fieldName] && !$data[$fieldName] instanceof \DateTime)
             throw $this->createException(412, "Field '%s' must be a valid DateTime", $fieldName);
 
         /** @var \DateTime $date */

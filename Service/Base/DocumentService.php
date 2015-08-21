@@ -384,6 +384,19 @@ class DocumentService implements DocumentServiceInterface, MetaDataServiceAwareI
         return $this->getRepository()->has($id, $options);
     }
     /**
+     * Test if specified document exist by specified field.
+     *
+     * @param string $fieldName
+     * @param mixed  $fieldValue
+     * @param array  $options
+     *
+     * @return bool
+     */
+    public function hasBy($fieldName, $fieldValue, $options = [])
+    {
+        return $this->getRepository()->hasBy($fieldName, $fieldValue, $options);
+    }
+    /**
      * Test if specified document does not exist.
      *
      * @param mixed $id
@@ -541,9 +554,21 @@ class DocumentService implements DocumentServiceInterface, MetaDataServiceAwareI
     {
         list($doc, $array, $old) = $this->prepareUpdate($id, $data, $options);
 
-        $this->getRepository()->update($id, ['$set' => $array], $options);
+        $this->getRepository()->update($id, $array, $options);
 
         return $this->completeUpdate($id, $doc, $array, $old, $options);
+    }
+    /**
+     * @param mixed $fieldName
+     * @param mixed $fieldValue
+     * @param array $data
+     * @param array $options
+     *
+     * @return $this
+     */
+    public function updateBy($fieldName, $fieldValue, $data, $options = [])
+    {
+        return $this->update($this->getBy($fieldName, $fieldValue, ['id'], $options)->id, $data, $options);
     }
     /**
      * @param mixed $id
