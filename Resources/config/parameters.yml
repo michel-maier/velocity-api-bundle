@@ -12,6 +12,7 @@ parameters:
   # MongoDB
   app_mongo_server: 'mongodb://localhost:27017'
   app_mongo_db: api_local
+  app_mongo_db_random: false
 
   # MangoPay
   app_mango_env: sandbox
