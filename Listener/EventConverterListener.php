@@ -28,7 +28,7 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
  */
 class EventConverterListener
 {
-    use ServiceTrait
+    use ServiceTrait;
     /**
      * Construct a new listener.
      *
