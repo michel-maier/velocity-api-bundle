@@ -51,4 +51,28 @@ class VelocityServiceTest extends PHPUnit_Framework_TestCase
             $d->getMethodCalls()
         );
     }
+    /**
+     * @group unit
+     */
+    public function testIsVelocityAnnotatedClass()
+    {
+        $this->assertTrue($this->s->isVelocityAnnotatedClass('Velocity\\Bundle\\ApiBundle\\Tests\\Model\\Model1'));
+        $this->assertTrue($this->s->isVelocityAnnotatedClass('Velocity\\Bundle\\ApiBundle\\Tests\\Model\\Model2'));
+        $this->assertFalse($this->s->isVelocityAnnotatedClass(__CLASS__));
+    }
+    /**
+     * @group unit
+     */
+    public function testFindVelocityAnnotatedClassesInDirectory()
+    {
+        $classes = $this->s->findVelocityAnnotatedClassesInDirectory(__DIR__ . '/../Model');
+
+        $expected = [
+            'Velocity\\Bundle\\ApiBundle\\Tests\\Model\\Model1',
+            'Velocity\\Bundle\\ApiBundle\\Tests\\Model\\Model2',
+        ];
+
+        $this->assertEquals($expected, $classes);
+        $this->assertEquals(count($expected), count($classes));
+    }
 }

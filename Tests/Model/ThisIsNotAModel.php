@@ -9,18 +9,11 @@
  * file that was distributed with this source code.
  */
 
-namespace Velocity\Bundle\ApiBundle\Annotation;
-
-use Velocity\Bundle\ApiBundle\Annotation\Base\Annotation;
+namespace Velocity\Bundle\ApiBundle\Tests\Model;
 
 /**
- * Generated annotation
- *
  * @author Olivier Hoareau <olivier@phppro.fr>
- *
- * @Annotation
- * @Target("PROPERTY")
  */
-final class Generated extends Annotation
+class ThisIsNotAModel
 {
 }

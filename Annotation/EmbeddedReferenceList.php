@@ -11,7 +11,7 @@
 
 namespace Velocity\Bundle\ApiBundle\Annotation;
 
-use Doctrine\Common\Annotations\Annotation;
+use Velocity\Bundle\ApiBundle\Annotation\Base\Annotation;
 
 /**
  * EmbeddedReferenceList annotation

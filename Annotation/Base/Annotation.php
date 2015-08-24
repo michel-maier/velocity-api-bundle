@@ -9,18 +9,16 @@
  * file that was distributed with this source code.
  */
 
-namespace Velocity\Bundle\ApiBundle\Annotation;
+namespace Velocity\Bundle\ApiBundle\Annotation\Base;
 
-use Velocity\Bundle\ApiBundle\Annotation\Base\Annotation;
+use Velocity\Bundle\ApiBundle\Annotation\AnnotationInterface;
+use Doctrine\Common\Annotations\Annotation as DoctrineAnnotation;
 
 /**
- * Generated annotation
+ * Annotation
  *
  * @author Olivier Hoareau <olivier@phppro.fr>
- *
- * @Annotation
- * @Target("PROPERTY")
  */
-final class Generated extends Annotation
+abstract class Annotation extends DoctrineAnnotation implements AnnotationInterface
 {
 }

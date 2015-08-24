@@ -15,6 +15,8 @@ use ReflectionClass;
 use ReflectionProperty;
 use JMS\Serializer\Annotation\Type;
 use Doctrine\Common\Annotations\AnnotationReader;
+use Symfony\Component\Finder\Finder;
+use Symfony\Component\Finder\SplFileInfo;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
 use Symfony\Component\DependencyInjection\Reference;
@@ -219,11 +221,61 @@ class VelocityService
      *
      * @return array
      */
-    protected function findVelocityAnnotatedClassesInDirectory($directory)
+    public function findVelocityAnnotatedClassesInDirectory($directory)
     {
-        unset($directory);
-        // @todo
-        return [];
+        $f = new Finder();
+
+        $classes = [];
+
+        foreach($f->files()->in($directory)->name('*.php')->contains('Velocity\\Bundle\\ApiBundle\\Annotation')->contains('class') as $file) {
+            $matches = null;
+            $ns = null;
+            /** @var SplFileInfo $file */
+            $content = $file->getContents();
+            if (0 < preg_match('/namespace\s+([^\s;]+)\s*;/', $content, $matches)) {
+                $ns = $matches[1] . '\\';
+            }
+            if (0 < preg_match_all('/class\s+([^\s]+)/', $content, $matches)) {
+                require_once $file->getRealPath();
+                foreach($matches[1] as $class) {
+                    $fullClass = $ns . $class;
+                    if (!$this->isVelocityAnnotatedClass($fullClass)) {
+                        continue;
+                    }
+                    $classes[$fullClass] = true;
+                }
+            }
+        }
+
+        $classes = array_keys($classes);
+        sort($classes);
+
+        return $classes;
+    }
+    /**
+     * @param string $class
+     *
+     * @return bool
+     */
+    public function isVelocityAnnotatedClass($class)
+    {
+        $rClass = new ReflectionClass($class);
+
+        foreach($this->getAnnotationReader()->getClassAnnotations($rClass) as $a) {
+            if ($a instanceof Velocity\AnnotationInterface) return true;
+        }
+        foreach($rClass->getMethods() as $rMethod) {
+            foreach($this->getAnnotationReader()->getMethodAnnotations($rMethod) as $a) {
+                if ($a instanceof Velocity\AnnotationInterface) return true;
+            }
+        }
+        foreach($rClass->getProperties() as $rProperty) {
+            foreach($this->getAnnotationReader()->getPropertyAnnotations($rProperty) as $a) {
+                if ($a instanceof Velocity\AnnotationInterface) return true;
+            }
+        }
+
+        return false;
     }
     /**
      * @param ContainerBuilder $container
