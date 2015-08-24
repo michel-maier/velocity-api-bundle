@@ -154,9 +154,6 @@ class VelocityService
         $classes = [];
 
         foreach($trackedBundles as $trackedBundle) {
-            if (!isset($bundles[$trackedBundle])) {
-                continue;
-            }
             $classes = array_merge(
                 $classes,
                 $this->findVelocityAnnotatedClassesInDirectory($kernel->getBundle($trackedBundle)->getPath())
@@ -227,7 +224,7 @@ class VelocityService
 
         $classes = [];
 
-        foreach($f->files()->in($directory)->name('*.php')->contains('Velocity\\Bundle\\ApiBundle\\Annotation')->contains('class') as $file) {
+        foreach($f->files()->in($directory)->name('*.php')->contains('Velocity\\Bundle\\ApiBundle\\Annotation')->notPath('Tests')->contains('class') as $file) {
             $matches = null;
             $ns = null;
             /** @var SplFileInfo $file */
@@ -235,7 +232,7 @@ class VelocityService
             if (0 < preg_match('/namespace\s+([^\s;]+)\s*;/', $content, $matches)) {
                 $ns = $matches[1] . '\\';
             }
-            if (0 < preg_match_all('/class\s+([^\s]+)/', $content, $matches)) {
+            if (0 < preg_match_all('/^\s*class\s+([^\s\:]+)\s+/m', $content, $matches)) {
                 require_once $file->getRealPath();
                 foreach($matches[1] as $class) {
                     $fullClass = $ns . $class;
