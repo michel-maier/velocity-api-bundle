@@ -14,10 +14,10 @@ namespace Velocity\Bundle\ApiBundle\Service;
 use ReflectionClass;
 use ReflectionProperty;
 use JMS\Serializer\Annotation\Type;
-use Doctrine\Common\Annotations\AnnotationReader;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Finder\SplFileInfo;
 use Symfony\Component\HttpKernel\KernelInterface;
+use Doctrine\Common\Annotations\AnnotationReader;
 use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
 use Symfony\Component\DependencyInjection\Reference;
 use Velocity\Bundle\ApiBundle\Annotation as Velocity;
@@ -50,6 +50,10 @@ class VelocityService
             'migration.key'                       => 'velocity.migration',
             'user_provider.default.key'           => 'velocity.security.provider.user.api',
             'authentication_provider.default.key' => 'velocity.security.authentication.provider',
+            'logger.key'                          => 'logger',
+            'event_dispatcher.key'                => 'event_dispatcher',
+            'translator.key'                      => 'translator',
+            'service_container.key'               => 'service_container',
 
             // container keys patterns
             'repo.key.pattern'             => 'app.repository.%s',
@@ -75,6 +79,9 @@ class VelocityService
             'container_aware.interface' => 'Symfony\\Component\\DependencyInjection\\ContainerAwareInterface',
             'logger_aware.interface'    => 'Psr\\Log\\LoggerAwareInterface',
 
+            // namespaces
+            'annotation.namespace'    => 'Velocity\\Bundle\\ApiBundle\\Annotation',
+
             // tags
             'repo.tag'                => 'velocity.repository',
             'crud.tag'                => 'velocity.crud',
@@ -94,11 +101,17 @@ class VelocityService
         }
     }
     /**
-     * @param $key
+     * @param string $key
+     * @param mixed  $defaultValue
+     *
      * @return mixed
      */
-    protected function getDefault($key)
+    protected function getDefault($key, $defaultValue = null)
     {
+        if (null !== $defaultValue) {
+            return $this->getParameterIfExists('default_' . $key, $defaultValue);
+        }
+
         return $this->getParameter('default_' . $key);
     }
     /**
@@ -189,22 +202,22 @@ class VelocityService
                     $property = $rProperty->getName();
                     switch(true) {
                         case $a instanceof Velocity\EmbeddedReference:
-                            $m->addMethodCall('addClassPropertyEmbeddedReference', [$class, $property, $vars]);
+                            $m->addMethodCall('addModelPropertyEmbeddedReference', [$class, $property, $vars]);
                             break;
                         case $a instanceof Velocity\EmbeddedReferenceList:
-                            $m->addMethodCall('addClassPropertyEmbeddedReferenceList', [$class, $property, $vars]);
+                            $m->addMethodCall('addModelPropertyEmbeddedReferenceList', [$class, $property, $vars]);
                             break;
                         case $a instanceof Velocity\Refresh:
-                            $m->addMethodCall('addClassPropertyRefresh', [$class, $property, $vars]);
+                            $m->addMethodCall('addModelPropertyRefresh', [$class, $property, $vars]);
                             break;
                         case $a instanceof Velocity\Generated:
-                            $m->addMethodCall('addClassPropertyGenerated', [$class, $property, $vars]);
+                            $m->addMethodCall('addModelPropertyGenerated', [$class, $property, $vars]);
                             break;
                         case $a instanceof Velocity\Id:
-                            $m->addMethodCall('addClassPropertyId', [$class, $property, $vars]);
+                            $m->addMethodCall('addModelPropertyId', [$class, $property, $vars]);
                             break;
                         case $a instanceof Type:
-                            $m->addMethodCall('setClassPropertyType', [$class, $property, $vars]);
+                            $m->addMethodCall('setModelPropertyType', [$class, $property, $vars]);
                             break;
                     }
                 }
@@ -222,9 +235,18 @@ class VelocityService
     {
         $f = new Finder();
 
+        $f
+            ->files()
+            ->in($directory)
+            ->name('*.php')
+            ->contains($this->getDefault('annotation.namespace'))
+            ->notPath('Tests')
+            ->contains('class')
+        ;
+
         $classes = [];
 
-        foreach($f->files()->in($directory)->name('*.php')->contains('Velocity\\Bundle\\ApiBundle\\Annotation')->notPath('Tests')->contains('class') as $file) {
+        foreach($f as $file) {
             $matches = null;
             $ns = null;
             /** @var SplFileInfo $file */
@@ -301,17 +323,16 @@ class VelocityService
      */
     protected function processRepositoryTag(ContainerBuilder $container)
     {
-        foreach ($container->findTaggedServiceIds($this->getDefault('repo.tag')) as $id => $attributes) {
+        foreach ($this->findVelocityTaggedServiceIds($container, 'repo') as $id => $attributes) {
             $typeName = substr($id, strrpos($id, '.') + 1);
             $d = $container->getDefinition($id);
             if (!$d->getClass()) $d->setClass($this->getDefault('repo.class'));
-            $tagAttribute = array_shift($attributes);
-            $collectionName = isset($tagAttribute['collection']) ? $tagAttribute['collection'] : $typeName;
-            $d->addMethodCall('setDatabaseService', [new Reference($this->getDefault('db.key'))]);
-            $d->addMethodCall('setTranslator', [new Reference('translator')]);
-            $d->addMethodCall('setEventDispatcher', [new Reference('event_dispatcher')]);
-            $d->addMethodCall('setLogger', [new Reference('logger')]);
-            $d->addMethodCall('setCollectionName', [$collectionName]);
+            $params = array_shift($attributes);
+            $d->addMethodCall('setCollectionName', [isset($params['collection']) ? $params['collection'] : $typeName]);
+            $this->addLoggerSetterCall($d);
+            $this->addDatabaseSetterCall($d);
+            $this->addTranslatorSetterCall($d);
+            $this->addEventDispatcherSetterCall($d);
         }
     }
     /**
@@ -321,61 +342,57 @@ class VelocityService
      */
     protected function processCrudTag(ContainerBuilder $container)
     {
-        foreach ($container->findTaggedServiceIds($this->getDefault('crud.tag')) as $id => $attributes) {
-            $typeName = substr($id, strrpos($id, '.') + 1);
+        $m = $this->getMetaDataDefinitionFromContainer($container);
+        
+        foreach ($this->findVelocityTaggedServiceIds($container, 'crud') as $id => $attributes) {
+            list($type) = array_slice(explode('.', $id), -1);
             $d = $container->getDefinition($id);
-            if (!$d->getClass()) $d->setClass($this->getDefault('crud.class'));
-            $tagAttribute = array_shift($attributes);
-            $type = isset($tagAttribute['type']) ? $tagAttribute['type'] : $typeName;
-            $repositoryId = sprintf($this->getDefault('repo.key.pattern'), $type);
-            if (!$container->has($repositoryId)) {
-                $this->createRepositoryDefinition($container, $repositoryId);
-            }
+            $this->ensureDefinitionClassSet($d, 'crud');
+            $repositoryId = $this->buildRepoId(array_shift($attributes), $type);
+            if (!$container->has($repositoryId)) $this->createRepositoryDefinition($container, $repositoryId);
             $d->addMethodCall('setType', [$type]);
-            $d->addMethodCall('setRepository', [new Reference($repositoryId)]);
-            $d->addMethodCall('setFormService', [new Reference($this->getDefault('form.key'))]);
-            $d->addMethodCall('setMetaDataService', [new Reference($this->getDefault('metaData.key'))]);
-            $d->addMethodCall('setLogger', [new Reference('logger')]);
-            $d->addMethodCall('setEventDispatcher', [new Reference('event_dispatcher')]);
+            $this->addRepositorySetterCall($d, $repositoryId);
+            $this->addFormSetterCall($d);
+            $this->addMetaDataSetterCall($d);
+            $this->addLoggerSetterCall($d);
+            $this->addEventDispatcherSetterCall($d);
 
             $rClass = new ReflectionClass($d->getClass());
-            $m = $this->getMetaDataDefinitionFromContainer($container);
 
             foreach($rClass->getMethods(\ReflectionMethod::IS_PUBLIC) as $rMethod) {
                 foreach ($this->getAnnotationReader()->getMethodAnnotations($rMethod) as $a) {
                     $method = $rMethod->getName();
                     switch (true) {
                         case $a instanceof Velocity\Callback:
-                            $m->addMethodCall('addCallback', ['.' === $a->value{0} ? ($type . $a->value) : $a->value, [new Reference($id), $method]]);
+                            $m->addMethodCall('addCallback', ['.' === $a->value{0} ? ($type . $a->value) : $a->value, [$this->ref($id), $method]]);
                             break;
                         case $a instanceof Velocity\Callback\AfterSave:
-                            $m->addMethodCall('addCallback', ['.' === $a->value{0} ? ($type . $a->value) : $a->value, [new Reference($id), $method]]);
+                            $m->addMethodCall('addCallback', ['.' === $a->value{0} ? ($type . $a->value) : $a->value, [$this->ref($id), $method]]);
                             break;
                         case $a instanceof Velocity\Callback\BeforeCreateSave:
-                            $m->addMethodCall('addCallback', ['.' === $a->value{0} ? ($type . $a->value) : $a->value, [new Reference($id), $method]]);
+                            $m->addMethodCall('addCallback', ['.' === $a->value{0} ? ($type . $a->value) : $a->value, [$this->ref($id), $method]]);
                             break;
                         case $a instanceof Velocity\Callback\BeforeDelete:
-                            $m->addMethodCall('addCallback', ['.' === $a->value{0} ? ($type . $a->value) : $a->value, [new Reference($id), $method]]);
+                            $m->addMethodCall('addCallback', ['.' === $a->value{0} ? ($type . $a->value) : $a->value, [$this->ref($id), $method]]);
                             break;
                         case $a instanceof Velocity\Callback\BeforeSave:
-                            $m->addMethodCall('addCallback', ['.' === $a->value{0} ? ($type . $a->value) : $a->value, [new Reference($id), $method]]);
+                            $m->addMethodCall('addCallback', ['.' === $a->value{0} ? ($type . $a->value) : $a->value, [$this->ref($id), $method]]);
                             break;
                         case $a instanceof Velocity\Callback\Created:
-                            $m->addMethodCall('addCallback', ['.' === $a->value{0} ? ($type . $a->value) : $a->value, [new Reference($id), $method]]);
+                            $m->addMethodCall('addCallback', ['.' === $a->value{0} ? ($type . $a->value) : $a->value, [$this->ref($id), $method]]);
                             break;
                         case $a instanceof Velocity\Callback\Deleted:
-                            $m->addMethodCall('addCallback', ['.' === $a->value{0} ? ($type . $a->value) : $a->value, [new Reference($id), $method]]);
+                            $m->addMethodCall('addCallback', ['.' === $a->value{0} ? ($type . $a->value) : $a->value, [$this->ref($id), $method]]);
                             break;
                         case $a instanceof Velocity\Callback\Saved:
-                            $m->addMethodCall('addCallback', ['.' === $a->value{0} ? ($type . $a->value) : $a->value, [new Reference($id), $method]]);
+                            $m->addMethodCall('addCallback', ['.' === $a->value{0} ? ($type . $a->value) : $a->value, [$this->ref($id), $method]]);
                             break;
                         case $a instanceof Velocity\Callback\Updated:
-                            $m->addMethodCall('addCallback', ['.' === $a->value{0} ? ($type . $a->value) : $a->value, [new Reference($id), $method]]);
+                            $m->addMethodCall('addCallback', ['.' === $a->value{0} ? ($type . $a->value) : $a->value, [$this->ref($id), $method]]);
                             break;
                     }
                 }
             }
-
         }
     }
     /**
@@ -388,12 +405,12 @@ class VelocityService
      */
     protected function createRepositoryDefinition(ContainerBuilder $container, $repositoryId)
     {
-        $definition = new Definition();
-        $definition->addTag($this->getDefault('repo.tag'));
+        $d = new Definition();
+        $d->addTag($this->getDefault('repo.tag'));
 
-        $container->setDefinition($repositoryId, $definition);
+        $container->setDefinition($repositoryId, $d);
 
-        return $definition;
+        return $d;
     }
     /**
      * Process sub crud tags.
@@ -402,21 +419,17 @@ class VelocityService
      */
     protected function processSubCrudTag(ContainerBuilder $container)
     {
-        foreach ($container->findTaggedServiceIds($this->getDefault('crud.sub.tag')) as $id => $attributes) {
-            $tokens = explode('.', $id);
-            $subTypeName = array_pop($tokens);
-            $typeName = array_pop($tokens);
-            $definition = $container->getDefinition($id);
-            if (!$definition->getClass()) $definition->setClass($this->getDefault('crud.sub.class'));
-            $tagAttribute = array_shift($attributes);
-            $repositoryId = isset($tagAttribute['repo']) ? $tagAttribute['repo'] : (sprintf($this->getDefault('repo.key.pattern'), $typeName));
-            $definition->addMethodCall('setType', [$typeName]);
-            $definition->addMethodCall('setSubType', [$subTypeName]);
-            $definition->addMethodCall('setRepository', [new Reference($repositoryId)]);
-            $definition->addMethodCall('setFormService', [new Reference($this->getDefault('form.key'))]);
-            $definition->addMethodCall('setMetaDataService', [new Reference($this->getDefault('metaData.key'))]);
-            $definition->addMethodCall('setLogger', [new Reference('logger')]);
-            $definition->addMethodCall('setEventDispatcher', [new Reference('event_dispatcher')]);
+        foreach ($this->findVelocityTaggedServiceIds($container, 'crud.sub') as $id => $attrs) {
+            list($type, $subType) = array_slice(explode('.', $id), -2);
+            $d = $container->getDefinition($id);
+            $this->ensureDefinitionClassSet($d, 'crud.sub');
+            $d->addMethodCall('setType', [$type]);
+            $d->addMethodCall('setSubType', [$subType]);
+            $this->addRepositorySetterCall($d, $this->buildRepoId(array_shift($attrs), $type));
+            $this->addFormSetterCall($d);
+            $this->addMetaDataSetterCall($d);
+            $this->addLoggerSetterCall($d);
+            $this->addEventDispatcherSetterCall($d);
         }
     }
     /**
@@ -426,23 +439,18 @@ class VelocityService
      */
     protected function processSubSubCrudTag(ContainerBuilder $container)
     {
-        foreach ($container->findTaggedServiceIds($this->getDefault('crud.sub.sub.tag')) as $id => $attributes) {
-            $tokens = explode('.', $id);
-            $subSubTypeName = array_pop($tokens);
-            $subTypeName = array_pop($tokens);
-            $typeName = array_pop($tokens);
-            $definition = $container->getDefinition($id);
-            if (!$definition->getClass()) $definition->setClass($this->getDefault('crud.sub.sub.class'));
-            $tagAttribute = array_shift($attributes);
-            $repositoryId = isset($tagAttribute['repo']) ? $tagAttribute['repo'] : (sprintf($this->getDefault('repo.key.pattern'), $typeName));
-            $definition->addMethodCall('setType', [$typeName]);
-            $definition->addMethodCall('setSubType', [$subTypeName]);
-            $definition->addMethodCall('setSubSubType', [$subSubTypeName]);
-            $definition->addMethodCall('setRepository', [new Reference($repositoryId)]);
-            $definition->addMethodCall('setFormService', [new Reference($this->getDefault('form.key'))]);
-            $definition->addMethodCall('setMetaDataService', [new Reference($this->getDefault('metaData.key'))]);
-            $definition->addMethodCall('setLogger', [new Reference('logger')]);
-            $definition->addMethodCall('setEventDispatcher', [new Reference('event_dispatcher')]);
+        foreach ($this->findVelocityTaggedServiceIds($container, 'crud.sub.sub') as $id => $attrs) {
+            list($type, $subType, $subSubType) = array_slice(explode('.', $id), -3);
+            $d = $container->getDefinition($id);
+            $this->ensureDefinitionClassSet($d, 'crud.sub.sub');
+            $d->addMethodCall('setType', [$type]);
+            $d->addMethodCall('setSubType', [$subType]);
+            $d->addMethodCall('setSubSubType', [$subSubType]);
+            $this->addRepositorySetterCall($d, $this->buildRepoId(array_shift($attrs), $type));
+            $this->addFormSetterCall($d);
+            $this->addMetaDataSetterCall($d);
+            $this->addLoggerSetterCall($d);
+            $this->addEventDispatcherSetterCall($d);
         }
     }
     /**
@@ -452,32 +460,30 @@ class VelocityService
      */
     protected function processVolatileTag(ContainerBuilder $container)
     {
-        foreach ($container->findTaggedServiceIds($this->getDefault('volatile.tag')) as $id => $attributes) {
-            $typeName = substr($id, strrpos($id, '.') + 1);
-            $definition = $container->getDefinition($id);
-            if (!$definition->getClass()) $definition->setClass($this->getDefault('volatile.tag'));
-            $tagAttribute = array_shift($attributes);
-            $type = isset($tagAttribute['type']) ? $tagAttribute['type'] : $typeName;
-            $definition->addMethodCall('setType', [$type]);
-            $definition->addMethodCall('setFormService', [new Reference($this->getDefault('form.key'))]);
-            $definition->addMethodCall('setMetaDataService', [new Reference($this->getDefault('metaData.key'))]);
-            $definition->addMethodCall('setLogger', [new Reference('logger')]);
-            $definition->addMethodCall('setEventDispatcher', [new Reference('event_dispatcher')]);
+        $m = $this->getMetaDataDefinitionFromContainer($container);
 
-            $rClass = new ReflectionClass($definition->getClass());
-            $m = $this->getMetaDataDefinitionFromContainer($container);
+        foreach ($this->findVelocityTaggedServiceIds($container, 'volatile') as $id => $attrs) {
+            list($type) = array_slice(explode('.', $id), -1);
+            $d = $container->getDefinition($id);
+            $this->ensureDefinitionClassSet($d, 'volatile');
+            $d->addMethodCall('setType', [$type]);
+            $this->addFormSetterCall($d);
+            $this->addMetaDataSetterCall($d);
+            $this->addLoggerSetterCall($d);
+            $this->addEventDispatcherSetterCall($d);
+
+            $rClass = new ReflectionClass($d->getClass());
 
             foreach($rClass->getMethods(\ReflectionMethod::IS_PUBLIC) as $rMethod) {
                 foreach ($this->getAnnotationReader()->getMethodAnnotations($rMethod) as $a) {
                     $method = $rMethod->getName();
                     switch (true) {
                         case $a instanceof Velocity\Callback:
-                            $m->addMethodCall('addCallback', ['.' === $a->value{0} ? ($type . $a->value) : $a->value, [new Reference($id), $method]]);
+                            $m->addMethodCall('addCallback', ['.' === $a->value{0} ? ($type . $a->value) : $a->value, [$this->ref($id), $method]]);
                             break;
                     }
                 }
             }
-
         }
     }
     /**
@@ -487,36 +493,31 @@ class VelocityService
      */
     protected function processSubVolatileTag(ContainerBuilder $container)
     {
-        foreach ($container->findTaggedServiceIds($this->getDefault('volatile.sub.tag')) as $id => $attributes) {
-            $tokens = explode('.', $id);
-            $subTypeName = array_pop($tokens);
-            $typeName = array_pop($tokens);
-            $definition = $container->getDefinition($id);
-            if (!$definition->getClass()) $definition->setClass($this->getDefault('volatile.sub.class'));
-            $tagAttribute = array_shift($attributes);
-            $type = isset($tagAttribute['type']) ? $tagAttribute['type'] : $typeName;
-            $subType = isset($tagAttribute['subType']) ? $tagAttribute['subType'] : $subTypeName;
-            $definition->addMethodCall('setType', [$type]);
-            $definition->addMethodCall('setSubType', [$subType]);
-            $definition->addMethodCall('setFormService', [new Reference($this->getDefault('form.key'))]);
-            $definition->addMethodCall('setMetaDataService', [new Reference($this->getDefault('metaData.key'))]);
-            $definition->addMethodCall('setLogger', [new Reference('logger')]);
-            $definition->addMethodCall('setEventDispatcher', [new Reference('event_dispatcher')]);
+        $m = $this->getMetaDataDefinitionFromContainer($container);
 
-            $rClass = new ReflectionClass($definition->getClass());
-            $m = $this->getMetaDataDefinitionFromContainer($container);
+        foreach ($this->findVelocityTaggedServiceIds($container, 'volatile.sub') as $id => $attrs) {
+            list($type, $subType) = array_slice(explode('.', $id), -3);
+            $d = $container->getDefinition($id);
+            $this->ensureDefinitionClassSet($d, 'volatile.sub');
+            $d->addMethodCall('setType', [$type]);
+            $d->addMethodCall('setSubType', [$subType]);
+            $this->addFormSetterCall($d);
+            $this->addMetaDataSetterCall($d);
+            $this->addLoggerSetterCall($d);
+            $this->addEventDispatcherSetterCall($d);
+
+            $rClass = new ReflectionClass($d->getClass());
 
             foreach($rClass->getMethods(\ReflectionMethod::IS_PUBLIC) as $rMethod) {
                 foreach ($this->getAnnotationReader()->getMethodAnnotations($rMethod) as $a) {
                     $method = $rMethod->getName();
                     switch (true) {
                         case $a instanceof Velocity\Callback:
-                            $m->addMethodCall('addCallback', ['.' === $a->value{0} ? ($type . '.' . $subType . $a->value) : $a->value, [new Reference($id), $method]]);
+                            $m->addMethodCall('addCallback', ['.' === $a->value{0} ? ($type . '.' . $subType . $a->value) : $a->value, [$this->ref($id), $method]]);
                             break;
                     }
                 }
             }
-
         }
     }
     /**
@@ -526,39 +527,32 @@ class VelocityService
      */
     protected function processSubSubVolatileTag(ContainerBuilder $container)
     {
-        foreach ($container->findTaggedServiceIds($this->getDefault('volatile.sub.sub.tag')) as $id => $attributes) {
-            $tokens = explode('.', $id);
-            $subSubTypeName = array_pop($tokens);
-            $subTypeName = array_pop($tokens);
-            $typeName = array_pop($tokens);
-            $definition = $container->getDefinition($id);
-            if (!$definition->getClass()) $definition->setClass($this->getDefault('volatile.sub.sub.class'));
-            $tagAttribute = array_shift($attributes);
-            $type = isset($tagAttribute['type']) ? $tagAttribute['type'] : $typeName;
-            $subType = isset($tagAttribute['subType']) ? $tagAttribute['subType'] : $subTypeName;
-            $subSubType = isset($tagAttribute['subSubType']) ? $tagAttribute['subSubType'] : $subSubTypeName;
-            $definition->addMethodCall('setType', [$type]);
-            $definition->addMethodCall('setSubType', [$subType]);
-            $definition->addMethodCall('setSubSubType', [$subSubType]);
-            $definition->addMethodCall('setFormService', [new Reference($this->getDefault('form.key'))]);
-            $definition->addMethodCall('setMetaDataService', [new Reference($this->getDefault('metaData.key'))]);
-            $definition->addMethodCall('setLogger', [new Reference('logger')]);
-            $definition->addMethodCall('setEventDispatcher', [new Reference('event_dispatcher')]);
+        $m = $this->getMetaDataDefinitionFromContainer($container);
 
-            $rClass = new ReflectionClass($definition->getClass());
-            $m = $this->getMetaDataDefinitionFromContainer($container);
+        foreach ($this->findVelocityTaggedServiceIds($container, 'volatile.sub.sub') as $id => $attrs) {
+            list($type, $subType, $subSubType) = array_slice(explode('.', $id), -3);
+            $d = $container->getDefinition($id);
+            $this->ensureDefinitionClassSet($d, 'volatile.sub.sub');
+            $d->addMethodCall('setType', [$type]);
+            $d->addMethodCall('setSubType', [$subType]);
+            $d->addMethodCall('setSubSubType', [$subSubType]);
+            $this->addFormSetterCall($d);
+            $this->addMetaDataSetterCall($d);
+            $this->addLoggerSetterCall($d);
+            $this->addEventDispatcherSetterCall($d);
+
+            $rClass = new ReflectionClass($d->getClass());
 
             foreach($rClass->getMethods(\ReflectionMethod::IS_PUBLIC) as $rMethod) {
                 foreach ($this->getAnnotationReader()->getMethodAnnotations($rMethod) as $a) {
                     $method = $rMethod->getName();
                     switch (true) {
                         case $a instanceof Velocity\Callback:
-                            $m->addMethodCall('addCallback', ['.' === $a->value{0} ? ($type . '.' . $subType . '.' . $subSubType . $a->value) : $a->value, [new Reference($id), $method]]);
+                            $m->addMethodCall('addCallback', ['.' === $a->value{0} ? ($type . '.' . $subType . '.' . $subSubType . $a->value) : $a->value, [$this->ref($id), $method]]);
                             break;
                     }
                 }
             }
-
         }
     }
     /**
@@ -570,12 +564,12 @@ class VelocityService
     {
         $userProviderDefinition = $container->getDefinition($this->getDefault('user_provider.default.key'));
 
-        foreach ($container->findTaggedServiceIds($this->getDefault('account_provider.tag')) as $id => $attributes) {
-            foreach($attributes as $attribute) {
-                $type   = isset($attribute['type']) ? $attribute['type'] : 'default';
-                $method = isset($attribute['method']) ? $attribute['method'] : 'get';
-                $format = isset($attribute['format']) ? $attribute['format'] : 'plain';
-                $userProviderDefinition->addMethodCall('setAccountProvider', [new Reference($id), $type, $method, $format]);
+        foreach ($this->findVelocityTaggedServiceIds($container, 'account_provider') as $id => $attrs) {
+            foreach($attrs as $params) {
+                $type   = isset($params['type']) ? $params['type'] : 'default';
+                $method = isset($params['method']) ? $params['method'] : 'get';
+                $format = isset($params['format']) ? $params['format'] : 'plain';
+                $userProviderDefinition->addMethodCall('setAccountProvider', [$this->ref($id), $type, $method, $format]);
             }
         }
     }
@@ -589,17 +583,16 @@ class VelocityService
         $authenticationProviderDefinition = $container->getDefinition($this->getDefault(('authentication_provider.default.key')));
         $requestServiceDefinition         = $container->getDefinition($this->getDefault('request.key'));
 
-        foreach ($container->findTaggedServiceIds($this->getDefault('client_provider.tag')) as $id => $attributes) {
-            $attribute = array_shift($attributes);
+        foreach ($this->findVelocityTaggedServiceIds($container, 'client_provider') as $id => $attrs) {
+            $attribute = array_shift($attrs);
+            $refId = $id;
             if ((isset($attribute['method']) && 'get' !== $attribute['method']) || isset($attribute['format'])) {
-                $ref = new Definition($this->getDefault('decorated_client.class'), [new Reference($id), isset($attribute['method']) ? $attribute['method'] : 'get', isset($attribute['format']) ? $attribute['format'] : 'raw']);
+                $ref = new Definition($this->getDefault('decorated_client.class'), [$this->ref($id), isset($attribute['method']) ? $attribute['method'] : 'get', isset($attribute['format']) ? $attribute['format'] : 'raw']);
                 $refId = sprintf($this->getDefault('generated_client.key.pattern'), md5(uniqid()));
                 $container->setDefinition($refId, $ref);
-            } else {
-                $refId = $id;
             }
-            $authenticationProviderDefinition->addMethodCall('setClientProvider', [new Reference($refId)]);
-            $requestServiceDefinition->addMethodCall('setClientProvider', [new Reference($refId)]);
+            $authenticationProviderDefinition->addMethodCall('setClientProvider', [$this->ref($refId)]);
+            $requestServiceDefinition->addMethodCall('setClientProvider', [$this->ref($refId)]);
         }
     }
     /**
@@ -613,20 +606,95 @@ class VelocityService
         $loggerAwareInterface       = $this->getDefault('logger_aware.interface');
         $migrationServiceDefinition = $container->getDefinition($this->getDefault('migration.key'));
 
-        foreach ($container->findTaggedServiceIds($this->getDefault('migrator.tag')) as $id => $attributes) {
-            $definition = $container->getDefinition($id);
-            foreach($attributes as $tagAttribute) {
-                $extension = $tagAttribute['extension'];
-                $class = $definition->getClass();
-                $rClass = new \ReflectionClass($class);
-                if ($rClass->isSubclassOf($containerAwareInterface)) {
-                    $definition->addMethodCall('setContainer', [new Reference('service_container')]);
-                }
-                if ($rClass->isSubclassOf($loggerAwareInterface)) {
-                    $definition->addMethodCall('setLogger', [new Reference('logger')]);
-                }
-                $migrationServiceDefinition->addMethodCall('addMigrator', [new Reference($id), $extension]);
+        foreach ($this->findVelocityTaggedServiceIds($container, 'migrator') as $id => $attributes) {
+            $d = $container->getDefinition($id);
+            foreach($attributes as $params) {
+                $extension = $params['extension'];
+                $rClass = new \ReflectionClass($d->getClass());
+                if ($rClass->isSubclassOf($containerAwareInterface)) $this->addContainerSetterCall($d);
+                if ($rClass->isSubclassOf($loggerAwareInterface)) $this->addLoggerSetterCall($d);
+                $migrationServiceDefinition->addMethodCall('addMigrator', [$this->ref($id), $extension]);
             }
         }
+    }
+    protected function addRepositorySetterCall(Definition $definition, $repoId)
+    {
+        $definition->addMethodCall('setRepository', [$this->ref($repoId)]);
+    }
+    protected function addFormSetterCall(Definition $definition)
+    {
+        $definition->addMethodCall('setFormService', [$this->ref('form')]);
+    }
+    protected function addMetaDataSetterCall(Definition $definition)
+    {
+        $definition->addMethodCall('setMetaDataService', [$this->ref('metaData')]);
+    }
+    protected function addLoggerSetterCall(Definition $definition)
+    {
+        $definition->addMethodCall('setLogger', [$this->ref('logger')]);
+    }
+    protected function addEventDispatcherSetterCall(Definition $definition)
+    {
+        $definition->addMethodCall('setEventDispatcher', [$this->ref('event_dispatcher')]);
+    }
+    protected function addDatabaseSetterCall(Definition $definition)
+    {
+        $definition->addMethodCall('setDatabaseService', [$this->ref('db')]);
+    }
+    protected function addTranslatorSetterCall(Definition $definition)
+    {
+        $definition->addMethodCall('setTranslator', [$this->ref('translator')]);
+    }
+    protected function addContainerSetterCall(Definition $definition)
+    {
+        $definition->addMethodCall('setContainer', [$this->ref('service_container')]);
+    }
+    /**
+     * @param Definition $definition
+     * @param string     $defaultClassType
+     */
+    protected function ensureDefinitionClassSet(Definition $definition, $defaultClassType)
+    {
+        if ($definition->getClass()) return;
+
+        $definition->setClass($this->getDefault($defaultClassType . '.class'));
+    }
+    /**
+     * @param ContainerBuilder $container
+     * @param string           $tagAlias
+     * 
+     * @return array
+     */
+    protected function findVelocityTaggedServiceIds(ContainerBuilder $container, $tagAlias)
+    {
+        return $container->findTaggedServiceIds($this->getDefault($tagAlias . '.tag'));        
+    }
+    /**
+     * @param string $alias
+     *
+     * @return string
+     */
+    protected function getServiceKey($alias)
+    {
+        return $this->getDefault($alias . '.key', $alias);
+    }
+    /**
+     * @param $alias
+     * 
+     * @return Reference
+     */
+    protected function ref($alias)
+    {
+        return new Reference($this->getServiceKey($alias));
+    }
+    /**
+     * @param $params
+     * @param $typeName
+     *
+     * @return string
+     */
+    protected function buildRepoId($params, $typeName)
+    {
+        return isset($params['repo']) ? $params['repo'] : (sprintf($this->getDefault('repo.key.pattern'), $typeName));
     }
 }

@@ -24,11 +24,47 @@ class MetaDataService
     /**
      * @var array
      */
-    protected $classes = [];
+    protected $callbacks = [];
     /**
      * @var array
      */
-    protected $callbacks = [];
+    protected $models = [];
+    /**
+     * @param string $class
+     *
+     * @return $this
+     */
+    public function checkModel($class)
+    {
+        if (!$this->isModel($class)) {
+            throw $this->createException(500, "Class '%s' is not registered as a model", $class);
+        }
+
+        return $this;
+    }
+    /**
+     * @param string $class
+     * @param array  $definition
+     *
+     * @return $this
+     */
+    public function addModel($class, $definition)
+    {
+        if (!isset($this->models[$class])) {
+            $this->models[$class] = [
+                'embeddedReferences' => [],
+                'embeddedReferenceLists'=> [],
+                'refreshes' => [],
+                'generateds' => [],
+                'ids' => [],
+                'types' => [],
+            ];
+        }
+
+        $this->models[$class] += $definition;
+
+        return $this;
+    }
     /**
      * @param string $type
      * @param mixed  $callback
@@ -51,16 +87,11 @@ class MetaDataService
      *
      * @return $this
      */
-    public function addClassPropertyEmbeddedReference($class, $property, $definition)
+    public function addModelPropertyEmbeddedReference($class, $property, $definition)
     {
-        if (!isset($this->classes[$class])) {
-            $this->classes[$class] = [];
-        }
-        if (!isset($this->classes[$class]['embeddedReferences'])) {
-            $this->classes[$class]['embeddedReferences'] = [];
-        }
+        $this->checkModel($class);
 
-        $this->classes[$class]['embeddedReferences'][$property] = $definition;
+        $this->models[$class]['embeddedReferences'][$property] = $definition;
 
         return $this;
     }
@@ -73,14 +104,9 @@ class MetaDataService
      */
     public function addClassPropertyEmbeddedReferenceList($class, $property, $definition)
     {
-        if (!isset($this->classes[$class])) {
-            $this->classes[$class] = [];
-        }
-        if (!isset($this->classes[$class]['embeddedReferenceLists'])) {
-            $this->classes[$class]['embeddedReferenceLists'] = [];
-        }
+        $this->checkModel($class);
 
-        $this->classes[$class]['embeddedReferenceLists'][$property] = $definition;
+        $this->models[$class]['embeddedReferenceLists'][$property] = $definition;
 
         return $this;
     }
@@ -91,24 +117,19 @@ class MetaDataService
      *
      * @return $this
      */
-    public function addClassPropertyRefresh($class, $property, $definition)
+    public function addModelPropertyRefresh($class, $property, $definition)
     {
-        if (!isset($this->classes[$class])) {
-            $this->classes[$class] = [];
-        }
-        if (!isset($this->classes[$class]['refreshes'])) {
-            $this->classes[$class]['refreshes'] = [];
-        }
+        $this->checkModel($class);
 
         $operations = $definition['value'];
         if (!is_array($operations)) $operations = [$operations];
 
         foreach($operations as $operation) {
-            if (!isset($this->classes[$class]['refreshes'][$operation])) {
-                $this->classes[$class]['refreshes'][$operation] = [];
+            if (!isset($this->models[$class]['refreshes'][$operation])) {
+                $this->models[$class]['refreshes'][$operation] = [];
             }
 
-            $this->classes[$class]['refreshes'][$operation][$property] = true;
+            $this->models[$class]['refreshes'][$operation][$property] = true;
         }
 
         return $this;
@@ -120,19 +141,14 @@ class MetaDataService
      *
      * @return $this
      */
-    public function addClassPropertyGenerated($class, $property, $definition)
+    public function addModelPropertyGenerated($class, $property, $definition)
     {
-        if (!isset($this->classes[$class])) {
-            $this->classes[$class] = [];
-        }
-        if (!isset($this->classes[$class]['generateds'])) {
-            $this->classes[$class]['generateds'] = [];
-        }
+        $this->checkModel($class);
 
         $definition['type'] = $definition['value'];
         unset($definition['value']);
 
-        $this->classes[$class]['generateds'][$property] = $definition;
+        $this->models[$class]['generateds'][$property] = $definition;
 
         return $this;
     }
@@ -143,20 +159,15 @@ class MetaDataService
      *
      * @return $this
      */
-    public function addClassPropertyId($class, $property, $definition)
+    public function addModelPropertyId($class, $property, $definition)
     {
-        if (!isset($this->classes[$class])) {
-            $this->classes[$class] = [];
-        }
-        if (!isset($this->classes[$class]['ids'])) {
-            $this->classes[$class]['ids'] = [];
-        }
+        $this->checkModel($class);
 
         $definition['name'] = isset($definition['name']) ? $definition['name'] : '_id';
         $definition['property'] = $property;
         unset($definition['value']);
 
-        $this->classes[$class]['ids'] = $definition;
+        $this->models[$class]['ids'] = $definition;
 
         return $this;
     }
@@ -167,15 +178,11 @@ class MetaDataService
      *
      * @return $this
      */
-    public function setClassPropertyType($class, $property, $definition)
+    public function setModelPropertyType($class, $property, $definition)
     {
-        if (!isset($this->classes[$class])) {
-            $this->classes[$class] = [];
-        }
-        if (!isset($this->classes[$class]['types'])) {
-            $this->classes[$class]['types'] = [];
-        }
-        $this->classes[$class]['types'][$property] = $definition['name'];
+        $this->checkModel($class);
+
+        $this->models[$class]['types'][$property] = $definition['name'];
 
         return $this;
     }
@@ -184,80 +191,83 @@ class MetaDataService
      *
      * @return array
      */
-    public function getEmbeddedReferencesByClass($class)
+    public function getModelEmbeddedReferences($class)
     {
-        if (is_object($class)) {
-            $class = get_class($class);
-        }
+        if (is_object($class)) $class = get_class($class);
 
-        return isset($this->classes[$class]['embeddedReferences'])
-            ? $this->classes[$class]['embeddedReferences']
-            : []
-        ;
+        $this->checkModel($class);
+
+        return $this->models[$class]['embeddedReferences'];
+    }
+    /**
+     * @return array
+     */
+    public function getModels()
+    {
+        return $this->models;
+    }
+    /**
+     * @param string|object $class
+     *
+     * @return bool
+     */
+    public function isModel($class)
+    {
+        if (is_object($class)) $class = get_class($class);
+
+        return true === isset($this->models[$class]);
     }
     /**
      * @param string|Object $class
      *
      * @return array
      */
-    public function getTypesByClass($class)
+    public function getModelTypes($class)
     {
-        if (is_object($class)) {
-            $class = get_class($class);
-        }
+        if (is_object($class)) $class = get_class($class);
 
-        return isset($this->classes[$class]['types'])
-            ? $this->classes[$class]['types']
-            : []
-        ;
+        $this->checkModel($class);
+
+        return $this->models[$class]['types'];
     }
     /**
      * @param string|Object $class
      *
      * @return array
      */
-    public function getGeneratedsByClass($class)
+    public function getModelGenerateds($class)
     {
-        if (is_object($class)) {
-            $class = get_class($class);
-        }
+        if (is_object($class)) $class = get_class($class);
 
-        return isset($this->classes[$class]['generateds'])
-            ? $this->classes[$class]['generateds']
-            : []
-        ;
+        $this->checkModel($class);
+
+        return $this->models[$class]['generateds'];
     }
     /**
      * @param string|Object $class
      *
      * @return array
      */
-    public function getEmbeddedReferenceListsByClass($class)
+    public function getModelEmbeddedReferenceLists($class)
     {
-        if (is_object($class)) {
-            $class = get_class($class);
-        }
+        if (is_object($class)) $class = get_class($class);
 
-        return isset($this->classes[$class]['embeddedReferenceLists'])
-            ? $this->classes[$class]['embeddedReferenceLists']
-            : []
-        ;
+        $this->checkModel($class);
+
+        return $this->models[$class]['embeddedReferenceLists'];
     }
     /**
      * @param string|Object $class
      *
      * @return array|null
      */
-    public function getIdPropertyByClass($class)
+    public function getModelIdProperty($class)
     {
-        if (is_object($class)) {
-            $class = get_class($class);
-        }
+        if (is_object($class)) $class = get_class($class);
 
-        return isset($this->classes[$class]['ids'])
-            ? $this->classes[$class]['ids']
-            : null
-        ;
+        $this->checkModel($class);
+
+        return $this->models[$class]['ids'];
     }
     /**
      * @param string|Object $class
@@ -265,14 +275,14 @@ class MetaDataService
      *
      * @return array
      */
-    public function getRefreshablePropertiesByClassAndOperation($class, $operation)
+    public function getModelRefreshablePropertiesByOperation($class, $operation)
     {
-        if (is_object($class)) {
-            $class = get_class($class);
-        }
+        if (is_object($class)) $class = get_class($class);
 
-        return isset($this->classes[$class]['refreshes'][$operation])
-            ? array_keys($this->classes[$class]['refreshes'][$operation])
+        $this->checkModel($class);
+
+        return isset($this->models[$class]['refreshes'][$operation])
+            ? array_keys($this->models[$class]['refreshes'][$operation])
             : []
         ;
     }
@@ -282,14 +292,14 @@ class MetaDataService
      *
      * @return null|string
      */
-    public function getTypeByClassAndProperty($class, $property)
+    public function getModelPropertyType($class, $property)
     {
-        if (is_object($class)) {
-            $class = get_class($class);
-        }
+        if (is_object($class)) $class = get_class($class);
 
-        return isset($this->classes[$class]['types'][$property])
-            ? $this->classes[$class]['types'][$property]
+        $this->checkModel($class);
+
+        return isset($this->models[$class]['types'][$property])
+            ? $this->models[$class]['types'][$property]
             : null;
     }
     /**
@@ -306,8 +316,8 @@ class MetaDataService
 
         unset($options);
 
-        foreach ($this->getEmbeddedReferencesByClass($doc) as $property => $embeddedReference) {
-            $doc->$property = $this->convertIdToObject($doc->$property, isset($embeddedReference['class']) ? $embeddedReference['class'] : $this->getTypeByClassAndProperty($doc, $property), $embeddedReference['type']);
+        foreach ($this->getModelEmbeddedReferences($doc) as $property => $embeddedReference) {
+            $doc->$property = $this->convertIdToObject($doc->$property, isset($embeddedReference['class']) ? $embeddedReference['class'] : $this->getModelPropertyType($doc, $property), $embeddedReference['type']);
         }
 
         return $doc;
@@ -340,7 +350,7 @@ class MetaDataService
 
         unset($options);
 
-        $generateds = $this->getGeneratedsByClass($doc);
+        $generateds = $this->getModelGenerateds($doc);
 
         foreach($generateds as $k => $v) {
             $doc->$k = $this->generateValue($v, $doc);
@@ -362,8 +372,8 @@ class MetaDataService
 
         unset($options);
 
-        foreach ($this->getRefreshablePropertiesByClassAndOperation($doc, 'create') as $property) {
-            $type = $this->getTypeByClassAndProperty($doc, $property);
+        foreach ($this->getModelRefreshablePropertiesByOperation($doc, 'create') as $property) {
+            $type = $this->getModelPropertyType($doc, $property);
             switch($type) {
                 case "DateTime<'c'>": $doc->$property = new \DateTime(); break;
                 default: throw $this->createException(500, sprintf("Unable to refresh model property '%s': unsupported type '%s'", $property, $type));
@@ -386,7 +396,7 @@ class MetaDataService
 
         unset($options);
 
-        $types = isset($this->classes[get_class($doc)]['types']) ? $this->classes[get_class($doc)]['types'] : [];
+        $types = $this->getModelTypes($doc);
 
         foreach ($types as $property => $type) {
             if (property_exists($doc, $property) && null === $doc->$property) {
@@ -442,6 +452,19 @@ class MetaDataService
         return $subject;
     }
     /**
+     * @param string|Object $class
+     *
+     * @return array
+     */
+    public function getModel($class)
+    {
+        if (is_object($class)) $class = get_class($class);
+
+        $this->checkModel($class);
+
+        return $this->models[$class];
+    }
+    /**
      * @param $doc
      * @param array $options
      * @return mixed
@@ -454,12 +477,7 @@ class MetaDataService
 
         $removeNulls = isset($options['removeNulls']) && true === $options['removeNulls'];
 
-        $meta = [];
-
-        if (isset($this->classes[get_class($doc)])) {
-            $meta = $this->classes[get_class($doc)];
-        }
-
+        $meta = $this->getModel($doc);
         $data = get_object_vars($doc);
 
         foreach($data as $k => $v) {
@@ -491,9 +509,9 @@ class MetaDataService
      */
     public function populateObject($doc, $data = [], $options = [])
     {
-        $embeddedReferences = $this->getEmbeddedReferencesByClass($doc);
-        $embeddedReferenceLists = $this->getEmbeddedReferenceListsByClass($doc);
-        $types = $this->getTypesByClass($doc);
+        $embeddedReferences = $this->getModelEmbeddedReferences($doc);
+        $embeddedReferenceLists = $this->getModelEmbeddedReferenceLists($doc);
+        $types = $this->getModelTypes($doc);
 
         if (isset($data['_id']) && !isset($data['id'])) {
             $data['id'] = (string)$data['_id'];
@@ -517,6 +535,8 @@ class MetaDataService
             }
         }
 
+        unset($options);
+
         return $doc;
     }
 
@@ -538,7 +558,6 @@ class MetaDataService
             case 'sha1': return sha1(md5(rand(0, 1000) . microtime(true) . rand(rand(0, 100), 10000)));
             default:
                 throw $this->createException(500, "Unsupported generate type '%s'", $definition['type']);
-                return $this;
         }
     }
     /**
@@ -549,7 +568,7 @@ class MetaDataService
      */
     protected function mutateArrayToObject($data, $class)
     {
-        $class = $this->getModelClass($class);
+        if (is_object($class)) $class = get_class($class);
 
         $doc = new $class;
 
