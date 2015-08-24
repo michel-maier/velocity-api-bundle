@@ -12,7 +12,7 @@
 namespace Velocity\Bundle\ApiBundle\Controller;
 
 use Symfony\Component\HttpFoundation\Response;
-use Velocity\Bundle\ApiBundle\Service\SupervisionService;
+use Velocity\Bundle\ApiBundle\Traits\ServiceAwareController;
 use Velocity\Bundle\ApiBundle\Controller\Base\RestController;
 use /** @noinspection PhpUnusedAliasInspection */ Nelmio\ApiDocBundle\Annotation\ApiDoc;
 use /** @noinspection PhpUnusedAliasInspection */ Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
@@ -25,13 +25,7 @@ use /** @noinspection PhpUnusedAliasInspection */ Sensio\Bundle\FrameworkExtraBu
  */
 class SupervisionController extends RestController
 {
-    /**
-     * @return SupervisionService
-     */
-    protected function getSupervisionService()
-    {
-        return $this->get('api.supervision');
-    }
+    use ServiceAwareController\SupervisionServiceAwareControllerTrait;
     /**
      * @Route("/supervision/ping", name="api_supervision_ping")
      * @Method({"GET"})

@@ -13,7 +13,6 @@ namespace Velocity\Bundle\ApiBundle\Controller;
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Velocity\Bundle\ApiBundle\Service\RequestService;
 use Velocity\Bundle\ApiBundle\Controller\Base\RestController;
 use /** @noinspection PhpUnusedAliasInspection */ Nelmio\ApiDocBundle\Annotation\ApiDoc;
 use /** @noinspection PhpUnusedAliasInspection */ Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
@@ -26,13 +25,6 @@ use /** @noinspection PhpUnusedAliasInspection */ Sensio\Bundle\FrameworkExtraBu
  */
 class SecurityController extends RestController
 {
-    /**
-     * @return RequestService
-     */
-    protected function getRequestService()
-    {
-        return $this->get('api.request');
-    }
     /**
      * @Route("/client-tokens", name="api_client_token_create")
      * @Method({"POST"})

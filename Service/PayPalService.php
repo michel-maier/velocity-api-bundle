@@ -38,7 +38,6 @@ use Velocity\Bundle\ApiBundle\Exception\PayPalPrepareConfirmOrderFailedException
 use Velocity\Bundle\ApiBundle\Exception\PayPalExecuteCreateOrderFailedException;
 use Velocity\Bundle\ApiBundle\Exception\PayPalExecuteConfirmOrderFailedException;
 
-
 /**
  * PayPal Service.
  *

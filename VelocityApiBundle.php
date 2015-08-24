@@ -12,10 +12,12 @@
 namespace Velocity\Bundle\ApiBundle;
 
 use Symfony\Component\HttpKernel\Bundle\Bundle;
+use Doctrine\Common\Annotations\AnnotationReader;
+use Symfony\Component\HttpKernel\KernelInterface;
+use Velocity\Bundle\ApiBundle\Service\VelocityService;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Velocity\Bundle\ApiBundle\DependencyInjection\Compiler\TagCompilerPass;
 use Velocity\Bundle\ApiBundle\DependencyInjection\Security\Factory\ApiFactory;
-use Velocity\Bundle\ApiBundle\DependencyInjection\Compiler\AnnotationCompilerPass;
+use Velocity\Bundle\ApiBundle\DependencyInjection\Compiler\VelocityCompilerPass;
 
 /**
  * Velocity Api Bundle.
@@ -24,6 +26,20 @@ use Velocity\Bundle\ApiBundle\DependencyInjection\Compiler\AnnotationCompilerPas
  */
 class VelocityApiBundle extends Bundle
 {
+    /**
+     * @var KernelInterface
+     */
+    private $kernel;
+    /**
+     * @param KernelInterface $kernel
+     */
+    public function __construct(KernelInterface $kernel)
+    {
+        $this->kernel = $kernel;
+    }
+    /**
+     * @param ContainerBuilder $container
+     */
     public function build(ContainerBuilder $container)
     {
         parent::build($container);
@@ -32,7 +48,8 @@ class VelocityApiBundle extends Bundle
         /** @noinspection PhpUndefinedMethodInspection */
         $extension->addSecurityListenerFactory(new ApiFactory());
 
-        $container->addCompilerPass(new AnnotationCompilerPass());
-        $container->addCompilerPass(new TagCompilerPass());
+        $velocity = new VelocityService(new AnnotationReader());
+
+        $container->addCompilerPass(new VelocityCompilerPass($this->kernel, $velocity));
     }
 }

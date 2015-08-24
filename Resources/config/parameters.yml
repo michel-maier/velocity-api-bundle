@@ -1,7 +1,5 @@
 parameters:
   app_env: local
-  ns: AppBundle
-  api_ns: Velocity\Bundle\ApiBundle
   jms_serializer.camel_case_naming_strategy.class: JMS\Serializer\Naming\IdenticalPropertyNamingStrategy
   app_db_dir: "%kernel.root_dir%/../src/AppBundle/Resources/database"
 

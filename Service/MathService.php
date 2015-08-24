@@ -117,8 +117,6 @@ class MathService
      */
     public function percentile($rank, $population, $field = null)
     {
-        $p = 0;
-
         if (0 < $rank && $rank < 1) {
             $p = $rank;
         }elseif (1 < $rank && $rank <= 100) {

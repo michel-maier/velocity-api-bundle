@@ -1,63 +1,63 @@
 services:
-  api.metadata:
+  velocity.metadata:
     class: Velocity\Bundle\ApiBundle\Service\MetaDataService
-  api.exception:
+  velocity.exception:
     class: Velocity\Bundle\ApiBundle\Service\ExceptionService
     arguments:
       - @request_stack
-      - @api.form
-  api.supervision:
+      - @velocity.form
+  velocity.supervision:
     class: Velocity\Bundle\ApiBundle\Service\SupervisionService
     arguments:
       - @security.context
-  api.math:
+  velocity.math:
     class: Velocity\Bundle\ApiBundle\Service\MathService
-  api.date:
+  velocity.date:
     class: Velocity\Bundle\ApiBundle\Service\DateService
-  api.request:
+  velocity.request:
     class: Velocity\Bundle\ApiBundle\Service\RequestService
     arguments:
-      - @api.security.provider.user.api
+      - @velocity.security.provider.user.api
       - %app_security_client_secret%
       - %app_security_user_secret%
-  api.factory:
+  velocity.factory:
     class: Velocity\Bundle\ApiBundle\Service\ServiceFactoryService
-  api.mangoPayApi:
+  velocity.mangoPayApi:
     class: MangoPay\MangoPayApi
-    factory_service: api.factory
+    factory_service: velocity.factory
     factory_method: createMangoPayApi
     arguments:
       - %app_mango_env%
       - %app_mango_client_id%
       - %app_mango_client_password%
-  api.mangoPay:
+  velocity.mangoPay:
     class: Velocity\Bundle\ApiBundle\Service\MangoPayService
     arguments:
-      - @api.mangoPayApi
-  api.mongo:
+      - @velocity.mangoPayApi
+  velocity.mongo:
     class: MongoClient
     arguments:
       - %app_mongo_server%
-  api.database:
+  velocity.database:
     class: Velocity\Bundle\ApiBundle\Service\DatabaseService
     arguments:
-      - @api.mongo
+      - @velocity.mongo
       - %app_mongo_db%
       - %app_mongo_db_random%
-  api.migration:
+  velocity.migration:
     class: Velocity\Bundle\ApiBundle\Service\MigrationService
     arguments:
-      - @api.database
+      - @velocity.database
       - @logger
-      - @api.form
+      - @velocity.form
       - @service_container
       - 'migration'
       - %app_db_dir%
       - %app_env%
-  api.form:
+  velocity.form:
     class: Velocity\Bundle\ApiBundle\Service\FormService
     arguments:
       - @form.factory
-  api.password:
+  velocity.password:
     class: Velocity\Bundle\ApiBundle\Service\PasswordService
 

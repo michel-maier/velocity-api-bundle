@@ -16,14 +16,13 @@ use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
 use Velocity\Bundle\ApiBundle\Traits\LoggerAwareTrait;
 use Velocity\Bundle\ApiBundle\Traits\FormServiceAwareTrait;
 use Velocity\Bundle\ApiBundle\Traits\MetaDataServiceAwareTrait;
-use Velocity\Bundle\ApiBundle\Service\MetaDataServiceAwareInterface;
 
 /**
  * Volatile Document Service.
  *
  * @author Olivier Hoareau <olivier@phppro.fr>
  */
-class VolatileDocumentService implements MetaDataServiceAwareInterface
+class VolatileDocumentService
 {
     use ServiceTrait;
     use LoggerAwareTrait;

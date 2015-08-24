@@ -15,11 +15,16 @@ use Exception;
 use MongoCursor;
 use MongoDuplicateKeyException;
 use Velocity\Bundle\ApiBundle\Traits\ServiceAware;
+use Velocity\Bundle\ApiBundle\RepositoryInterface;
 use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
 use Velocity\Bundle\ApiBundle\Traits\LoggerAwareTrait;
 use Velocity\Bundle\ApiBundle\Traits\TranslatorAwareTrait;
-use Velocity\Bundle\ApiBundle\Repository\RepositoryInterface;
 
+/**
+ * Repository Service.
+ *
+ * @author Olivier Hoareau <olivier@phppro.fr>
+ */
 class RepositoryService implements RepositoryInterface
 {
     use ServiceTrait;

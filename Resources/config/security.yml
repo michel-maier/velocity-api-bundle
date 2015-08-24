@@ -1,19 +1,19 @@
 services:
-  api.security.provider.user.api:
+  velocity.security.provider.user.api:
     class: Velocity\Bundle\ApiBundle\Security\ApiUserProvider
 
-  api.security.authentication.provider:
+  velocity.security.authentication.provider:
     class: Velocity\Bundle\ApiBundle\Security\ApiAuthenticationProvider
     arguments:
-      - @api.security.provider.user.api
+      - @velocity.security.provider.user.api
     calls:
       - [setEventDispatcher, [@event_dispatcher]]
-      - [setRequestService, [@api.request]]
-  api.security.authentication.listener:
+      - [setRequestService, [@velocity.request]]
+  velocity.security.authentication.listener:
     class: Velocity\Bundle\ApiBundle\Security\ApiListener
     arguments:
       - @security.token_storage
       - @security.authentication.manager
     calls:
       - [setEventDispatcher, [@event_dispatcher]]
-      - [setRequestService, [@api.request]]
+      - [setRequestService, [@velocity.request]]

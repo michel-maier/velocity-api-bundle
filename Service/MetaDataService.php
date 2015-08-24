@@ -13,25 +13,22 @@ namespace Velocity\Bundle\ApiBundle\Service;
 
 use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
 
+/**
+ * MetaData Service.
+ *
+ * @author Olivier Hoareau <olivier@phppro.fr>
+ */
 class MetaDataService
 {
     use ServiceTrait;
     /**
      * @var array
      */
-    protected $classes;
+    protected $classes = [];
     /**
      * @var array
      */
-    protected $callbacks;
-    /**
-     *
-     */
-    public function __construct()
-    {
-        $this->classes   = [];
-        $this->callbacks = [];
-    }
+    protected $callbacks = [];
     /**
      * @param string $type
      * @param mixed  $callback

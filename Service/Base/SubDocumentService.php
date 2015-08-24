@@ -13,10 +13,10 @@ namespace Velocity\Bundle\ApiBundle\Service\Base;
 
 use Exception;
 use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
+use Velocity\Bundle\ApiBundle\RepositoryInterface;
 use Velocity\Bundle\ApiBundle\Traits\LoggerAwareTrait;
 use Velocity\Bundle\ApiBundle\Exception\ImportException;
 use Velocity\Bundle\ApiBundle\Traits\FormServiceAwareTrait;
-use Velocity\Bundle\ApiBundle\Repository\RepositoryInterface;
 use Velocity\Bundle\ApiBundle\Traits\MetaDataServiceAwareTrait;
 use Velocity\Bundle\ApiBundle\Exception\FormValidationException;
 

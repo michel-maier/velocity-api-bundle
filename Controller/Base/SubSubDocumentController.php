@@ -13,7 +13,6 @@ namespace Velocity\Bundle\ApiBundle\Controller\Base;
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Velocity\Bundle\ApiBundle\Service\RequestService;
 use Velocity\Bundle\ApiBundle\Service\SubSubDocumentServiceInterface;
 
 /**
@@ -36,13 +35,6 @@ abstract class SubSubDocumentController extends RestController
                 strtolower(str_replace('\\', '.', substr(get_class($this), strrpos(get_class($this), '\\', 1) + 1)))
             )
         );
-    }
-    /**
-     * @return RequestService
-     */
-    protected function getRequestService()
-    {
-        return $this->get('api.request');
     }
     /**
      * Retrieve the documents matching the specified criteria.

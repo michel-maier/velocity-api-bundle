@@ -9,7 +9,7 @@
  * file that was distributed with this source code.
  */
 
-namespace Velocity\Bundle\ApiBundle\Repository;
+namespace Velocity\Bundle\ApiBundle;
 
 use Exception;
 use MongoCursor;

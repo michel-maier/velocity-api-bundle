@@ -12,14 +12,14 @@
 namespace Velocity\Bundle\ApiBundle\Service;
 
 use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
-use Velocity\Bundle\ApiBundle\Service\ClientServiceInterface;
+use Velocity\Bundle\ApiBundle\ClientProviderInterface;
 
 /**
  * Decorated Client Service.
  *
  * @author Olivier Hoareau <olivier@phppro.fr>
  */
-class DecoratedClientService implements ClientServiceInterface
+class DecoratedClientService implements ClientProviderInterface
 {
     use ServiceTrait;
     /**

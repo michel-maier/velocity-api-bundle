@@ -11,11 +11,9 @@
 
 namespace Velocity\Bundle\ApiBundle\Controller\Base;
 
-use JMS\Serializer\SerializerInterface;
 use JMS\Serializer\SerializationContext;
 use Symfony\Component\HttpFoundation\Response;
-use Velocity\Bundle\ApiBundle\Service\RequestService;
-use Velocity\Bundle\ApiBundle\Service\ExceptionService;
+use Velocity\Bundle\ApiBundle\Traits\ServiceAwareController;
 
 /**
  * Rest Controller
@@ -24,31 +22,9 @@ use Velocity\Bundle\ApiBundle\Service\ExceptionService;
  */
 abstract class RestController extends BaseController
 {
-    /**
-     * Return the serializer (json).
-     *
-     * @return SerializerInterface
-     */
-    protected function getSerializer()
-    {
-        return $this->get('jms_serializer');
-    }
-    /**
-     * Return the exception service.
-     *
-     * @return ExceptionService
-     */
-    protected function getExceptionService()
-    {
-        return $this->get('api.exception');
-    }
-    /**
-     * @return RequestService
-     */
-    protected function getRequestService()
-    {
-        return $this->get('api.request');
-    }
+    use ServiceAwareController\SerializerAwareControllerTrait;
+    use ServiceAwareController\RequestServiceAwareControllerTrait;
+    use ServiceAwareController\ExceptionServiceAwareControllerTrait;
     /**
      * Returns the http response.
      *

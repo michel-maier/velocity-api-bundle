@@ -37,14 +37,14 @@ class ApiFactory implements SecurityFactoryInterface
      */
     public function create(ContainerBuilder $container, $id, $config, $userProvider, $defaultEntryPoint)
     {
-        $providerId = 'api.security.authentication.provider.api.'.$id;
+        $providerId = 'velocity.security.authentication.provider.api.'.$id;
         $container
-            ->setDefinition($providerId, new DefinitionDecorator('api.security.authentication.provider'))
+            ->setDefinition($providerId, new DefinitionDecorator('velocity.security.authentication.provider'))
             ->replaceArgument(0, new Reference($userProvider))
         ;
 
-        $listenerId = 'api.security.authentication.listener.api.'.$id;
-        $container->setDefinition($listenerId, new DefinitionDecorator('api.security.authentication.listener'));
+        $listenerId = 'velocity.security.authentication.listener.api.'.$id;
+        $container->setDefinition($listenerId, new DefinitionDecorator('velocity.security.authentication.listener'));
 
         return array($providerId, $listenerId, $defaultEntryPoint);
     }

@@ -13,11 +13,11 @@ namespace Velocity\Bundle\ApiBundle\Service;
 
 use Exception;
 use Psr\Log\LoggerInterface;
+use Velocity\Bundle\ApiBundle\MigratorInterface;
 use Velocity\Bundle\ApiBundle\Traits\ServiceAware;
 use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
 use Velocity\Bundle\ApiBundle\Traits\LoggerAwareTrait;
 use Velocity\Bundle\ApiBundle\Traits\ContainerAwareTrait;
-use Velocity\Bundle\ApiBundle\Migrator\MigratorInterface;
 use Velocity\Bundle\ApiBundle\Traits\FormServiceAwareTrait;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Velocity\Bundle\ApiBundle\Exception\FormValidationException;

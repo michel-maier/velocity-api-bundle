@@ -11,33 +11,26 @@
 
 namespace Velocity\Bundle\ApiBundle\Service;
 
-use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
-use Symfony\Component\Form\FormError;
 use Symfony\Component\Form\FormInterface;
-use Velocity\Bundle\ApiBundle\Exception\FormValidationException;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormFactoryInterface;
+use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
+use Velocity\Bundle\ApiBundle\Exception\FormValidationException;
 
+/**
+ * Form Service.
+ *
+ * @author Olivier Hoareau <olivier@phppro.fr>
+ */
 class FormService
 {
     use ServiceTrait;
     /**
      * @param FormFactoryInterface $formFactory
-     * @param array                $typeNamespaces
      */
-    public function __construct(FormFactoryInterface $formFactory, $typeNamespaces = [])
+    public function __construct(FormFactoryInterface $formFactory)
     {
         $this->setFormFactory($formFactory);
-        $this->setTypeNamespaces($typeNamespaces);
-    }
-    /**
-     * @param string $ns
-     *
-     * @return FormService
-     */
-    public function addTypeNamespace($ns)
-    {
-        return $this->setTypeNamespaces(array_merge($this->getTypeNamespaces() + [$ns]));
     }
     /**
      * @param FormFactoryInterface $formFactory
@@ -54,22 +47,6 @@ class FormService
     public function getFormFactory()
     {
         return $this->getService('formFactory');
-    }
-    /**
-     * @return array
-     */
-    public function getTypeNamespaces()
-    {
-        return $this->getParameter('typeNamespaces', []);
-    }
-    /**
-     * @param array $typeNamespaces
-     *
-     * @return $this
-     */
-    public function setTypeNamespaces($typeNamespaces)
-    {
-        return $this->setParameter('typeNamespaces', $typeNamespaces);
     }
     /**
      * @param FormValidationException $exception
@@ -147,75 +124,15 @@ class FormService
      */
     public function validate($type, $mode, $data, $cleanData = [], $clearMissing = true, $options = [])
     {
-        if (!$clearMissing) {
-            foreach ($data as $k => $v) {
-                if (null === $v) {
-                    unset($data[$k]);
-                }
-            }
-        }
+        if (!$clearMissing) foreach ($data as $k => $v) if (null === $v) unset($data[$k]);
 
         $form = $this->createForm($type, $mode, $cleanData, $options);
 
-        $realData = $cleanData;
+        $form->submit($cleanData + (is_array($data) ? $data : []), $clearMissing);
 
-        if (is_array($data)) {
-            $realData += $data;
-        }
+        if (!$form->isValid()) throw new FormValidationException($form);
 
-        $form->submit($realData, $clearMissing);
-
-        $valid = $form->isValid();
-        $data  = $form->getData();
-
-        if (isset($options['convert']) && is_callable($options['convert'])) {
-            try {
-                $data = call_user_func_array($options['convert'], [$data, $form]);
-            } catch (FormValidationException $e) {
-                $valid = false;
-                $_form = $form;
-                $errors = $this->getFormErrorsFromException($e);
-                foreach($errors as $name => $_errors) {
-                    $__form = $_form;
-                    if ($__form->has($name)) {
-                        $__form = $__form->get($name);
-                    }
-                    foreach($_errors as $error) {
-                        if (!$error instanceof FormError) {
-                            $error = new FormError($error);
-                        }
-                        $__form->addError($error);
-                    }
-                }
-            }
-        }
-        if (isset($options['enrich']) && is_callable($options['enrich'])) {
-            try {
-                $data = call_user_func_array($options['enrich'], [$data, $form]);
-            } catch (FormValidationException $e) {
-                $valid = false;
-                $_form = $form;
-                $errors = $this->getFormErrorsFromException($e);
-                foreach($errors as $name => $_errors) {
-                    $__form = $_form;
-                    if ($__form->has($name)) {
-                        $__form = $__form->get($name);
-                    }
-                    foreach($_errors as $error) {
-                        if (!$error instanceof FormError) {
-                            $error = new FormError($error);
-                        }
-                        $__form->addError($error);
-                    }
-                }
-            }
-        }
-
-        if (!$valid) {
-            throw new FormValidationException($form);
-        }
-
-        return $data;
+        return $form->getData();
     }
     /**
      * @param string $type
@@ -229,8 +146,7 @@ class FormService
         $builder = null;
 
         $namespaces =
-              $this->getTypeNamespaces()
-            + ['AppBundle\\Form\\Type', str_replace('/', '\\', dirname(str_replace('\\', '/', __NAMESPACE__)) . '/Form/Type')]
+            ['AppBundle\\Form\\Type', str_replace('/', '\\', dirname(str_replace('\\', '/', __NAMESPACE__)) . '/Form/Type')]
         ;
 
         foreach($namespaces as $ns) {
@@ -268,22 +184,8 @@ class FormService
      */
     public function createForm($type, $mode = 'create', $cleanData = [], $options = [])
     {
-        $builder = $this->createBuilder($type, $mode, $cleanData);
+        unset($options);
 
-        if (!is_array($options)) {
-            $options = [];
-        }
-
-        if (!isset($options['listeners']) || !is_array($options['listeners'])) {
-            $options['listeners'] = [];
-        }
-
-        foreach($options['listeners'] as $eventName => $listeners) {
-            foreach($listeners as $listener) {
-                $builder->addEventListener($eventName, $listener);
-            }
-        }
-
-        return $builder->getForm();
+        return $this->createBuilder($type, $mode, $cleanData)->getForm();
     }
 }

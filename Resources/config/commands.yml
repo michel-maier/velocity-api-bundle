@@ -4,12 +4,12 @@ services:
   api.command.dbUp:
     class: Velocity\Bundle\ApiBundle\Command\DbUpCommand
     calls:
-      - [setMigrationService, [@api.migration]]
+      - [setMigrationService, [@velocity.migration]]
     tags:
       - { name: console.command }
   api.command.dbDrop:
     class: Velocity\Bundle\ApiBundle\Command\DbDropCommand
     calls:
-      - [setDatabaseService, [@api.database]]
+      - [setDatabaseService, [@velocity.database]]
     tags:
       - { name: console.command }

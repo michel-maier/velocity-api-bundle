@@ -28,7 +28,7 @@ class MongoId extends Constraint
      */
     public function validatedBy()
     {
-        return 'api_mongoId';
+        return 'velocity_mongoId';
     }
 
 }

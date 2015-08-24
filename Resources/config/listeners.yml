@@ -1,11 +1,15 @@
 services:
-  api.listener.request:
+  velocity.listener.request:
     class: Velocity\Bundle\ApiBundle\Listener\RequestListener
     tags:
       - { name: kernel.event_listener, event: kernel.request, method: onKernelRequest, priority: 100 }
-  api.listener.exception:
+  velocity.listener.exception:
     class: Velocity\Bundle\ApiBundle\Listener\ExceptionListener
     calls:
-      - [setExceptionService, [@api.exception]]
+      - [setExceptionService, [@velocity.exception]]
     tags:
       - { name: kernel.event_listener, event: kernel.exception, method: onKernelException }
+  velocity.listener.eventConverter:
+    class: Velocity\Bundle\ApiBundle\Listener\EventConverterListener
+    arguments:
+      - @event_dispatcher

@@ -11,14 +11,14 @@
 
 namespace Velocity\Bundle\ApiBundle\Traits;
 
-use Velocity\Bundle\ApiBundle\Service\ClientServiceInterface;
+use Velocity\Bundle\ApiBundle\ClientProviderInterface;
 
 /**
- * ClientServiceAware trait.
+ * ClientProviderAware trait.
  *
  * @author Olivier Hoareau <olivier@phppro.fr>
  */
-trait ClientServiceAwareTrait
+trait ClientProviderAwareTrait
 {
     /**
      * @param string $key
@@ -34,19 +34,19 @@ trait ClientServiceAwareTrait
      */
     protected abstract function getService($key);
     /**
-     * @param ClientServiceInterface $service
+     * @param ClientProviderInterface $service
      *
      * @return $this
      */
-    public function setClientService(ClientServiceInterface $service)
+    public function setClientProvider(ClientProviderInterface $service)
     {
-        return $this->setService('client', $service);
+        return $this->setService('clientProvider', $service);
     }
     /**
-     * @return ClientServiceInterface
+     * @return ClientProviderInterface
      */
-    public function getClientService()
+    public function getClientProvider()
     {
-        return $this->getService('client');
+        return $this->getService('clientProvider');
     }
 }

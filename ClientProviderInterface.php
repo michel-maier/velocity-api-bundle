@@ -9,26 +9,23 @@
  * file that was distributed with this source code.
  */
 
-namespace Velocity\Bundle\ApiBundle\Migrator;
-
-use Exception;
+namespace Velocity\Bundle\ApiBundle;
 
 /**
- * Migrator Interface.
+ * Client Provider Interface.
  *
  * @author Olivier Hoareau <olivier@phppro.fr>
  */
-interface MigratorInterface
+interface ClientProviderInterface
 {
     /**
-     * Process the upgrade path.
+     * Return the specified client.
      *
-     * @param string $path
+     * @param string $id
+     * @param array  $fields
      * @param array  $options
      *
-     * @return $this
-     *
-     * @throws Exception
+     * @return mixed
      */
-    public function upgrade($path, $options = []);
+    public function get($id, $fields = [], $options = []);
 }

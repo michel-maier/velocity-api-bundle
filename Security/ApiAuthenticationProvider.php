@@ -14,7 +14,7 @@ namespace Velocity\Bundle\ApiBundle\Security;
 use DateTime;
 use Exception;
 use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
-use Velocity\Bundle\ApiBundle\Traits\ClientServiceAwareTrait;
+use Velocity\Bundle\ApiBundle\Traits\ClientProviderAwareTrait;
 use Velocity\Bundle\ApiBundle\Traits\RequestServiceAwareTrait;
 use Velocity\Bundle\ApiBundle\Exception\BadUserTokenException;
 use Symfony\Component\Security\Core\User\UserProviderInterface;
@@ -33,7 +33,7 @@ use Symfony\Component\Security\Core\Authentication\Provider\AuthenticationProvid
 class ApiAuthenticationProvider implements AuthenticationProviderInterface
 {
     use ServiceTrait;
-    use ClientServiceAwareTrait;
+    use ClientProviderAwareTrait;
     use RequestServiceAwareTrait;
     /**
      * Construct a new authentication provider.
@@ -92,6 +92,7 @@ class ApiAuthenticationProvider implements AuthenticationProviderInterface
             $username = $token->getImpersonatedUserInfos()['id'];
         }
 
+        /** @noinspection PhpParamsInspection */
         return new ApiAuthenticatedUserToken(
             $clientTokenInfos,
             $userTokenInfos,
@@ -120,7 +121,7 @@ class ApiAuthenticationProvider implements AuthenticationProviderInterface
         }
 
         if (isset($infos['id'])) {
-            return array_merge($infos, get_object_vars($this->getClientService()->get($infos['id'])));
+            return array_merge($infos, get_object_vars($this->getClientProvider()->get($infos['id'])));
         }
 
         return $infos;

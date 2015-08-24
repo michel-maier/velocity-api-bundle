@@ -13,6 +13,7 @@ namespace Velocity\Bundle\ApiBundle\DependencyInjection;
 
 use Symfony\Component\Config\Definition\Builder\TreeBuilder;
 use Symfony\Component\Config\Definition\ConfigurationInterface;
+use Symfony\Component\Config\Definition\Builder\ArrayNodeDefinition;
 
 /**
  * Configuration.
@@ -27,8 +28,108 @@ class Configuration implements ConfigurationInterface
     public function getConfigTreeBuilder()
     {
         $treeBuilder = new TreeBuilder();
-        $treeBuilder->root('velocity_api');
+        $rootNode = $treeBuilder->root('velocity_api');
+
+        $this
+            ->addModelsSection($rootNode)
+            ->addEmailsSection($rootNode)
+            ->addEventsSection($rootNode)
+        ;
 
         return $treeBuilder;
+    }
+    /**
+     * @param ArrayNodeDefinition $rootNode
+     *
+     * @return $this
+     */
+    protected function addModelsSection(ArrayNodeDefinition $rootNode)
+    {
+        $rootNode
+            ->children()
+                ->arrayNode('models')
+                    ->addDefaultsIfNotSet()
+                    ->children()
+                        ->arrayNode('bundles')
+                            ->prototype('scalar')
+                            ->end()
+                        ->end()
+                    ->end()
+                ->end()
+            ->end()
+        ;
+
+        return $this;
+    }
+    /**
+     * @param ArrayNodeDefinition $rootNode
+     *
+     * @return $this
+     */
+    protected function addEmailsSection(ArrayNodeDefinition $rootNode)
+    {
+        $rootNode
+            ->beforeNormalization()
+                ->always(function ($v) { return $v + ['emails' => []]; })
+            ->end()
+            ->children()
+                ->arrayNode('emails')
+                    ->prototype('array')
+                        ->prototype('array')
+                            ->beforeNormalization()
+                                ->always(function ($v) {
+                                    if (is_string($v)) $v = ['name' => $v];
+                                    if (!isset($v['envs'])) $v += ['envs' => ['*']];
+                                    if (!isset($v['types'])) $v += ['types' => ['*']];
+                                    return $v;
+                                })
+                            ->end()
+                            ->children()
+                                ->scalarNode('name')->end()
+                                ->arrayNode('envs')
+                                    ->requiresAtLeastOneElement()
+                                    ->prototype('scalar')->end()
+                                ->end()
+                                ->arrayNode('types')
+                                    ->requiresAtLeastOneElement()
+                                    ->prototype('scalar')->end()
+                                ->end()
+                            ->end()
+                    ->end()
+                ->end()
+            ->end()
+        ;
+
+        return $this;
+    }
+    /**
+     * @param ArrayNodeDefinition $rootNode
+     *
+     * @return $this
+     */
+    protected function addEventsSection(ArrayNodeDefinition $rootNode)
+    {
+        $rootNode
+            ->beforeNormalization()
+                ->always(function ($v) { return $v + ['events' => []]; })
+            ->end()
+            ->children()
+                ->arrayNode('events')
+                    ->prototype('array')
+                        ->beforeNormalization()
+                            ->always(function ($v) {
+                                if (null === $v) $v = [];
+                                if (is_string($v)) $v = [];
+                                if (!is_array($v)) $v = [];
+                                return $v;
+                            })
+                        ->end()
+                        ->prototype('scalar')
+                    ->end()
+                ->end()
+            ->end()
+        ;
+
+        return $this;
     }
 }

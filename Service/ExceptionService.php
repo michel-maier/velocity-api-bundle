@@ -23,6 +23,11 @@ use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
 
+/**
+ * Exception Service.
+ *
+ * @author Olivier Hoareau <olivier@phppro.fr>
+ */
 class ExceptionService
 {
     use ServiceTrait;

@@ -15,13 +15,18 @@ use Symfony\Component\HttpFoundation\Request;
 use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
 use Velocity\Bundle\ApiBundle\Traits\LoggerAwareTrait;
 use Velocity\Bundle\ApiBundle\Security\ApiUserProvider;
-use Velocity\Bundle\ApiBundle\Traits\ClientServiceAwareTrait;
+use Velocity\Bundle\ApiBundle\Traits\ClientProviderAwareTrait;
 
+/**
+ * Request Service.
+ *
+ * @author Olivier Hoareau <olivier@phppro.fr>
+ */
 class RequestService
 {
     use ServiceTrait;
     use LoggerAwareTrait;
-    use ClientServiceAwareTrait;
+    use ClientProviderAwareTrait;
     /**
      * @var string
      */
@@ -485,7 +490,7 @@ class RequestService
         );
     }
     /**
-     * @param array $headers
+     * @param Request $request
      *
      * @return string
      *
@@ -555,7 +560,7 @@ class RequestService
      */
     protected function createClientToken($id, \DateTime $expire)
     {
-        $this->getClientService()->get($id, ['id']);
+        $this->getClientProvider()->get($id, ['id']);
 
         return $this->buildClientToken($id, $this->convertDateTimeToString($expire), $this->getClientSecret());
     }

@@ -13,6 +13,7 @@ namespace Velocity\Bundle\ApiBundle\Migrator;
 
 use Exception;
 use Psr\Log\LoggerAwareInterface;
+use Velocity\Bundle\ApiBundle\MigratorInterface;
 use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
 use Velocity\Bundle\ApiBundle\Traits\LoggerAwareTrait;
 use Velocity\Bundle\ApiBundle\Traits\ContainerAwareTrait;
