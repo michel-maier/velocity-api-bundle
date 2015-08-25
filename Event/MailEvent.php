@@ -31,6 +31,10 @@ class MailEvent extends Event
     /**
      * @var array
      */
+    protected $recipients;
+    /**
+     * @var array
+     */
     protected $attachments;
     /**
      * @var array
@@ -47,15 +51,17 @@ class MailEvent extends Event
     /**
      * @param string     $type
      * @param array      $params
+     * @param array      $recipients
      * @param array      $attachments
      * @param array      $images
      * @param null|array $sender
      * @param array      $options
      */
-    public function __construct($type, array $params = [], array $attachments = [], array $images = [], $sender = null, array $options = [])
+    public function __construct($type, array $params = [], array $recipients = [], array $attachments = [], array $images = [], $sender = null, array $options = [])
     {
         $this->setType($type);
         $this->setParams($params);
+        $this->setRecipients($recipients);
         $this->setAttachments($attachments);
         $this->setImages($images);
         $this->setSender($sender);
@@ -101,6 +107,24 @@ class MailEvent extends Event
     protected function setParams(array $params)
     {
         $this->params = $params;
+
+        return $this;
+    }
+    /**
+     * @return array
+     */
+    public function getRecipients()
+    {
+        return $this->recipients;
+    }
+    /**
+     * @param array $recipients
+     *
+     * @return MailEvent
+     */
+    protected function setRecipients(array $recipients)
+    {
+        $this->recipients = $recipients;
 
         return $this;
     }

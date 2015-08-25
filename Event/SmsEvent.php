@@ -29,6 +29,10 @@ class SmsEvent extends Event
      */
     protected $params;
     /**
+     * @var array
+     */
+    protected $recipients;
+    /**
      * @var null|array
      */
     protected $sender;
@@ -39,13 +43,15 @@ class SmsEvent extends Event
     /**
      * @param string     $type
      * @param array      $params
+     * @param array      $recipients
      * @param null|array $sender
      * @param array      $options
      */
-    public function __construct($type, array $params = [], $sender = null, array $options = [])
+    public function __construct($type, array $params = [], array $recipients = [], $sender = null, array $options = [])
     {
         $this->setType($type);
         $this->setParams($params);
+        $this->setRecipients($recipients);
         $this->setSender($sender);
         $this->setOptions($options);
     }
@@ -89,6 +95,24 @@ class SmsEvent extends Event
     protected function setParams(array $params)
     {
         $this->params = $params;
+
+        return $this;
+    }
+    /**
+     * @return array
+     */
+    public function getRecipients()
+    {
+        return $this->recipients;
+    }
+    /**
+     * @param array $recipients
+     *
+     * @return MailEvent
+     */
+    protected function setRecipients(array $recipients)
+    {
+        $this->recipients = $recipients;
 
         return $this;
     }
