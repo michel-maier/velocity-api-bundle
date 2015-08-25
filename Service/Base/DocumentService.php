@@ -439,7 +439,7 @@ class DocumentService implements DocumentServiceInterface
     {
         $docs = [];
 
-        foreach($this->getRepository()->find(['id' => $ids], $fields, $options) as $k => $v) {
+        foreach($this->getRepository()->find(['_id' => $ids], $fields, $options) as $k => $v) {
             $docs[$k] = $this->callback('fetched', $this->convertArrayToObject($v, $options), $options);
         }
 
