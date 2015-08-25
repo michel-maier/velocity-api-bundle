@@ -35,6 +35,7 @@ class VelocityApiExtension extends Extension
         $config = $this->processConfiguration($configuration, $configs);
 
         $container->setParameter('app_models_bundles', $config['models']['bundles']);
+        $container->setParameter('app_events', $config['events']);
 
         foreach($config['emails'] as $type => $emails) {
             $container->setParameter(sprintf('app_emails_%s', $type), $emails);
@@ -51,32 +52,5 @@ class VelocityApiExtension extends Extension
         $loader->load('validators.yml');
         $loader->load('migrators.yml');
         $loader->load('listeners.yml');
-
-        $ecld = $container->getDefinition('velocity.listener.eventConverter');
-
-        foreach($config['events'] as $eventName => $trackers) {
-            foreach($trackers as $tracker) {
-                switch($tracker) {
-                    case 'mail_user':
-                        $ecld->addTag('kernel.event_listener', ['event' => $eventName, 'method' => 'mailUser']);
-                        break;
-                    case 'sms_user':
-                        $ecld->addTag('kernel.event_listener', ['event' => $eventName, 'method' => 'smsUser']);
-                        break;
-                    case 'mail_admin':
-                        $ecld->addTag('kernel.event_listener', ['event' => $eventName, 'method' => 'mailAdmin']);
-                        break;
-                    case 'sms_admin':
-                        $ecld->addTag('kernel.event_listener', ['event' => $eventName, 'method' => 'smsAdmin']);
-                        break;
-                    case 'fire':
-                        $ecld->addTag('kernel.event_listener', ['event' => $eventName, 'method' => 'fireAndForget']);
-                        break;
-                    default:
-                        throw new \RuntimeException(sprintf("Unsupported event track type '%s'", $tracker), 500);
-                }
-            }
-        }
-
     }
 }

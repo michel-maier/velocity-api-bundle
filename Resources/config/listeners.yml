@@ -9,7 +9,3 @@ services:
       - [setExceptionService, [@velocity.exception]]
     tags:
       - { name: kernel.event_listener, event: kernel.exception, method: onKernelException }
-  velocity.listener.eventConverter:
-    class: Velocity\Bundle\ApiBundle\Listener\EventConverterListener
-    arguments:
-      - @event_dispatcher

@@ -44,6 +44,7 @@ class VelocityService
 
             // container keys
             'metaData.key'                        => 'velocity.metaData',
+            'eventAction.key'                     => 'velocity.eventAction',
             'db.key'                              => 'velocity.database',
             'form.key'                            => 'velocity.form',
             'request.key'                         => 'velocity.request',
@@ -61,9 +62,11 @@ class VelocityService
 
             // parameters keys
             'param.modelsBundles.key' => 'app_models_bundles',
+            'param.events.key'        => 'app_events',
 
             // parameters default values
             'param.modelsBundles'     => [],
+            'param.events'            => [],
 
             // classes
             'repo.class'              => __NAMESPACE__ . '\\RepositoryService',
@@ -93,6 +96,7 @@ class VelocityService
             'account_provider.tag'    => 'velocity.provider.account',
             'client_provider.tag'     => 'velocity.provider.client',
             'migrator.tag'            => 'velocity.migrator',
+            'event_action.tag'        => 'velocity.event_action',
 
         ];
 
@@ -140,6 +144,7 @@ class VelocityService
     {
         $this->analyzeClasses($container, $kernel);
         $this->analyzeTags($container);
+        $this->loadEventActionListeners($container);
 
         return $this;
     }
@@ -187,17 +192,17 @@ class VelocityService
      */
     public function loadClassesMetaData($classes, Definition $m)
     {
-        foreach($classes as $class) {
+        foreach ($classes as $class) {
             $rClass = new \ReflectionClass($class);
-            foreach($this->getAnnotationReader()->getClassAnnotations($rClass) as $a) {
+            foreach ($this->getAnnotationReader()->getClassAnnotations($rClass) as $a) {
                 switch(true) {
                     case $a instanceof Velocity\Model:
                         $m->addMethodCall('addModel', [$class, []]);
                         break;
                 }
             }
-            foreach($rClass->getProperties(\ReflectionProperty::IS_PUBLIC) as $rProperty) {
-                foreach($this->getAnnotationReader()->getPropertyAnnotations($rProperty) as $a) {
+            foreach ($rClass->getProperties(\ReflectionProperty::IS_PUBLIC) as $rProperty) {
+                foreach ($this->getAnnotationReader()->getPropertyAnnotations($rProperty) as $a) {
                     $vars     = get_object_vars($a);
                     $property = $rProperty->getName();
                     switch(true) {
@@ -313,6 +318,7 @@ class VelocityService
         $this->processProviderClientTag($container);
         $this->processProviderAccountTag($container);
         $this->processMigratorTag($container);
+        $this->processEventActionTag($container);
 
         return $this;
     }
@@ -617,6 +623,34 @@ class VelocityService
             }
         }
     }
+    /**
+     * Process event action tags.
+     *
+     * @param ContainerBuilder $container
+     */
+    protected function processEventActionTag(ContainerBuilder $container)
+    {
+        $eventActionDefinition = $container->getDefinition($this->getDefault('eventAction.key'));
+
+        foreach ($this->findVelocityTaggedServiceIds($container, 'event_action') as $id => $attributes) {
+            $d = $container->getDefinition($id);
+            foreach($attributes as $params) {
+                unset($params);
+                $rClass = new \ReflectionClass($d->getClass());
+                foreach ($rClass->getMethods(\ReflectionProperty::IS_PUBLIC) as $rMethod) {
+                    foreach ($this->getAnnotationReader()->getMethodAnnotations($rMethod) as $a) {
+                        $vars   = get_object_vars($a);
+                        $method = $rMethod->getName();
+                        switch(true) {
+                            case $a instanceof Velocity\EventAction:
+                                $eventActionDefinition->addMethodCall('register', [$vars['value'], [$this->ref($id), $method], $vars]);
+                                break;
+                        }
+                    }
+                }
+            }
+        }
+    }
     protected function addRepositorySetterCall(Definition $definition, $repoId)
     {
         $definition->addMethodCall('setRepository', [$this->ref($repoId)]);
@@ -696,5 +730,19 @@ class VelocityService
     protected function buildRepoId($params, $typeName)
     {
         return isset($params['repo']) ? $params['repo'] : (sprintf($this->getDefault('repo.key.pattern'), $typeName));
+    }
+    /**
+     * @param ContainerBuilder $container
+     */
+    protected function loadEventActionListeners(ContainerBuilder $container)
+    {
+        $ea = $container->getDefinition($this->getServiceKey('eventAction'));
+
+        foreach($container->getParameter($this->getDefault('param.events.key', $this->getDefault('param.events'))) as $eventName => $info) {
+            $ea->addTag('kernel.event_listener', ['event' => $eventName, 'method' => 'consume']);
+            foreach($info['actions'] as $action) {
+                $ea->addMethodCall('addEventAction', [$eventName, $action['action'], $action['params']]);
+            }
+        }
     }
 }

@@ -12,13 +12,13 @@
 namespace Velocity\Bundle\ApiBundle\Tests\DependencyInjection;
 
 use PHPUnit_Framework_TestCase;
-use Symfony\Component\DependencyInjection\Reference;
-use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Velocity\Bundle\ApiBundle\DependencyInjection\VelocityApiExtension;
 
 /**
  * @author Olivier Hoareau <olivier@phppro.fr>
+ *
+ * @group velocity_api_extension
  */
 class VelocityApiExtensionTest extends PHPUnit_Framework_TestCase
 {
@@ -35,14 +35,6 @@ class VelocityApiExtensionTest extends PHPUnit_Framework_TestCase
     {
         $this->e = new VelocityApiExtension();
         $this->container = new ContainerBuilder();
-
-        $this->container->setDefinition('event_dispatcher', new Definition(
-            'Symfony\\Component\\EventDispatcher\\EventDispatcher', []
-        ));
-        $this->container->setDefinition('velocity.listener.eventConverter', new Definition(
-            'Velocity\\Bundle\\ApiBundle\\Listener\\EventConverterListener',
-            [new Reference('event_dispatcher')]
-        ));
     }
     /**
      * @param $config
@@ -108,48 +100,34 @@ class VelocityApiExtensionTest extends PHPUnit_Framework_TestCase
     /**
      * @group unit
      */
-    public function testLoadForEventsSectionWithUnknownTrackTypeThrowException()
-    {
-        $this->setExpectedException('RuntimeException', "Unsupported event track type 'unknown'", 500);
-
-        $this->load([[
-            'events' => [
-                'a' => ['unknown'],
-            ]
-        ]]);
-    }
-    /**
-     * @group unit
-     */
     public function testLoadForEventsSectionSetAppropriateEvents()
     {
         $c = $this->load([[
             'events' => [
-                'a' => ['mail_user'],
-                'b' => ['mail_admin'],
-                'c' => ['mail_user', 'mail_admin'],
-                'd' => [],
-                'e' => ['mail_admin', 'fire'],
-                'f' => ['sms_user', 'sms_admin']
+                'user_created' => [
+                    'actions' => [
+                      'inc_kpi(users)',
+                      'mail_user',
+                      'mail_admin',
+                      'fire',
+                    ],
+                ],
             ]
         ]]);
 
-        $ecld = $c->getDefinition('velocity.listener.eventConverter');
-
+        $this->assertTrue($c->hasParameter('app_events'));
         $this->assertEquals(
             [
-                'kernel.event_listener' => [
-                    ['event' => 'a', 'method' => 'mailUser'],
-                    ['event' => 'b', 'method' => 'mailAdmin'],
-                    ['event' => 'c', 'method' => 'mailUser'],
-                    ['event' => 'c', 'method' => 'mailAdmin'],
-                    ['event' => 'e', 'method' => 'mailAdmin'],
-                    ['event' => 'e', 'method' => 'fireAndForget'],
-                    ['event' => 'f', 'method' => 'smsUser'],
-                    ['event' => 'f', 'method' => 'smsAdmin'],
-                ]
+                'user_created' => [
+                    'actions' => [
+                        ['action' => 'inc_kpi', 'params' => ['value' => 'users']],
+                        ['action' => 'mail_user',],
+                        ['action' => 'mail_admin',],
+                        ['action' => 'fire',],
+                    ],
+                ],
             ],
-            $ecld->getTags()
+            $c->getParameter('app_events')
         );
     }
 }

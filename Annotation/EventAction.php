@@ -9,22 +9,18 @@
  * file that was distributed with this source code.
  */
 
-namespace Velocity\Bundle\ApiBundle\Event\Mail;
+namespace Velocity\Bundle\ApiBundle\Annotation;
 
-use Velocity\Bundle\ApiBundle\Event\MailEvent;
+use Velocity\Bundle\ApiBundle\Annotation\Base\Annotation;
 
 /**
- * Admin Mail Event.
+ * EventAction annotation
  *
  * @author Olivier Hoareau <olivier@phppro.fr>
+ *
+ * @Annotation
+ * @Target("METHOD")
  */
-class AdminMailEvent extends MailEvent
+final class EventAction extends Annotation
 {
-    /**
-     * @return string
-     */
-    public function getTemplate()
-    {
-        return 'admin/'.parent::getTemplate();
-    }
 }

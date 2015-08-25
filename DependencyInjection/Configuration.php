@@ -116,15 +116,30 @@ class Configuration implements ConfigurationInterface
             ->children()
                 ->arrayNode('events')
                     ->prototype('array')
-                        ->beforeNormalization()
-                            ->always(function ($v) {
-                                if (null === $v) $v = [];
-                                if (is_string($v)) $v = [];
-                                if (!is_array($v)) $v = [];
-                                return $v;
-                            })
+                        ->children()
+                            ->arrayNode('actions')
+                                ->prototype('array')
+                                    ->beforeNormalization()
+                                        ->always(function ($v) {
+                                            if (null === $v) $v = [];
+                                            if (is_string($v)) {
+                                                if (preg_match('/^([^\(]+)\(([^\)]*)\)$/', $v, $matches)) {
+                                                    $v = ['action' => $matches[1], 'params' => ['value' => $matches[2]]];
+                                                } else {
+                                                    $v = ['action' => $v];
+                                                }
+                                            }
+                                            if (!is_array($v)) $v = [];
+                                            return $v;
+                                        })
+                                    ->end()
+                                    ->children()
+                                        ->scalarNode('action')->end()
+                                        ->variableNode('params')->end()
+                                    ->end()
+                                ->end()
+                            ->end()
                         ->end()
-                        ->prototype('scalar')
                     ->end()
                 ->end()
             ->end()
