@@ -20,4 +20,11 @@ use Velocity\Bundle\ApiBundle\Event\SmsEvent;
  */
 class UserSmsEvent extends SmsEvent
 {
+    /**
+     * @return string
+     */
+    public function getTemplate()
+    {
+        return 'user/'.parent::getTemplate();
+    }
 }

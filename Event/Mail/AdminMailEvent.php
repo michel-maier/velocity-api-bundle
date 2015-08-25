@@ -20,4 +20,11 @@ use Velocity\Bundle\ApiBundle\Event\MailEvent;
  */
 class AdminMailEvent extends MailEvent
 {
+    /**
+     * @return string
+     */
+    public function getTemplate()
+    {
+        return 'admin/'.parent::getTemplate();
+    }
 }

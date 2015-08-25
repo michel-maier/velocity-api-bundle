@@ -29,18 +29,24 @@ class SmsEvent extends Event
      */
     protected $params;
     /**
+     * @var null|array
+     */
+    protected $sender;
+    /**
      * @var array
      */
     protected $options;
     /**
-     * @param string $type
-     * @param array  $params
-     * @param array  $options
+     * @param string     $type
+     * @param array      $params
+     * @param null|array $sender
+     * @param array      $options
      */
-    public function __construct($type, array $params = [], array $options = [])
+    public function __construct($type, array $params = [], $sender = null, array $options = [])
     {
         $this->setType($type);
         $this->setParams($params);
+        $this->setSender($sender);
         $this->setOptions($options);
     }
     /**
@@ -62,6 +68,13 @@ class SmsEvent extends Event
         return $this;
     }
     /**
+     * @return string
+     */
+    public function getTemplate()
+    {
+        return str_replace('.', '/', $this->getType());
+    }
+    /**
      * @return array
      */
     public function getParams()
@@ -76,6 +89,24 @@ class SmsEvent extends Event
     protected function setParams(array $params)
     {
         $this->params = $params;
+
+        return $this;
+    }
+    /**
+     * @return array|null
+     */
+    public function getSender()
+    {
+        return $this->sender;
+    }
+    /**
+     * @param array|null $sender
+     *
+     * @return SmsEvent
+     */
+    protected function setSender($sender)
+    {
+        $this->sender = $sender;
 
         return $this;
     }

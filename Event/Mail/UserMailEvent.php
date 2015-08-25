@@ -20,4 +20,11 @@ use Velocity\Bundle\ApiBundle\Event\MailEvent;
  */
 class UserMailEvent extends MailEvent
 {
+    /**
+     * @return string
+     */
+    public function getTemplate()
+    {
+        return 'user/'.parent::getTemplate();
+    }
 }

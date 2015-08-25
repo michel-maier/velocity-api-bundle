@@ -31,16 +31,34 @@ class MailEvent extends Event
     /**
      * @var array
      */
+    protected $attachments;
+    /**
+     * @var array
+     */
+    protected $images;
+    /**
+     * @var null|array
+     */
+    protected $sender;
+    /**
+     * @var array
+     */
     protected $options;
     /**
-     * @param string $type
-     * @param array  $params
-     * @param array  $options
+     * @param string     $type
+     * @param array      $params
+     * @param array      $attachments
+     * @param array      $images
+     * @param null|array $sender
+     * @param array      $options
      */
-    public function __construct($type, array $params = [], array $options = [])
+    public function __construct($type, array $params = [], array $attachments = [], array $images = [], $sender = null, array $options = [])
     {
         $this->setType($type);
         $this->setParams($params);
+        $this->setAttachments($attachments);
+        $this->setImages($images);
+        $this->setSender($sender);
         $this->setOptions($options);
     }
     /**
@@ -62,6 +80,13 @@ class MailEvent extends Event
         return $this;
     }
     /**
+     * @return string
+     */
+    public function getTemplate()
+    {
+        return str_replace('.', '/', $this->getType());
+    }
+    /**
      * @return array
      */
     public function getParams()
@@ -76,6 +101,60 @@ class MailEvent extends Event
     protected function setParams(array $params)
     {
         $this->params = $params;
+
+        return $this;
+    }
+    /**
+     * @return array|null
+     */
+    public function getSender()
+    {
+        return $this->sender;
+    }
+    /**
+     * @param array|null $sender
+     *
+     * @return MailEvent
+     */
+    protected function setSender($sender)
+    {
+        $this->sender = $sender;
+
+        return $this;
+    }
+    /**
+     * @return array
+     */
+    public function getImages()
+    {
+        return $this->images;
+    }
+    /**
+     * @param array $images
+     *
+     * @return MailEvent
+     */
+    protected function setImages(array $images)
+    {
+        $this->images = $images;
+
+        return $this;
+    }
+    /**
+     * @return array
+     */
+    public function getAttachments()
+    {
+        return $this->attachments;
+    }
+    /**
+     * @param array $attachments
+     *
+     * @return MailEvent
+     */
+    protected function setAttachments(array $attachments)
+    {
+        $this->attachments = $attachments;
 
         return $this;
     }
