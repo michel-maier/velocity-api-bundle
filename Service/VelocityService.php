@@ -45,6 +45,7 @@ class VelocityService
             // container keys
             'metaData.key'                        => 'velocity.metaData',
             'eventAction.key'                     => 'velocity.eventAction',
+            'generator.key'                       => 'velocity.generator',
             'db.key'                              => 'velocity.database',
             'form.key'                            => 'velocity.form',
             'request.key'                         => 'velocity.request',
@@ -97,6 +98,7 @@ class VelocityService
             'client_provider.tag'     => 'velocity.provider.client',
             'migrator.tag'            => 'velocity.migrator',
             'event_action.tag'        => 'velocity.event_action',
+            'generator.tag'           => 'velocity.generator',
 
         ];
 
@@ -319,6 +321,7 @@ class VelocityService
         $this->processProviderAccountTag($container);
         $this->processMigratorTag($container);
         $this->processEventActionTag($container);
+        $this->processGeneratorTag($container);
 
         return $this;
     }
@@ -646,6 +649,36 @@ class VelocityService
                                 $name = $vars['value'];
                                 unset($vars['value']);
                                 $eventActionDefinition->addMethodCall('register', [$name, [$this->ref($id), $method], $vars]);
+                                break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    /**
+     * Process generator tags.
+     *
+     * @param ContainerBuilder $container
+     */
+    protected function processGeneratorTag(ContainerBuilder $container)
+    {
+        $generatorDefinition = $container->getDefinition($this->getDefault('generator.key'));
+
+        foreach ($this->findVelocityTaggedServiceIds($container, 'generator') as $id => $attributes) {
+            $d = $container->getDefinition($id);
+            foreach($attributes as $params) {
+                unset($params);
+                $rClass = new \ReflectionClass($d->getClass());
+                foreach ($rClass->getMethods(\ReflectionProperty::IS_PUBLIC) as $rMethod) {
+                    foreach ($this->getAnnotationReader()->getMethodAnnotations($rMethod) as $a) {
+                        $vars   = get_object_vars($a);
+                        $method = $rMethod->getName();
+                        switch(true) {
+                            case $a instanceof Velocity\Generator:
+                                $name = $vars['value'];
+                                unset($vars['value']);
+                                $generatorDefinition->addMethodCall('register', [$name, [$this->ref($id), $method], $vars]);
                                 break;
                         }
                     }

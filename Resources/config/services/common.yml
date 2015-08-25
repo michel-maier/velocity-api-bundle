@@ -62,4 +62,10 @@ services:
     class: Velocity\Bundle\ApiBundle\Service\PasswordService
   velocity.eventAction:
     class: Velocity\Bundle\ApiBundle\Service\EventActionService
+  velocity.generator:
+    class: Velocity\Bundle\ApiBundle\Service\GeneratorService
+  velocity.attachment:
+    class: Velocity\Bundle\ApiBundle\Service\AttachmentService
+    arguments:
+      - @velocity.generator
 
