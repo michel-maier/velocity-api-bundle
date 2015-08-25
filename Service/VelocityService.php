@@ -643,7 +643,9 @@ class VelocityService
                         $method = $rMethod->getName();
                         switch(true) {
                             case $a instanceof Velocity\EventAction:
-                                $eventActionDefinition->addMethodCall('register', [$vars['value'], [$this->ref($id), $method], $vars]);
+                                $name = $vars['value'];
+                                unset($vars['value']);
+                                $eventActionDefinition->addMethodCall('register', [$name, [$this->ref($id), $method], $vars]);
                                 break;
                         }
                     }
@@ -739,6 +741,7 @@ class VelocityService
         $ea = $container->getDefinition($this->getServiceKey('eventAction'));
 
         foreach($container->getParameter($this->getDefault('param.events.key', $this->getDefault('param.events'))) as $eventName => $info) {
+            $eventName = false === strpos($eventName, '.') ? str_replace('_', '.', $eventName) : $eventName;
             $ea->addTag('kernel.event_listener', ['event' => $eventName, 'method' => 'consume']);
             foreach($info['actions'] as $action) {
                 $ea->addMethodCall('addEventAction', [$eventName, $action['action'], $action['params']]);

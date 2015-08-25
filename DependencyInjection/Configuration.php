@@ -135,7 +135,7 @@ class Configuration implements ConfigurationInterface
                                     ->end()
                                     ->children()
                                         ->scalarNode('action')->end()
-                                        ->variableNode('params')->end()
+                                        ->variableNode('params')->defaultValue([])->end()
                                     ->end()
                                 ->end()
                             ->end()
