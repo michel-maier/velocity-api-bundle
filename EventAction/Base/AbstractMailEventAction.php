@@ -9,10 +9,12 @@
  * file that was distributed with this source code.
  */
 
-namespace Velocity\Bundle\ApiBundle\DependencyInjection;
+namespace Velocity\Bundle\ApiBundle\EventAction\Base;
 
 use Symfony\Component\EventDispatcher\Event;
+use Velocity\Bundle\ApiBundle\Traits\ServiceAware;
 use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
+use Velocity\Bundle\ApiBundle\Traits\TemplatingAwareTrait;
 use Velocity\Bundle\ApiBundle\Traits\TranslatorAwareTrait;
 
 /**
@@ -95,6 +97,9 @@ abstract class AbstractMailEventAction
 
         $data += (method_exists($event, 'getSubject') ? (array) $event->getSubject() : []);
 
+        unset($eventName);
+        unset($params);
+
         return $data;
     }
     /**
@@ -106,6 +111,9 @@ abstract class AbstractMailEventAction
      */
     protected function buildRecipientsFromEvent(Event $event, $eventName, array $params)
     {
+        unset($event);
+        unset($eventName);
+
         return isset($params['recipients']) ? $params['recipients'] : [];
     }
     /**
@@ -149,6 +157,9 @@ abstract class AbstractMailEventAction
      */
     protected function buildImagesFromEvent(Event $event, $eventName, array $params)
     {
+        unset($event);
+        unset($eventName);
+
         return isset($params['images']) ? $params['images'] : [];
     }
     /**
@@ -160,6 +171,9 @@ abstract class AbstractMailEventAction
      */
     protected function buildSenderFromEvent(Event $event, $eventName, array $params)
     {
+        unset($event);
+        unset($eventName);
+
         return isset($params['sender']) ? $params['sender'] : null;
     }
     /**
@@ -171,6 +185,9 @@ abstract class AbstractMailEventAction
      */
     protected function buildOptionsFromEvent(Event $event, $eventName, array $params)
     {
+        unset($event);
+        unset($eventName);
+
         return isset($params['options']) ? $params['options'] : [];
     }
 }
