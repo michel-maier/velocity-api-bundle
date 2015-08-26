@@ -52,18 +52,25 @@ class DateService
         }
 
         for ($i = 0; $i < $days; $i++) {
-            switch ((int)$date->format('N')) {
-                case 5: // friday
-                case 6: // saturday
+            switch ((int) $date->format('N')) {
+                case 5:
+                    // friday
+                case 6:
+                    // saturday
                     $offset = 3;
                     break;
-                case 7: // sunday
+                case 7:
+                    // sunday
                     $offset = 2;
                     break;
-                case 1: // monday
-                case 2: // tuesday
-                case 3: // wednesday
-                case 4: // thursday
+                case 1:
+                    // monday
+                case 2:
+                    // tuesday
+                case 3:
+                    // wednesday
+                case 4:
+                    // thursday
                 default:
                     $offset = 1;
                     break;
@@ -82,7 +89,7 @@ class DateService
     public function shiftDateOutsideHolidays(\DateTime $date, $holidays)
     {
 
-        foreach($holidays as $holiday) {
+        foreach ($holidays as $holiday) {
             $start = new \DateTime($holiday[0]);
             $end = new \DateTime($holiday[1]);
             if ($date >= $start && $date < $end) {

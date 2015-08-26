@@ -27,7 +27,7 @@ class ApiFactory implements SecurityFactoryInterface
     /**
      * Create a new API Factory.
      *
-     * @param ContainerBuilder $container
+     * @param ContainerBuilder  $container
      * @param $id
      * @param $config
      * @param $userProvider

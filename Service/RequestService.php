@@ -99,16 +99,20 @@ class RequestService
     public function __construct(ApiUserProvider $userProvider, $clientSecret = null, $userSecret = null)
     {
         $this->setClientTokenCreationFunction(function ($id, $expire, $secret) {
-            return base64_encode(sha1($id . $expire . $secret));
+            return base64_encode(sha1($id.$expire.$secret));
         });
         $this->setUserTokenCreationFunction(function ($id, $expire, $secret) {
-            return base64_encode(sha1($id . $expire . $secret));
+            return base64_encode(sha1($id.$expire.$secret));
         });
         $this->setClientHeaderParsingFunction(function ($header) {
-            if (is_array($header)) $header = array_shift($header);
+            if (is_array($header)) {
+                $header = array_shift($header);
+            }
             $parts = [];
-            foreach(preg_split("/\\s*,\\s*/", trim($header)) as $t) {
-                if (false === strpos($t, ':')) break;
+            foreach (preg_split("/\\s*,\\s*/", trim($header)) as $t) {
+                if (false === strpos($t, ':')) {
+                    break;
+                }
                 list($key, $value) = explode(':', $t, 2);
                 $key   = trim($key);
                 $value = trim($value);
@@ -119,10 +123,14 @@ class RequestService
             return array_merge(['id' => null, 'expire' => null, 'token' => null], $parts);
         });
         $this->setUserHeaderParsingFunction(function ($header) {
-            if (is_array($header)) $header = array_shift($header);
+            if (is_array($header)) {
+                $header = array_shift($header);
+            }
             $parts = [];
-            foreach(preg_split("/\\s*,\\s*/", trim($header)) as $t) {
-                if (false === strpos($t, ':')) break;
+            foreach (preg_split("/\\s*,\\s*/", trim($header)) as $t) {
+                if (false === strpos($t, ':')) {
+                    break;
+                }
                 list($key, $value) = explode(':', $t, 2);
                 $key   = trim($key);
                 $value = trim($value);
@@ -133,10 +141,14 @@ class RequestService
             return array_merge(['id' => null, 'password' => null, 'expire' => null, 'token' => null], $parts);
         });
         $this->setSudoHeaderParsingFunction(function ($header) {
-            if (is_array($header)) $header = array_shift($header);
+            if (is_array($header)) {
+                $header = array_shift($header);
+            }
             $parts = [];
-            foreach(preg_split("/\\s*,\\s*/", trim($header)) as $t) {
-                if (false === strpos($t, ':')) break;
+            foreach (preg_split("/\\s*,\\s*/", trim($header)) as $t) {
+                if (false === strpos($t, ':')) {
+                    break;
+                }
                 list($key, $value) = explode(':', $t, 2);
                 $key   = trim($key);
                 $value = trim($value);
@@ -474,7 +486,9 @@ class RequestService
     {
         $headers = $request->headers->all();
 
-        if (!isset($headers[strtolower($this->getClientHeaderKey())])) $headers[strtolower($this->getClientHeaderKey())] = null;
+        if (!isset($headers[strtolower($this->getClientHeaderKey())])) {
+            $headers[strtolower($this->getClientHeaderKey())] = null;
+        }
 
         $function = $this->getClientHeaderParsingFunction();
         $parts    = $function($headers[strtolower($this->getClientHeaderKey())]);
@@ -526,7 +540,7 @@ class RequestService
         $password = null;
 
         if (true === isset($account['password'])) {
-            $password = (string)$account['password'];
+            $password = (string) $account['password'];
         }
 
         $expectedEncodedPassword = $password;
@@ -601,7 +615,9 @@ class RequestService
     {
         $v = $request->get('criteria', []);
 
-        if (!is_array($v)) $v = [];
+        if (!is_array($v)) {
+            $v = [];
+        }
 
         return $v;
     }
@@ -614,11 +630,13 @@ class RequestService
     {
         $v = $request->get('fields', []);
 
-        if (!is_array($v) || !count($v)) return [];
+        if (!is_array($v) || !count($v)) {
+            return [];
+        }
 
         $fields = [];
 
-        foreach($v as $field) {
+        foreach ($v as $field) {
             if ('!' === substr($field, 0, 1)) {
                 $fields[substr($field, 1)] = false;
             } else {
@@ -659,11 +677,13 @@ class RequestService
     {
         $v = $request->get('sorts', []);
 
-        if (!is_array($v) || !count($v)) return [];
+        if (!is_array($v) || !count($v)) {
+            return [];
+        }
 
         return array_map(
             function ($a) {
-                return (int)$a;
+                return (int) $a;
             },
             $v
         );
@@ -679,7 +699,7 @@ class RequestService
     }
     /**
      * @param Request $request
-     * @param string $parameter
+     * @param string  $parameter
      *
      * @return mixed
      */

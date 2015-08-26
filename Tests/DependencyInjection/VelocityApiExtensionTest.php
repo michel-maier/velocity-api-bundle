@@ -95,7 +95,7 @@ class VelocityApiExtensionTest extends PHPUnit_Framework_TestCase
             'a@b.com' => ['name' => 'A B', 'envs' => ['*'], 'types' => ['*']],
             'c@d.com' => ['name' => 'C D', 'envs' => ['*'], 'types' => ['*']],
             'e@f.com' => ['name' => 'E F', 'envs' => ['x', 'y'], 'types' => ['z']],
-        ],$c->getParameter('app_emails_admins'));
+        ], $c->getParameter('app_emails_admins'));
     }
     /**
      * @group unit

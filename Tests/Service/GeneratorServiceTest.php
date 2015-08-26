@@ -34,7 +34,8 @@ class GeneratorServiceTest extends PHPUnit_Framework_TestCase
      */
     public function testRegister()
     {
-        $callback = function () {};
+        $callback = function () {
+        };
 
         $this->assertEquals([], $this->s->getGenerators());
         $this->s->register('test', $callback);

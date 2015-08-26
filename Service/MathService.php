@@ -111,7 +111,7 @@ class MathService
      *
      * @param float $rank
      * @param array $population
-     * @param null $field
+     * @param null  $field
      *
      * @return number
      */
@@ -119,21 +119,21 @@ class MathService
     {
         if (0 < $rank && $rank < 1) {
             $p = $rank;
-        }elseif (1 < $rank && $rank <= 100) {
+        } elseif (1 < $rank && $rank <= 100) {
             $p = $rank * .01;
-        }else {
+        } else {
             throw $this->createException('math.percentile.malformed', $rank);
         }
 
-        if (0 === count($population)){
+        if (0 === count($population)) {
             return 0;
         }
 
         if (null === $field) {
             $data = $population;
-        }else{
+        } else {
             $data = array();
-            foreach($population as $item) {
+            foreach ($population as $item) {
                 if (false === isset($item[$field])) {
                     throw $this->createException(
                         'math.population.field.unknown',
@@ -150,10 +150,10 @@ class MathService
         $floatval    = $allindex - $intvalindex;
         sort($data);
 
-        if(false === is_float($floatval)){
+        if (false === is_float($floatval)) {
             $result = $data[$intvalindex];
-        }else {
-            if($count > $intvalindex+1) {
+        } else {
+            if ($count > $intvalindex+1) {
                 $result = $floatval
                     * ($data[$intvalindex + 1] - $data[$intvalindex])
                     + $data[$intvalindex];

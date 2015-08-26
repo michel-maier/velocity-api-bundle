@@ -66,7 +66,9 @@ class GeneratorService
     {
         if (!isset($this->generators[$name])) {
             throw $this->createException(
-                412, "No generator registered for '%s'", $name
+                412,
+                "No generator registered for '%s'",
+                $name
             );
         }
 

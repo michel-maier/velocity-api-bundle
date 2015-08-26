@@ -122,9 +122,11 @@ class MetaDataService
         $this->checkModel($class);
 
         $operations = $definition['value'];
-        if (!is_array($operations)) $operations = [$operations];
+        if (!is_array($operations)) {
+            $operations = [$operations];
+        }
 
-        foreach($operations as $operation) {
+        foreach ($operations as $operation) {
             if (!isset($this->models[$class]['refreshes'][$operation])) {
                 $this->models[$class]['refreshes'][$operation] = [];
             }
@@ -193,7 +195,9 @@ class MetaDataService
      */
     public function getModelEmbeddedReferences($class)
     {
-        if (is_object($class)) $class = get_class($class);
+        if (is_object($class)) {
+            $class = get_class($class);
+        }
 
         $this->checkModel($class);
 
@@ -213,7 +217,9 @@ class MetaDataService
      */
     public function isModel($class)
     {
-        if (is_object($class)) $class = get_class($class);
+        if (is_object($class)) {
+            $class = get_class($class);
+        }
 
         return true === isset($this->models[$class]);
     }
@@ -224,7 +230,9 @@ class MetaDataService
      */
     public function getModelTypes($class)
     {
-        if (is_object($class)) $class = get_class($class);
+        if (is_object($class)) {
+            $class = get_class($class);
+        }
 
         $this->checkModel($class);
 
@@ -237,7 +245,9 @@ class MetaDataService
      */
     public function getModelGenerateds($class)
     {
-        if (is_object($class)) $class = get_class($class);
+        if (is_object($class)) {
+            $class = get_class($class);
+        }
 
         $this->checkModel($class);
 
@@ -250,7 +260,9 @@ class MetaDataService
      */
     public function getModelEmbeddedReferenceLists($class)
     {
-        if (is_object($class)) $class = get_class($class);
+        if (is_object($class)) {
+            $class = get_class($class);
+        }
 
         $this->checkModel($class);
 
@@ -263,7 +275,9 @@ class MetaDataService
      */
     public function getModelIdProperty($class)
     {
-        if (is_object($class)) $class = get_class($class);
+        if (is_object($class)) {
+            $class = get_class($class);
+        }
 
         $this->checkModel($class);
 
@@ -277,7 +291,9 @@ class MetaDataService
      */
     public function getModelRefreshablePropertiesByOperation($class, $operation)
     {
-        if (is_object($class)) $class = get_class($class);
+        if (is_object($class)) {
+            $class = get_class($class);
+        }
 
         $this->checkModel($class);
 
@@ -288,13 +304,15 @@ class MetaDataService
     }
     /**
      * @param string|Object $class
-     * @param string $property
+     * @param string        $property
      *
      * @return null|string
      */
     public function getModelPropertyType($class, $property)
     {
-        if (is_object($class)) $class = get_class($class);
+        if (is_object($class)) {
+            $class = get_class($class);
+        }
 
         $this->checkModel($class);
 
@@ -334,7 +352,7 @@ class MetaDataService
         $model = $this->createModelInstance(['model' => $class]);
         $fields = array_keys(get_object_vars($model));
 
-        return $this->{'get' . ucfirst($type) . 'Service'}()->get($id, $fields, ['model' => $model]);
+        return $this->{'get'.ucfirst($type).'Service'}()->get($id, $fields, ['model' => $model]);
     }
     /**
      * @param mixed $doc
@@ -352,7 +370,7 @@ class MetaDataService
 
         $generateds = $this->getModelGenerateds($doc);
 
-        foreach($generateds as $k => $v) {
+        foreach ($generateds as $k => $v) {
             $doc->$k = $this->generateValue($v, $doc);
         }
 
@@ -374,9 +392,12 @@ class MetaDataService
 
         foreach ($this->getModelRefreshablePropertiesByOperation($doc, 'create') as $property) {
             $type = $this->getModelPropertyType($doc, $property);
-            switch($type) {
-                case "DateTime<'c'>": $doc->$property = new \DateTime(); break;
-                default: throw $this->createException(500, sprintf("Unable to refresh model property '%s': unsupported type '%s'", $property, $type));
+            switch ($type) {
+                case "DateTime<'c'>":
+                    $doc->$property = new \DateTime();
+                    break;
+                default:
+                    throw $this->createException(500, sprintf("Unable to refresh model property '%s': unsupported type '%s'", $property, $type));
             }
         }
 
@@ -402,9 +423,11 @@ class MetaDataService
             if (property_exists($doc, $property) && null === $doc->$property) {
                 continue;
             }
-            switch($type) {
+            switch ($type) {
                 case "DateTime<'c'>":
-                    if ('' === $doc->$property) $doc->$property = null;
+                    if ('' === $doc->$property) {
+                        $doc->$property = null;
+                    }
                     break;
             }
         }
@@ -441,7 +464,7 @@ class MetaDataService
             return $subject;
         }
 
-        foreach($this->callbacks[$type] as $callback) {
+        foreach ($this->callbacks[$type] as $callback) {
             $r = call_user_func_array($callback, [$subject, $options]);
 
             if (null !== $r) {
@@ -458,7 +481,9 @@ class MetaDataService
      */
     public function getModel($class)
     {
-        if (is_object($class)) $class = get_class($class);
+        if (is_object($class)) {
+            $class = get_class($class);
+        }
 
         $this->checkModel($class);
 
@@ -480,13 +505,13 @@ class MetaDataService
         $meta = $this->getModel($doc);
         $data = get_object_vars($doc);
 
-        foreach($data as $k => $v) {
+        foreach ($data as $k => $v) {
             if ($removeNulls && null === $v) {
                 unset($data[$k]);
                 continue;
             }
             if (isset($meta['types'][$k])) {
-                switch(true) {
+                switch (true) {
                     case 'DateTime' === substr($meta['types'][$k], 0, 8):
                         $data = $this->convertDataDateTimeFieldToMongoDateWithTimeZone($data, $k);
                         continue 2;
@@ -514,11 +539,11 @@ class MetaDataService
         $types = $this->getModelTypes($doc);
 
         if (isset($data['_id']) && !isset($data['id'])) {
-            $data['id'] = (string)$data['_id'];
+            $data['id'] = (string) $data['_id'];
             unset($data['_id']);
         }
 
-        foreach($data as $k => $v) {
+        foreach ($data as $k => $v) {
             if (isset($embeddedReferences[$k])) {
                 $v = $this->mutateArrayToObject($v, $embeddedReferences[$k]['class']);
             }
@@ -526,7 +551,7 @@ class MetaDataService
                 $v = []; // @todo
             }
             if (isset($types[$k])) {
-                switch(true) {
+                switch (true) {
                     case 'DateTime' === substr($types[$k], 0, 8):
                         $data = $this->revertDocumentMongoDateWithTimeZoneFieldToDateTime($data, $k);
                         $v = $data[$k];
@@ -554,8 +579,9 @@ class MetaDataService
     {
         unset($entireDoc);
 
-        switch($definition['type']) {
-            case 'sha1': return sha1(md5(rand(0, 1000) . microtime(true) . rand(rand(0, 100), 10000)));
+        switch ($definition['type']) {
+            case 'sha1':
+                return sha1(md5(rand(0, 1000).microtime(true).rand(rand(0, 100), 10000)));
             default:
                 throw $this->createException(500, "Unsupported generate type '%s'", $definition['type']);
         }
@@ -568,11 +594,13 @@ class MetaDataService
      */
     protected function mutateArrayToObject($data, $class)
     {
-        if (is_object($class)) $class = get_class($class);
+        if (is_object($class)) {
+            $class = get_class($class);
+        }
 
         $doc = new $class;
 
-        foreach($data as $k => $v) {
+        foreach ($data as $k => $v) {
             $doc->$k = $v;
         }
 
@@ -585,7 +613,7 @@ class MetaDataService
      */
     protected function convert2($data)
     {
-        foreach($data as $k => $v) {
+        foreach ($data as $k => $v) {
             if (null === $v) {
                 unset($data[$k]);
                 continue;
@@ -604,9 +632,10 @@ class MetaDataService
      */
     protected function revert($doc)
     {
-        foreach(array_keys($doc) as $k) {
-            if (!isset($doc[$k])) continue; // if key was removed by previous iteration
-            if ('Date' === substr($k, -4)) {
+        foreach (array_keys($doc) as $k) {
+            if (!isset($doc[$k])) {
+                continue; // if key was removed by previous iteration
+            }            if ('Date' === substr($k, -4)) {
                 $doc = $this->revertDocumentMongoDateWithTimeZoneFieldToDateTime($doc, $k);
             } elseif (is_array($doc[$k])) {
                 $doc[$k] = $this->revert($doc[$k]);
@@ -623,10 +652,13 @@ class MetaDataService
      */
     protected function convertDataDateTimeFieldToMongoDateWithTimeZone($data, $fieldName)
     {
-        if (!isset($data[$fieldName])) throw $this->createException(412, "Missing date time field '%s'", $fieldName);
+        if (!isset($data[$fieldName])) {
+            throw $this->createException(412, "Missing date time field '%s'", $fieldName);
+        }
 
-        if (null !== $data[$fieldName] && !$data[$fieldName] instanceof \DateTime)
+        if (null !== $data[$fieldName] && !$data[$fieldName] instanceof \DateTime) {
             throw $this->createException(412, "Field '%s' must be a valid DateTime", $fieldName);
+        }
 
         /** @var \DateTime $date */
         $date = $data[$fieldName];
@@ -644,14 +676,17 @@ class MetaDataService
      */
     protected function revertDocumentMongoDateWithTimeZoneFieldToDateTime($doc, $fieldName)
     {
-        if (!isset($doc[$fieldName])) throw $this->createException(412, "Missing mongo date field '%s'", $fieldName);
+        if (!isset($doc[$fieldName])) {
+            throw $this->createException(412, "Missing mongo date field '%s'", $fieldName);
+        }
 
         if (!isset($doc[sprintf('%s_tz', $fieldName)])) {
             $doc[sprintf('%s_tz', $fieldName)] = date_default_timezone_get();
         }
 
-        if (!$doc[$fieldName] instanceof \MongoDate)
+        if (!$doc[$fieldName] instanceof \MongoDate) {
             throw $this->createException(412, "Field '%s' must be a valid MongoDate", $fieldName);
+        }
 
         /** @var \MongoDate $mongoDate */
         $mongoDate = $doc[$fieldName];
@@ -667,5 +702,4 @@ class MetaDataService
 
         return $doc;
     }
-
 }

@@ -225,19 +225,19 @@ class ApiUser implements AdvancedUserInterface
             $this->username = $data['id'];
         }
         if (isset($data['expired'])) {
-            $this->expired = (bool)$data['expired'];
+            $this->expired = (bool) $data['expired'];
         }
         if (isset($data['enabled'])) {
-            $this->enabled = (bool)$data['enabled'];
+            $this->enabled = (bool) $data['enabled'];
         }
         if (isset($data['locked'])) {
-            $this->locked  = (bool)$data['locked'];
+            $this->locked  = (bool) $data['locked'];
         }
         if (isset($data['firstName'])) {
-            $this->firstName = (string)$data['firstName'];
+            $this->firstName = (string) $data['firstName'];
         }
         if (isset($data['lastName'])) {
-            $this->lastName = (string)$data['lastName'];
+            $this->lastName = (string) $data['lastName'];
         }
         if (isset($data['name'])) {
             $this->name = $data['name'];
@@ -245,14 +245,17 @@ class ApiUser implements AdvancedUserInterface
             $this->name = sprintf('%s %s', ucfirst($this->firstName), ucfirst($this->lastName));
         }
         if (isset($data['email'])) {
-            $this->email = (string)$data['email'];
+            $this->email = (string) $data['email'];
         }
         if (isset($data['salt'])) {
-            $this->salt = (string)$data['salt'];
+            $this->salt = (string) $data['salt'];
         }
         if (isset($data['roles'])) {
             $data['roles']['user'] = true;
-            $this->roles = array_map(function ($v) { return 'ROLE_' . strtoupper(str_replace('.', '_', $v));}, array_keys($data['roles']));
+            $this->roles = array_map(function ($v) {
+                return 'ROLE_'.strtoupper(str_replace('.', '_', $v));
+
+            }, array_keys($data['roles']));
             if (isset($data['roles']['admin']) && true === $data['roles']['admin']) {
                 $this->admin = true;
             }
@@ -277,13 +280,13 @@ class ApiUser implements AdvancedUserInterface
             $this->lockDate = $data['lockDate'];
         }
         if (isset($data['password'])) {
-            $this->password = (string)$data['password'];
+            $this->password = (string) $data['password'];
         }
         if (isset($data['token'])) {
-            $this->token = (string)$data['token'];
+            $this->token = (string) $data['token'];
         }
         if (isset($data['id'])) {
-            $this->id = (string)$data['id'];
+            $this->id = (string) $data['id'];
         }
 
         unset($data['email']);
@@ -446,7 +449,10 @@ class ApiUser implements AdvancedUserInterface
      */
     public function getFlattenRoles()
     {
-        return array_map(function ($v) { return strtolower(str_replace('_', '.', preg_replace('/^ROLE_/', '', $v)));}, $this->getRoles());
+        return array_map(function ($v) {
+            return strtolower(str_replace('_', '.', preg_replace('/^ROLE_/', '', $v)));
+
+        }, $this->getRoles());
     }
     /**
      * @return bool

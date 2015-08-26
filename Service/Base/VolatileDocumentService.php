@@ -94,7 +94,9 @@ class VolatileDocumentService
     protected function callback($key, $subject, $options = [])
     {
         return $this->getMetaDataService()->callback(
-            $this->buildEventName($key), $subject, $options
+            $this->buildEventName($key),
+            $subject,
+            $options
         );
     }
     /**
@@ -186,13 +188,13 @@ class VolatileDocumentService
         $docs   = [];
         $arrays = [];
 
-        foreach($bulkData as $i => $data) {
+        foreach ($bulkData as $i => $data) {
             list($doc, $array) = $this->prepareCreate($data, $options);
             $docs[$i]   = $doc;
             $arrays[$i] = $array;
         }
 
-        foreach($arrays as $i => $array) {
+        foreach ($arrays as $i => $array) {
             unset($arrays[$i]);
             $this->completeCreate($docs[$i], $array, $options);
         }

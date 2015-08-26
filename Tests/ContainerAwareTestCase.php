@@ -53,11 +53,12 @@ abstract class ContainerAwareTestCase extends KernelTestCase
      * @param null|string $failMessage
      */
     protected function assertContainerHasService(
-        $id, $failMessage = null
-    )
-    {
+        $id,
+        $failMessage = null
+    )     {
         $this->assertTrue(
-            $this->getContainer()->has($id), $failMessage
+            $this->getContainer()->has($id),
+            $failMessage
         );
     }
     /**
@@ -65,11 +66,12 @@ abstract class ContainerAwareTestCase extends KernelTestCase
      * @param null|string $failMessage
      */
     protected function assertContainerHasParameter(
-        $name, $failMessage = null
-    )
-    {
+        $name,
+        $failMessage = null
+    )     {
         $this->assertTrue(
-            $this->getContainer()->hasParameter($name), $failMessage
+            $this->getContainer()->hasParameter($name),
+            $failMessage
         );
     }
     /**
@@ -78,11 +80,14 @@ abstract class ContainerAwareTestCase extends KernelTestCase
      * @param null|string $failMessage
      */
     protected function assertContainerParameterEquals(
-        $name, $value, $failMessage = null
-    )
-    {
+        $name,
+        $value,
+        $failMessage = null
+    )     {
         $this->assertEquals(
-            $value, $this->getParameter($name), $failMessage
+            $value,
+            $this->getParameter($name),
+            $failMessage
         );
     }
 }

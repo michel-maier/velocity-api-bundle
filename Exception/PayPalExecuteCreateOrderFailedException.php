@@ -25,7 +25,7 @@ class PayPalExecuteCreateOrderFailedException extends PayPalException
     /**
      * @param SetExpressCheckoutReq $request
      *
-     * @param \Exception $previous
+     * @param \Exception            $previous
      */
     public function __construct(SetExpressCheckoutReq $request, \Exception $previous)
     {

@@ -165,7 +165,7 @@ class MangoPayService
         $bankAccount->OwnerAddress = $data['ownerAddress'];
         $bankAccount->UserId       = $data['userId'];
 
-        switch($data['type']) {
+        switch ($data['type']) {
             case 'iban':
                 $bankAccount->Type = 'IBAN';
 
@@ -205,10 +205,12 @@ class MangoPayService
      */
     protected function prepareResult($raw)
     {
-        $raw = (array)$raw;
+        $raw = (array) $raw;
 
         return array_combine(
-            array_map(function ($k) { return lcfirst($k);}, array_keys($raw)),
+            array_map(function ($k) {
+                return lcfirst($k);
+            }, array_keys($raw)),
             array_values($raw)
         );
     }

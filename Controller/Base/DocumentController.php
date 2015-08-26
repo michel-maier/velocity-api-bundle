@@ -30,7 +30,7 @@ abstract class DocumentController extends RestController
     protected function getService()
     {
         return $this->get(
-            'app.' . preg_replace('/Controller$/', '', basename(str_replace('\\', '/', get_class($this))))
+            'app.'.preg_replace('/Controller$/', '', basename(str_replace('\\', '/', get_class($this))))
         );
     }
     /**

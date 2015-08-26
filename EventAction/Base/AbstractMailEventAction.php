@@ -42,7 +42,7 @@ abstract class AbstractMailEventAction
      *
      * @return $this
      */
-    protected abstract function send($mail);
+    abstract protected function send($mail);
     /**
      * @return array
      */
@@ -136,7 +136,7 @@ abstract class AbstractMailEventAction
     {
         $attachments = [];
 
-        foreach(isset($params['attachments']) ? $params['attachments'] : [] as $attachment) {
+        foreach (isset($params['attachments']) ? $params['attachments'] : [] as $attachment) {
             $attachments[] = $this->buildAttachmentFromEvent($attachment, $event, $eventName, $params);
         }
 

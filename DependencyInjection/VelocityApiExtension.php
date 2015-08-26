@@ -24,7 +24,7 @@ use Symfony\Component\HttpKernel\DependencyInjection\Extension;
 class VelocityApiExtension extends Extension
 {
     /**
-     * @param array $configs
+     * @param array            $configs
      * @param ContainerBuilder $container
      *
      * @return void
@@ -41,11 +41,11 @@ class VelocityApiExtension extends Extension
         $container->setParameter('app_models_bundles', $config['models']['bundles']);
         $container->setParameter('app_events', $config['events']);
 
-        foreach($config['recipients'] as $type => $emails) {
+        foreach ($config['recipients'] as $type => $emails) {
             $container->setParameter(sprintf('app_recipients_%s', $type), $emails);
         }
 
-        $loader = new Loader\YamlFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
+        $loader = new Loader\YamlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
         $loader->load('parameters.yml');
         $loader->load('services/common.yml');
         $loader->load('services/repositories.yml');

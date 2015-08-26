@@ -108,10 +108,12 @@ class ApiUserProvider implements UserProviderInterface
      */
     protected function unformat($value, $format)
     {
-        switch($format) {
-            case 'base64': return base64_decode($value);
+        switch ($format) {
+            case 'base64':
+                return base64_decode($value);
             default:
-            case 'plain': return $value;
+            case 'plain':
+                return $value;
         }
     }
     /**

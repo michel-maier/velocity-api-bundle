@@ -57,13 +57,15 @@ class PasswordService
             $options['algorithm'] = 'default';
         }
 
-        switch($options['algorithm']) {
+        switch ($options['algorithm']) {
             case 'default':
                 return $this->encryptWithDefault($raw, $options);
         }
 
         throw $this->createException(
-            412, "Unsupported algorithm '%s'", $options['algorithm']
+            412,
+            "Unsupported algorithm '%s'",
+            $options['algorithm']
         );
     }
     /** @noinspection PhpInconsistentReturnPointsInspection */
@@ -87,7 +89,7 @@ class PasswordService
             $options['generator'] = 'default';
         }
 
-        switch($options['generator']) {
+        switch ($options['generator']) {
             case 'default':
                 return $this->generateWithDefault($data, $options);
             case 'special':
@@ -95,7 +97,9 @@ class PasswordService
         }
 
         throw $this->createException(
-            412, "Unsupported generator '%s'", $options['generator']
+            412,
+            "Unsupported generator '%s'",
+            $options['generator']
         );
     }
     /**
@@ -125,8 +129,7 @@ class PasswordService
     protected function encryptWithDefault($raw, array $options = [])
     {
         return sha1(md5(sha1(md5(
-            $raw
-            . (isset($options['salt']) ? $options['salt'] : null)
+            $raw.(isset($options['salt']) ? $options['salt'] : null)
         ))));
     }
     /**
@@ -150,9 +153,9 @@ class PasswordService
 
         $chars = [];
 
-        foreach($types as $data) {
+        foreach ($types as $data) {
             list($nb, $items) = $data;
-            for($i = 0; $i < $nb; $i++) {
+            for ($i = 0; $i < $nb; $i++) {
                 $chars[] = $items[rand(0, count($items) - 1)];
             }
         }

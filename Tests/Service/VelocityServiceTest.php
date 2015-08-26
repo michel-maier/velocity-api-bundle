@@ -65,7 +65,7 @@ class VelocityServiceTest extends PHPUnit_Framework_TestCase
      */
     public function testFindVelocityAnnotatedClassesInDirectory()
     {
-        $classes = $this->s->findVelocityAnnotatedClassesInDirectory(__DIR__ . '/../Model');
+        $classes = $this->s->findVelocityAnnotatedClassesInDirectory(__DIR__.'/../Model');
 
         $expected = [
             'Velocity\\Bundle\\ApiBundle\\Tests\\Model\\Model1',

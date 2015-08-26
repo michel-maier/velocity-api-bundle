@@ -71,7 +71,9 @@ class EventActionService
     {
         if (!isset($this->eventActions[$name])) {
             throw $this->createException(
-                412, "No event action registered for '%s'", $name
+                412,
+                "No event action registered for '%s'",
+                $name
             );
         }
 
@@ -119,8 +121,7 @@ class EventActionService
     {
         $i = 0;
 
-        foreach ($sequence as $step)
-        {
+        foreach ($sequence as $step) {
             if (!is_array($step)) {
                 $step = [];
             }

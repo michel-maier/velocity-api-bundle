@@ -53,11 +53,14 @@ class MigrationService implements ContainerAwareInterface
      * @param string             $environment
      */
     public function __construct(
-        DatabaseService $databaseService, LoggerInterface $logger,
-        FormService $formService, ContainerInterface $container,
-        $collectionName, $directory, $environment
-    )
-    {
+        DatabaseService $databaseService,
+        LoggerInterface $logger,
+        FormService $formService,
+        ContainerInterface $container,
+        $collectionName,
+        $directory,
+        $environment
+    )     {
         $this->setDatabaseService($databaseService);
         $this->setLogger($logger);
         $this->setFormService($formService);
@@ -104,7 +107,9 @@ class MigrationService implements ContainerAwareInterface
     {
         if (!isset($this->migrators[$extension])) {
             throw $this->createException(
-                412, "No migrator registered for extension '%s'", $extension
+                412,
+                "No migrator registered for extension '%s'",
+                $extension
             );
         }
 
@@ -184,14 +189,14 @@ class MigrationService implements ContainerAwareInterface
 
         $appliedDiffs = [];
 
-        foreach($this->getDatabaseService()->find($this->getCollectionName()) as $doc) {
+        foreach ($this->getDatabaseService()->find($this->getCollectionName()) as $doc) {
             $appliedDiffs[$doc['id']] = true;
         }
 
         $files = [];
 
-        foreach(scandir($dir) as $item) {
-            $realPath = $dir . '/' . $item;
+        foreach (scandir($dir) as $item) {
+            $realPath = $dir.'/'.$item;
             if ('.' === $item || '..' === $item || false === is_file($realPath)) {
                 continue;
             }
@@ -240,7 +245,7 @@ class MigrationService implements ContainerAwareInterface
                 $e->getCode(),
                 "Error when processing document: %s%s",
                 $e->getMessage(),
-                PHP_EOL . PHP_EOL . $this->getFormService()->getErrorsAsString($e)
+                PHP_EOL.PHP_EOL.$this->getFormService()->getErrorsAsString($e)
             );
         }
 

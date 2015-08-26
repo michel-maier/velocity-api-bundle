@@ -125,10 +125,13 @@ class PayPalService
         $value = $this->getParameterIfExists('paymentUrlPattern');
 
         if (null === $value) {
-            switch($this->getEnvironment()) {
-                case 'sandbox': return static::DEFAULT_SANDBOX_PAYMENT_URL_PATTERN;
-                case 'live':    return static::DEFAULT_LIVE_PAYMENT_URL_PATTERN;
-                default: throw $this->createException(500, "Unsupported PayPal environment '%s'", $this->getEnvironment());
+            switch ($this->getEnvironment()) {
+                case 'sandbox':
+                    return static::DEFAULT_SANDBOX_PAYMENT_URL_PATTERN;
+                case 'live':
+                    return static::DEFAULT_LIVE_PAYMENT_URL_PATTERN;
+                default:
+                    throw $this->createException(500, "Unsupported PayPal environment '%s'", $this->getEnvironment());
             }
         }
 
@@ -189,36 +192,36 @@ class PayPalService
                 }
                 $data['cancelUrl'] = $data['returnUrl'];
             }
-            $currency = isset($data['currency']) ? (string)$data['currency'] : $this->getCurrency();
-            $successUrl = str_replace('{result}', 'success', (string)$data['successUrl']);
-            $cancelUrl = str_replace('{result}', 'cancel', (string)$data['cancelUrl']);
+            $currency = isset($data['currency']) ? (string) $data['currency'] : $this->getCurrency();
+            $successUrl = str_replace('{result}', 'success', (string) $data['successUrl']);
+            $cancelUrl = str_replace('{result}', 'cancel', (string) $data['cancelUrl']);
 
             $paymentDetails = new PaymentDetailsType();
 
             if (isset($data['items']) && is_array($data['items']) && count($data['items'])) {
                 foreach ($data['items'] as $i => $item) {
                     $itemDetails = new PaymentDetailsItemType($item);
-                    $itemDetails->Name = (string)$item['name'] ?: sprintf('Item %s', is_numeric($i) ? ($i + 1) : $i);
-                    $itemDetails->Number = (string)$item['number'] ?: null;
-                    $itemDetails->Amount = (string)$item['amount'] ?: '0.0';
-                    $itemDetails->Quantity = (string)$item['quantity'] ?: '1';
-                    $itemDetails->Description = (string)$item['description'] ?: null;
-                    $itemDetails->PromoCode = (string)$item['code'] ?: null;
-                    $itemDetails->ProductCategory = (string)$item['category'] ?: null;
+                    $itemDetails->Name = (string) $item['name'] ?: sprintf('Item %s', is_numeric($i) ? ($i + 1) : $i);
+                    $itemDetails->Number = (string) $item['number'] ?: null;
+                    $itemDetails->Amount = (string) $item['amount'] ?: '0.0';
+                    $itemDetails->Quantity = (string) $item['quantity'] ?: '1';
+                    $itemDetails->Description = (string) $item['description'] ?: null;
+                    $itemDetails->PromoCode = (string) $item['code'] ?: null;
+                    $itemDetails->ProductCategory = (string) $item['category'] ?: null;
                     if (isset($item['tax']) && $item['tax']) {
                         $itemDetailsTax = new BasicAmountType();
                         $itemDetailsTax->currencyID = $currency;
-                        $itemDetailsTax->value = (string)$item['tax'];
+                        $itemDetailsTax->value = (string) $item['tax'];
 
                         $itemDetails->Tax = $itemDetailsTax;
 
-                        $total += (double)$itemDetailsTax->value;
-                        $taxTotal += (double)$itemDetailsTax->value;
+                        $total += (double) $itemDetailsTax->value;
+                        $taxTotal += (double) $itemDetailsTax->value;
                     }
                     $paymentDetails->PaymentDetailsItem[] = $itemDetails;
 
-                    $total += (double)$itemDetails->Amount;
-                    $itemTotal += (double)$itemDetails->Amount;
+                    $total += (double) $itemDetails->Amount;
+                    $itemTotal += (double) $itemDetails->Amount;
                 }
             }
 
@@ -239,15 +242,15 @@ class PayPalService
             $paymentDetails->TaxTotal = $tTotal;
 
             if (isset($data['description']) && $data['description']) {
-                $paymentDetails->OrderDescription = (string)$data['description'];
+                $paymentDetails->OrderDescription = (string) $data['description'];
             }
 
             if (isset($data['data']) && $data['data']) {
-                $paymentDetails->Custom = (string)$data['data'];
+                $paymentDetails->Custom = (string) $data['data'];
             }
 
             if (isset($data['invoiceId']) && $data['invoiceId']) {
-                $paymentDetails->InvoiceID = (string)$data['invoiceId'];
+                $paymentDetails->InvoiceID = (string) $data['invoiceId'];
             }
 
             $setECReqDetails = new SetExpressCheckoutRequestDetailsType();
@@ -280,17 +283,17 @@ class PayPalService
         unset($options);
 
         return [
-            'token'         => (string)$payPalResponse->Token,
-            'timestamp'     => (string)$payPalResponse->Timestamp,
-            'correlationId' => (string)$payPalResponse->CorrelationID,
-            'version'       => (string)$payPalResponse->Version,
-            'build'         => (string)$payPalResponse->Build,
-            'paymentUrl'    => $this->getPaymentUrl((string)$payPalResponse->Token),
+            'token'         => (string) $payPalResponse->Token,
+            'timestamp'     => (string) $payPalResponse->Timestamp,
+            'correlationId' => (string) $payPalResponse->CorrelationID,
+            'version'       => (string) $payPalResponse->Version,
+            'build'         => (string) $payPalResponse->Build,
+            'paymentUrl'    => $this->getPaymentUrl((string) $payPalResponse->Token),
         ];
     }
     /**
      * @param string $token
-     * @param array $options
+     * @param array  $options
      *
      * @return array
      *

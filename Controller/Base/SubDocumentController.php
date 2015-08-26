@@ -30,8 +30,9 @@ abstract class SubDocumentController extends RestController
     protected function getService()
     {
         return $this->get(
-            'app.' . preg_replace(
-                '/controller$/', '',
+            'app.'.preg_replace(
+                '/controller$/',
+                '',
                 strtolower(str_replace('\\', '.', substr(get_class($this), strrpos(get_class($this), '\\', 1) + 1)))
             )
         );

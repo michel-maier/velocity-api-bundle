@@ -38,7 +38,7 @@ class ApiAuthenticationProvider implements AuthenticationProviderInterface
     /**
      * Construct a new authentication provider.
      *
-     * @param UserProviderInterface  $userProvider
+     * @param UserProviderInterface $userProvider
      */
     public function __construct(UserProviderInterface $userProvider)
     {
@@ -111,7 +111,9 @@ class ApiAuthenticationProvider implements AuthenticationProviderInterface
      */
     protected function validateClientToken($infos, \DateTime $now)
     {
-        if (!isset($infos['id'])) throw new MissingClientIdentityException;
+        if (!isset($infos['id'])) {
+            throw new MissingClientIdentityException;
+        }
 
         if (false === (
                 $this->getRequestService()->buildClientToken($infos['id'], $infos['expire'], $this->getRequestService()->getClientSecret()) === $infos['token']
@@ -138,7 +140,9 @@ class ApiAuthenticationProvider implements AuthenticationProviderInterface
      */
     protected function validateUserToken($infos, \DateTime $now)
     {
-        if (!isset($infos['id'])) throw new MissingUserIdentityException;
+        if (!isset($infos['id'])) {
+            throw new MissingUserIdentityException;
+        }
 
         if (false === (
                 $this->getRequestService()->buildUserToken($infos['id'], $infos['expire'], $this->getRequestService()->getUserSecret()) === $infos['token']

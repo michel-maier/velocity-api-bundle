@@ -107,7 +107,7 @@ class SubDocumentService
 
         return $this->dispatch(
             $this->buildEventName($event),
-            [($this->getType() . 'Id') => $parentId] + (is_array($data) ? $data : [])
+            [($this->getType().'Id') => $parentId] + (is_array($data) ? $data : [])
         );
     }
     /**
@@ -136,7 +136,9 @@ class SubDocumentService
         unset($parentId);
 
         return $this->getMetaDataService()->callback(
-            $this->buildEventName($key), $subject, $options
+            $this->buildEventName($key),
+            $subject,
+            $options
         );
     }
     /**
@@ -177,7 +179,7 @@ class SubDocumentService
     {
         $array = $this->callback($parentId, 'create.save.after', $array, $options);
 
-        $doc->id = (string)$array['_id'];
+        $doc->id = (string) $array['_id'];
 
         $doc = $this->callback($parentId, 'save.after', $doc, $options);
         $doc = $this->callback($parentId, 'created', $doc, $options);
@@ -266,13 +268,13 @@ class SubDocumentService
         $docs   = [];
         $arrays = [];
 
-        foreach($bulkData as $i => $data) {
+        foreach ($bulkData as $i => $data) {
             list($doc, $array) = $this->prepareCreate($parentId, $data, $options);
             $docs[$i]   = $doc;
             $arrays[$i] = $array;
         }
 
-        foreach($this->getRepository()->setProperties($parentId, $arrays, $options) as $i => $array) {
+        foreach ($this->getRepository()->setProperties($parentId, $arrays, $options) as $i => $array) {
             unset($arrays[$i]);
             $this->completeCreate($parentId, $docs[$i], $array, $options);
         }
@@ -295,7 +297,7 @@ class SubDocumentService
         $toCreate = [];
         $toUpdate = [];
 
-        foreach($bulkData as $i => $data) {
+        foreach ($bulkData as $i => $data) {
             if (isset($data['id']) && $this->has($parentId, $data['id'])) {
                 $toUpdate[$i] = $data;
             } else {
@@ -305,8 +307,12 @@ class SubDocumentService
 
         $docs = [];
 
-        if (count($toCreate)) $docs += $this->createBulk($parentId, $toCreate, $options);
-        if (count($toUpdate)) $docs += $this->updateBulk($parentId, $toUpdate, $options);
+        if (count($toCreate)) {
+            $docs += $this->createBulk($parentId, $toCreate, $options);
+        }
+        if (count($toUpdate)) {
+            $docs += $this->updateBulk($parentId, $toUpdate, $options);
+        }
 
         return $docs;
     }
@@ -326,7 +332,7 @@ class SubDocumentService
         $toCreate = [];
         $toDelete = [];
 
-        foreach($bulkData as $i => $data) {
+        foreach ($bulkData as $i => $data) {
             if (isset($data['id']) && $this->has($parentId, $data['id'])) {
                 $toDelete[$i] = $data;
             } else {
@@ -336,8 +342,12 @@ class SubDocumentService
 
         $docs = [];
 
-        if (count($toCreate)) $docs += $this->createBulk($parentId, $toCreate, $options);
-        if (count($toDelete)) $docs += $this->deleteBulk($parentId, $toDelete, $options);
+        if (count($toCreate)) {
+            $docs += $this->createBulk($parentId, $toCreate, $options);
+        }
+        if (count($toDelete)) {
+            $docs += $this->deleteBulk($parentId, $toDelete, $options);
+        }
 
         return $docs;
     }
@@ -352,11 +362,15 @@ class SubDocumentService
      */
     public function count($parentId, $criteria = [], $options = [])
     {
-        if (!$this->getRepository()->hasProperty($parentId, $this->getRepoKey(), $options)) return 0;
+        if (!$this->getRepository()->hasProperty($parentId, $this->getRepoKey(), $options)) {
+            return 0;
+        }
 
         $items = $this->getRepository()->getProperty($parentId, $this->getRepoKey(), $options);
 
-        if (!is_array($items) || !count($items)) return 0;
+        if (!is_array($items) || !count($items)) {
+            return 0;
+        }
 
         $this->filterItems($items, $criteria);
 
@@ -365,31 +379,40 @@ class SubDocumentService
     /**
      * Retrieve the documents matching the specified criteria.
      *
-     * @param string $parentId
-     * @param array $criteria
-     * @param array $fields
+     * @param string   $parentId
+     * @param array    $criteria
+     * @param array    $fields
      * @param null|int $limit
-     * @param int $offset
-     * @param array $sorts
-     * @param array $options
+     * @param int      $offset
+     * @param array    $sorts
+     * @param array    $options
      *
      * @return mixed
      */
     public function find(
-        $parentId, $criteria = [], $fields = [], $limit = null, $offset = 0, $sorts = [], $options = []
-    )
-    {
-        if (!$this->getRepository()->hasProperty($parentId, $this->getRepoKey())) return [];
+        $parentId,
+        $criteria = [],
+        $fields = [],
+        $limit = null,
+        $offset = 0,
+        $sorts = [],
+        $options = []
+    )     {
+        if (!$this->getRepository()->hasProperty($parentId, $this->getRepoKey())) {
+            return [];
+        }
 
         $items = $this->getRepository()->getProperty($parentId, $this->getRepoKey());
 
-        if (!is_array($items) || !count($items)) return [];
+        if (!is_array($items) || !count($items)) {
+            return [];
+        }
 
         $this->sortItems($items, $sorts, $options);
         $this->filterItems($items, $criteria, $fields, $options);
         $this->paginateItems($items, $limit, $offset, $options);
 
-        foreach($items as $k => $v) {
+        foreach ($items as $k => $v) {
             $items[$k] = $this->callback('fetched', $this->convertArrayToObject($v, $options), $options);
         }
 
@@ -398,20 +421,25 @@ class SubDocumentService
     /**
      * Retrieve the documents matching the specified criteria and return a page with total count.
      *
-     * @param string $parentId
-     * @param array $criteria
-     * @param array $fields
+     * @param string   $parentId
+     * @param array    $criteria
+     * @param array    $fields
      * @param null|int $limit
-     * @param int $offset
-     * @param array $sorts
-     * @param array $options
+     * @param int      $offset
+     * @param array    $sorts
+     * @param array    $options
      *
      * @return mixed
      */
     public function findWithTotal(
-        $parentId, $criteria = [], $fields = [], $limit = null, $offset = 0, $sorts = [], $options = []
-    )
-    {
+        $parentId,
+        $criteria = [],
+        $fields = [],
+        $limit = null,
+        $offset = 0,
+        $sorts = [],
+        $options = []
+    )     {
         return [
             $this->find($parentId, $criteria, $fields, $limit, $offset, $sorts, $options),
             $this->count($parentId, $criteria, $options),
@@ -478,7 +506,8 @@ class SubDocumentService
             $this->convertArrayToObject(
                 $this->getRepository()->getProperty(
                     $parentId,
-                    sprintf('%s.%s', $this->getRepoKey(), $id), $options
+                    sprintf('%s.%s', $this->getRepoKey(), $id),
+                    $options
                 ),
                 $options
             ),
@@ -500,7 +529,7 @@ class SubDocumentService
             throw $this->createException(500, "Purging sub documents with criteria not supported.");
         }
 
-        $this->getRepository()->setProperty($parentId, $this->getRepoKey(), (object)[]);
+        $this->getRepository()->setProperty($parentId, $this->getRepoKey(), (object) []);
 
         unset($criteria);
         unset($options);
@@ -527,7 +556,9 @@ class SubDocumentService
 
             return $this->completeDelete($id, $old, $options);
         } catch (\Exception $e) {
-            if ($this->observed('delete.failed')) $this->event($parentId, 'delete.failed', ['id' => $id, 'exception' => $e]);
+            if ($this->observed('delete.failed')) {
+                $this->event($parentId, 'delete.failed', ['id' => $id, 'exception' => $e]);
+            }
             throw $e;
         }
     }
@@ -547,7 +578,7 @@ class SubDocumentService
         $olds     = [];
         $deleteds = [];
 
-        foreach($ids as $id) {
+        foreach ($ids as $id) {
             list($old)  = $this->prepareDelete($parentId, $id, $options);
             $olds[$id]  = $old;
             $deleteds[$id] = sprintf('%s.%s', $this->getRepoKey(), $id);
@@ -557,7 +588,7 @@ class SubDocumentService
             $this->getRepository()->unsetProperty($parentId, array_values($deleteds), $options);
         }
 
-        foreach(array_keys($deleteds) as $id) {
+        foreach (array_keys($deleteds) as $id) {
             $deleteds[$id] = $this->completeDelete($parentId, $id, $olds[$id], $options);
             unset($olds[$id]);
         }
@@ -596,8 +627,12 @@ class SubDocumentService
         if (!count($docs)) {
             throw $this->createException(
                 404,
-                "Unknown %s with %s '%s' in %s '%s'", $this->getSubType(),
-                $fieldName, $fieldValue, $this->getType(), $parentId
+                "Unknown %s with %s '%s' in %s '%s'",
+                $this->getSubType(),
+                $fieldName,
+                $fieldValue,
+                $this->getType(),
+                $parentId
             );
         }
 
@@ -649,16 +684,28 @@ class SubDocumentService
             ? $this->get($parentId, $id, [], $options) : null;
 
         $this->event($parentId, 'updated.refresh', $doc);
-        if (null !== $old) $this->event($parentId, 'updated.fullWithOld.refresh', $doc);
-        if (null !== $full) $this->event($parentId, 'updated.full.refresh', $full);
+        if (null !== $old) {
+            $this->event($parentId, 'updated.fullWithOld.refresh', $doc);
+        }
+        if (null !== $full) {
+            $this->event($parentId, 'updated.full.refresh', $full);
+        }
 
         $this->event($parentId, 'updated', $doc);
-        if (null !== $old) $this->event($parentId, 'updated.fullWithOld', $doc);
-        if (null !== $full) $this->event($parentId, 'updated.full', $full);
+        if (null !== $old) {
+            $this->event($parentId, 'updated.fullWithOld', $doc);
+        }
+        if (null !== $full) {
+            $this->event($parentId, 'updated.full', $full);
+        }
 
         $this->event($parentId, 'updated.notify', $doc);
-        if (null !== $old) $this->event($parentId, 'updated.fullWithOld.notify', $doc);
-        if (null !== $full) $this->event($parentId, 'updated.full.notify', $full);
+        if (null !== $old) {
+            $this->event($parentId, 'updated.fullWithOld.notify', $doc);
+        }
+        if (null !== $full) {
+            $this->event($parentId, 'updated.full.notify', $full);
+        }
 
         return $doc;
     }
@@ -695,13 +742,19 @@ class SubDocumentService
         $this->callback($parentId, 'deleted', ['id' => $id, 'old' => $old], $options);
 
         $this->event($parentId, 'deleted.refresh', ['id' => $id]);
-        if (null !== $old) $this->event($parentId, 'deleted.withOld.refresh', $old);
+        if (null !== $old) {
+            $this->event($parentId, 'deleted.withOld.refresh', $old);
+        }
 
         $this->event($parentId, 'deleted', ['id' => $id]);
-        if (null !== $old) $this->event($parentId, 'deleted.withOld', $old);
+        if (null !== $old) {
+            $this->event($parentId, 'deleted.withOld', $old);
+        }
 
         $this->event($parentId, 'deleted.notify', ['id' => $id]);
-        if (null !== $old) $this->event($parentId, 'deleted.withOld.notify', $old);
+        if (null !== $old) {
+            $this->event($parentId, 'deleted.withOld.notify', $old);
+        }
 
         return ['id' => $id];
     }
@@ -721,7 +774,7 @@ class SubDocumentService
         $olds    = [];
         $arrays  = [];
 
-        foreach($bulkData as $i => $data) {
+        foreach ($bulkData as $i => $data) {
             $id = $data['id'];
             unset($data['id']);
             list($doc, $array, $old) = $this->prepareUpdate($parentId, $id, $data, $options);
@@ -735,7 +788,7 @@ class SubDocumentService
 
         $this->getRepository()->setProperties($parentId, $changes, $options);
 
-        foreach($arrays as $i => $array) {
+        foreach ($arrays as $i => $array) {
             $this->completeUpdate($parentId, $i, $docs[$i], $array, $olds[$i], $options);
             unset($arrays[$array]);
         }
@@ -753,7 +806,7 @@ class SubDocumentService
      */
     public function replaceAll($parentId, $data, $options = [])
     {
-        $this->getRepository()->setProperty($parentId, $this->getRepoKey(), (object)[], $options);
+        $this->getRepository()->setProperty($parentId, $this->getRepoKey(), (object) [], $options);
 
         $this->event($parentId, 'emptied');
 
@@ -772,11 +825,16 @@ class SubDocumentService
      */
     public function checkExist($parentId, $id, $options = [])
     {
-        if ($this->hasNot($parentId, $id, $options))
+        if ($this->hasNot($parentId, $id, $options)) {
             throw $this->createException(
                 404,
-                "Unknown %s '%s' for %s '%s'", $this->getSubType(), $id, $this->getType(), $parentId
+                "Unknown %s '%s' for %s '%s'",
+                $this->getSubType(),
+                $id,
+                $this->getType(),
+                $parentId
             );
+        }
 
         return $this;
     }
@@ -793,29 +851,37 @@ class SubDocumentService
      */
     public function checkNotExist($parentId, $id, $options = [])
     {
-        if ($this->has($parentId, $id, $options))
+        if ($this->has($parentId, $id, $options)) {
             throw $this->createException(
                 404,
-                "%s '%s' already exist for %s '%s'", ucfirst($this->getSubType()), $id, $this->getType(), $parentId
+                "%s '%s' already exist for %s '%s'",
+                ucfirst($this->getSubType()),
+                $id,
+                $this->getType(),
+                $parentId
             );
+        }
 
         return $this;
     }
     /**
      * Increment the specified property of the specified document.
      *
-     * @param string $parentId
-     * @param mixed $id
+     * @param string       $parentId
+     * @param mixed        $id
      * @param string|array $property
-     * @param int $value
-     * @param array $options
+     * @param int          $value
+     * @param array        $options
      *
      * @return $this
      */
     public function increment($parentId, $id, $property, $value = 1, $options = [])
     {
         $this->getRepository()->incrementProperty(
-            $parentId, sprintf('%s.%s.%s', $this->getRepoKey(), $id, $property), $value, $options
+            $parentId,
+            sprintf('%s.%s.%s', $this->getRepoKey(), $id, $property),
+            $value,
+            $options
         );
 
         return $this->event(
@@ -827,18 +893,21 @@ class SubDocumentService
     /**
      * Decrement the specified property of the specified document.
      *
-     * @param string $parentId
-     * @param mixed $id
+     * @param string       $parentId
+     * @param mixed        $id
      * @param string|array $property
-     * @param int $value
-     * @param array $options
+     * @param int          $value
+     * @param array        $options
      *
      * @return $this
      */
     public function decrement($parentId, $id, $property, $value = 1, $options = [])
     {
         $this->getRepository()->decrementProperty(
-            $parentId, sprintf('%s.%s.%s', $this->getRepoKey(), $id, $property), $value, $options
+            $parentId,
+            sprintf('%s.%s.%s', $this->getRepoKey(), $id, $property),
+            $value,
+            $options
         );
 
         return $this->event(
@@ -860,13 +929,13 @@ class SubDocumentService
     {
         if (null !== $idMapping) {
             $_errors = [];
-            foreach($errors as $id => $error) {
+            foreach ($errors as $id => $error) {
                 $_errors[$idMapping[$id]] = $error;
             }
             $errors = $_errors;
         }
 
-        foreach($errors as $id => $error) {
+        foreach ($errors as $id => $error) {
             if ($error instanceof FormValidationException) {
                 $error = $this->getFormService()->getFormErrorsFromException($error);
             } elseif ($error instanceof \Exception) {
@@ -887,27 +956,42 @@ class SubDocumentService
      */
     protected function filterItems(&$items, $criteria = [], $fields = [], \Closure $eachCallback = null)
     {
-        if (!is_array($fields))   $fields = [];
-        if (!is_array($criteria)) $criteria = [];
+        if (!is_array($fields)) {
+            $fields = [];
+        }
+        if (!is_array($criteria)) {
+            $criteria = [];
+        }
 
         $keyFields     = array_fill_keys($fields, true);
         $fieldFiltered = false;
 
         if (is_array($criteria) && count($criteria) > 0) {
             $fieldFiltered = true;
-            foreach($criteria as $criteriaKey => $criteriaValue) {
+            foreach ($criteria as $criteriaKey => $criteriaValue) {
                 if (false !== strpos($criteriaKey, ':')) {
                     list($criteriaKey, $criteriaValueType) = explode(':', $criteriaKey, 2);
-                    switch(trim($criteriaValueType)) {
-                        case 'int': $criteriaValue = (int)$criteriaValue; break;
-                        case 'string': $criteriaValue = (string)$criteriaValue; break;
-                        case 'bool': $criteriaValue = (bool)$criteriaValue; break;
-                        case 'array': $criteriaValue = json_decode($criteriaValue, true); break;
-                        case 'float': $criteriaValue = (double)$criteriaValue; break;
-                        default: break;
+                    switch (trim($criteriaValueType)) {
+                        case 'int':
+                            $criteriaValue = (int) $criteriaValue;
+                            break;
+                        case 'string':
+                            $criteriaValue = (string) $criteriaValue;
+                            break;
+                        case 'bool':
+                            $criteriaValue = (bool) $criteriaValue;
+                            break;
+                        case 'array':
+                            $criteriaValue = json_decode($criteriaValue, true);
+                            break;
+                        case 'float':
+                            $criteriaValue = (double) $criteriaValue;
+                            break;
+                        default:
+                            break;
                     }
                 }
-                foreach($items as $id => $item) {
+                foreach ($items as $id => $item) {
                     if ('*empty*' === $criteriaValue) {
                         if (isset($item[$criteriaValue]) && strlen($item[$criteriaValue])) {
                             unset($items[$id]);
@@ -921,8 +1005,8 @@ class SubDocumentService
                         }
                         continue;
                     } elseif ('$or' === $criteriaKey) {
-                        foreach($criteriaValue as $cv) {
-                            foreach($cv as $cc => $vv) {
+                        foreach ($criteriaValue as $cv) {
+                            foreach ($cv as $cc => $vv) {
                                 if (isset($item[$cc]) && $item[$cc] === $vv) {
                                     continue 3;
                                 }
@@ -934,7 +1018,9 @@ class SubDocumentService
                         unset($items[$id]);
                         continue;
                     }
-                    if ($eachCallback) $item = $eachCallback($item);
+                    if ($eachCallback) {
+                        $item = $eachCallback($item);
+                    }
                     if (is_array($fields) && count($fields) > 0) {
                         $item = array_intersect_key($item, $keyFields);
                         $items[$id] = $item;
@@ -944,8 +1030,10 @@ class SubDocumentService
         }
 
         if (!$fieldFiltered) {
-            foreach($items as $id => $item) {
-                if ($eachCallback) $item = $eachCallback($item);
+            foreach ($items as $id => $item) {
+                if ($eachCallback) {
+                    $item = $eachCallback($item);
+                }
                 if (is_array($fields) && count($fields) > 0) {
                     $item = array_intersect_key($item, $keyFields);
                     $items[$id] = $item;
@@ -986,11 +1074,13 @@ class SubDocumentService
      */
     protected function sortItems(&$items, $sorts = [])
     {
-        if (!is_array($sorts)) $sorts = [];
+        if (!is_array($sorts)) {
+            $sorts = [];
+        }
 
         uasort($items, function ($a, $b) use ($sorts) {
-            foreach($sorts as $field => $direction) {
-                if (false === $direction || -1 === (int)$direction || 0 === (int)$direction || 'false' === $direction || null === $direction) {
+            foreach ($sorts as $field => $direction) {
+                if (false === $direction || -1 === (int) $direction || 0 === (int) $direction || 'false' === $direction || null === $direction) {
                     if (!isset($a[$field])) {
                         if (!isset($b[$field])) {
                             continue;
@@ -1002,7 +1092,9 @@ class SubDocumentService
                     }
                     $result = strcmp($b[$field], $a[$field]);
 
-                    if ($result > 0) return $result;
+                    if ($result > 0) {
+                        return $result;
+                    }
                 } else {
                     if (!isset($a[$field])) {
                         if (!isset($b[$field])) {
@@ -1015,7 +1107,9 @@ class SubDocumentService
                     }
                     $result = strcmp($a[$field], $b[$field]);
 
-                    if ($result > 0) return $result;
+                    if ($result > 0) {
+                        return $result;
+                    }
                 }
             }
 
@@ -1035,7 +1129,7 @@ class SubDocumentService
     {
         $this->getRepository()->setDocumentProperty(
             $parentId,
-            sprintf('%s.%s', $this->getRepoKey(), $id) ,
+            sprintf('%s.%s', $this->getRepoKey(), $id),
             array_merge(
                 $this->getRepository()->getDocumentProperty($parentId, sprintf('%s.%s', $this->getRepoKey(), $id)),
                 $data
@@ -1054,7 +1148,9 @@ class SubDocumentService
     protected function setValue($parentId, $id, $value)
     {
         $this->getRepository()->setDocumentProperty(
-            $parentId, sprintf('%s.%s', $this->getRepoKey(), $id) , $value
+            $parentId,
+            sprintf('%s.%s', $this->getRepoKey(), $id),
+            $value
         );
 
         return $this;

@@ -71,23 +71,25 @@ class FormService
     protected function populateFormErrors(FormInterface $form, &$errors, $prefix = null)
     {
         if (null !== $prefix) {
-            $currentPrefix = ($prefix ? ($prefix . '.') : '') . $form->getName();
+            $currentPrefix = ($prefix ? ($prefix.'.') : '').$form->getName();
         } else {
             $currentPrefix = '';
         }
 
         if (null !== $prefix) {
             foreach ($form->getErrors() as $error) {
-                if (false === isset($errors[$currentPrefix])) $errors[$currentPrefix] = array();
+                if (false === isset($errors[$currentPrefix])) {
+                    $errors[$currentPrefix] = array();
+                }
                 if (method_exists($error, 'getMessage')) {
                     $errors[$currentPrefix][] = $error->getMessage();
                 } else {
-                    $errors[$currentPrefix][] = (string)$error;
+                    $errors[$currentPrefix][] = (string) $error;
                 }
             }
         }
 
-        foreach($form->all() as $child) {
+        foreach ($form->all() as $child) {
             $this->populateFormErrors($child, $errors, $currentPrefix);
         }
 
@@ -100,11 +102,11 @@ class FormService
      */
     public function getErrorsAsString(FormValidationException $exception)
     {
-        $t = 'Data validation errors: ' . PHP_EOL;
-        foreach($this->getFormErrorsFromException($exception) as $key => $errors) {
-            $t .= sprintf('  %s:', !$key ? 'general' : $key) . PHP_EOL;
-            foreach($errors as $error) {
-                $t .= sprintf('    - %s', $error) . PHP_EOL;
+        $t = 'Data validation errors: '.PHP_EOL;
+        foreach ($this->getFormErrorsFromException($exception) as $key => $errors) {
+            $t .= sprintf('  %s:', !$key ? 'general' : $key).PHP_EOL;
+            foreach ($errors as $error) {
+                $t .= sprintf('    - %s', $error).PHP_EOL;
             }
         }
 
@@ -124,13 +126,21 @@ class FormService
      */
     public function validate($type, $mode, $data, $cleanData = [], $clearMissing = true, $options = [])
     {
-        if (!$clearMissing) foreach ($data as $k => $v) if (null === $v) unset($data[$k]);
+        if (!$clearMissing) {
+            foreach ($data as $k => $v) {
+                if (null === $v) {
+                    unset($data[$k]);
+                }
+            }
+        }
 
         $form = $this->createForm($type, $mode, $cleanData, $options);
 
         $form->submit($cleanData + (is_array($data) ? $data : []), $clearMissing);
 
-        if (!$form->isValid()) throw new FormValidationException($form);
+        if (!$form->isValid()) {
+            throw new FormValidationException($form);
+        }
 
         return $form->getData();
     }
@@ -146,10 +156,10 @@ class FormService
         $builder = null;
 
         $namespaces =
-            ['AppBundle\\Form\\Type', str_replace('/', '\\', dirname(str_replace('\\', '/', __NAMESPACE__)) . '/Form/Type')]
+            ['AppBundle\\Form\\Type', str_replace('/', '\\', dirname(str_replace('\\', '/', __NAMESPACE__)).'/Form/Type')]
         ;
 
-        foreach($namespaces as $ns) {
+        foreach ($namespaces as $ns) {
             $formTypeClasses = [
                 sprintf('%s\\%s%sType', $ns, str_replace(' ', '', ucwords(str_replace('.', ' ', $type))), ucfirst($mode)),
                 sprintf('%s\\%sType', $ns, str_replace(' ', '', ucwords(str_replace('.', ' ', $type)))),
@@ -157,7 +167,7 @@ class FormService
 
             $builder = null;
 
-            foreach($formTypeClasses as $formTypeClass) {
+            foreach ($formTypeClasses as $formTypeClass) {
                 if (class_exists($formTypeClass, true)) {
                     $builder = $this->getFormFactory()->createBuilder(new $formTypeClass($cleanData), null, [
                         'csrf_protection' => false,

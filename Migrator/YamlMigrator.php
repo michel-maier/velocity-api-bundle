@@ -47,7 +47,7 @@ class YamlMigrator implements MigratorInterface, ContainerAwareInterface, Logger
         $data = Yaml::parse(file_get_contents($path));
 
         if (isset($data['db']) && is_array($data['db'])) {
-            foreach($data['db'] as $type => $items) {
+            foreach ($data['db'] as $type => $items) {
                 $subSubType = null;
                 $officialType = $type;
                 if (substr_count($type, '_') > 1) {
@@ -55,7 +55,7 @@ class YamlMigrator implements MigratorInterface, ContainerAwareInterface, Logger
                     $subSubType = substr($type, strpos($type, '_', strpos($type, '_') + 1) + 1);
                 }
                 $service = $this->getContainer()->get(sprintf('app.%s', str_replace('_', '.', $officialType)));
-                foreach($items as $id => $item) {
+                foreach ($items as $id => $item) {
                     $propertyName = null;
                     if (!is_numeric($id) && !isset($item['id'])) {
                         if (false !== strpos($id, '/')) {
@@ -75,7 +75,7 @@ class YamlMigrator implements MigratorInterface, ContainerAwareInterface, Logger
                             if (isset($item['id']) && 'index' === $item['id']) {
                                 unset($item['id']);
                                 $indexList = [];
-                                foreach($item as $kkk => $vvv) {
+                                foreach ($item as $kkk => $vvv) {
                                     $indexList[] = is_string($vvv) ? $vvv : $vvv['field'];
                                 }
                                 $this->log(sprintf("  + @index %s (%s)", $type, join(',', $indexList)), 'info');
@@ -94,11 +94,11 @@ class YamlMigrator implements MigratorInterface, ContainerAwareInterface, Logger
                                         $service->create($item);
                                     }
                                 } else {
-                                    $this->log(sprintf("  + %s %s", $type, is_numeric($id) ? reset($item) : (string)$id), 'info');
+                                    $this->log(sprintf("  + %s %s", $type, is_numeric($id) ? reset($item) : (string) $id), 'info');
                                     $service->create($item);
                                 }
                             } elseif (!$service->has($item['id'])) {
-                                $this->log(sprintf("  + %s %s", $type, is_numeric($id) ? reset($item) : (string)$id), 'info');
+                                $this->log(sprintf("  + %s %s", $type, is_numeric($id) ? reset($item) : (string) $id), 'info');
                                 $service->create($item);
                             } else {
                                 $itemId = $item['id'];
@@ -135,7 +135,7 @@ class YamlMigrator implements MigratorInterface, ContainerAwareInterface, Logger
                             $method = sprintf('has%s', ucfirst($subSubType));
                             if (!method_exists($service, $method) || !$service->$method($itemId, $subItemId, $subSubItemId)) {
                                 $item['id'] = $subSubItemId;
-                                $service->{'create' . ucfirst($subSubType)}($itemId, $subItemId, $item);
+                                $service->{'create'.ucfirst($subSubType)}($itemId, $subItemId, $item);
                             } else {
                                 unset($item['id']);
                                 $service->update($itemId, $subItemId, $subSubItemId, $item);

@@ -64,10 +64,12 @@ class DecoratedClientService implements ClientProviderInterface
      */
     protected function unformat($formattedValue)
     {
-        switch($this->getParameter('format')) {
-            case 'base64': return base64_decode($formattedValue);
+        switch ($this->getParameter('format')) {
+            case 'base64':
+                return base64_decode($formattedValue);
             default:
-            case 'raw': return $formattedValue;
+            case 'raw':
+                return $formattedValue;
         }
     }
 }

@@ -71,8 +71,8 @@ class PayPalCreateOrderFailedException extends PayPalException
     {
         $errors = [];
 
-        foreach($response->Errors as $error) {
-            $errors[] = (array)$error;
+        foreach ($response->Errors as $error) {
+            $errors[] = (array) $error;
         }
 
         return $errors;

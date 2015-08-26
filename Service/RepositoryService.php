@@ -89,7 +89,9 @@ class RepositoryService implements RepositoryInterface
     {
         try {
             return $this->getDatabaseService()->bulkInsert(
-                $this->getCollectionName(), $bulkData, $options + ['new' => true]
+                $this->getCollectionName(),
+                $bulkData,
+                $options + ['new' => true]
             );
         } catch (MongoDuplicateKeyException $e) {
             throw $this->createException(
@@ -117,11 +119,14 @@ class RepositoryService implements RepositoryInterface
         }
 
         $doc = $this->getDatabaseService()->findOne(
-            $this->getCollectionName(), $id, $fields, $options
+            $this->getCollectionName(),
+            $id,
+            $fields,
+            $options
         );
 
         if (null === $doc) {
-            switch(count($id)) {
+            switch (count($id)) {
                 case 0:
                     throw $this->createException(
                         404,
@@ -132,13 +137,16 @@ class RepositoryService implements RepositoryInterface
                     throw $this->createException(
                         404,
                         "Unknown %s with %s '%s'",
-                        $this->getCollectionName(), array_keys($id)[0], array_values($id)[0]
+                        $this->getCollectionName(),
+                        array_keys($id)[0],
+                        array_values($id)[0]
                     );
                 default:
                     throw $this->createException(
                         404,
                         "Unknown %s with %s",
-                        $this->getCollectionName(), json_encode($id)
+                        $this->getCollectionName(),
+                        json_encode($id)
                     );
             }
         }
@@ -149,9 +157,9 @@ class RepositoryService implements RepositoryInterface
      * Retrieve specified document by specified field.
      *
      * @param string $fieldName
-     * @param mixed $fieldValue
-     * @param array $fields
-     * @param array $options
+     * @param mixed  $fieldValue
+     * @param array  $fields
+     * @param array  $options
      *
      * @return array
      *
@@ -183,7 +191,7 @@ class RepositoryService implements RepositoryInterface
 
         $document = null;
 
-        foreach($docs as $doc) {
+        foreach ($docs as $doc) {
             if ($current === $index) {
                 $document = $doc;
                 break;
@@ -208,7 +216,10 @@ class RepositoryService implements RepositoryInterface
         }
 
         return null !== $this->getDatabaseService()->findOne(
-            $this->getCollectionName(), $id, [], $options
+            $this->getCollectionName(),
+            $id,
+            [],
+            $options
         );
     }
     /**
@@ -249,7 +260,7 @@ class RepositoryService implements RepositoryInterface
     public function checkExist($id, $options = [])
     {
         if (!$this->has($id)) {
-            switch(count($id)) {
+            switch (count($id)) {
                 case 0:
                     throw $this->createException(
                         404,
@@ -260,13 +271,16 @@ class RepositoryService implements RepositoryInterface
                     throw $this->createException(
                         404,
                         "Unknown %s with %s '%s'",
-                        $this->getCollectionName(), array_keys($id)[0], array_values($id)[0]
+                        $this->getCollectionName(),
+                        array_keys($id)[0],
+                        array_values($id)[0]
                     );
                 default:
                     throw $this->createException(
                         404,
                         "Unknown %s with %s",
-                        $this->getCollectionName(), json_encode($id)
+                        $this->getCollectionName(),
+                        json_encode($id)
                     );
             }
         }
@@ -286,7 +300,7 @@ class RepositoryService implements RepositoryInterface
     public function checkNotExist($id, $options = [])
     {
         if ($this->has($id, $options)) {
-            switch(count($id)) {
+            switch (count($id)) {
                 case 0:
                     throw $this->createException(
                         412,
@@ -297,13 +311,16 @@ class RepositoryService implements RepositoryInterface
                     throw $this->createException(
                         412,
                         "%s with %s '%s' already exist",
-                        $this->getCollectionName(), array_keys($id)[0], array_values($id)[0]
+                        $this->getCollectionName(),
+                        array_keys($id)[0],
+                        array_values($id)[0]
                     );
                 default:
                     throw $this->createException(
                         412,
                         "%s with %s already exist",
-                        $this->getCollectionName(), json_encode($id)
+                        $this->getCollectionName(),
+                        json_encode($id)
                     );
             }
         }
@@ -326,22 +343,31 @@ class RepositoryService implements RepositoryInterface
     /**
      * Retrieve the documents matching the specified criteria, and optionally filter page.
      *
-     * @param array $criteria
-     * @param array $fields
+     * @param array    $criteria
+     * @param array    $fields
      * @param int|null $limit
-     * @param int $offset
-     * @param array $sorts
-     * @param array $options
+     * @param int      $offset
+     * @param array    $sorts
+     * @param array    $options
      *
      * @return MongoCursor
      */
     public function find(
-        $criteria = [], $fields = [], $limit = null, $offset = 0, $sorts = [],
+        $criteria = [],
+        $fields = [],
+        $limit = null,
+        $offset = 0,
+        $sorts = [],
         $options = []
-    )
-    {
+    )     {
         return $this->getDatabaseService()->find(
-            $this->getCollectionName(), $criteria, $fields, $limit, $offset, $sorts, $options
+            $this->getCollectionName(),
+            $criteria,
+            $fields,
+            $limit,
+            $offset,
+            $sorts,
+            $options
         );
     }
     /**
@@ -359,7 +385,9 @@ class RepositoryService implements RepositoryInterface
         }
 
         $this->getDatabaseService()->remove(
-            $this->getCollectionName(), $id, $options + ['justOne' => true]
+            $this->getCollectionName(),
+            $id,
+            $options + ['justOne' => true]
         );
 
         return $this;
@@ -467,8 +495,12 @@ class RepositoryService implements RepositoryInterface
             return $this;
         }
 
-        return $this->alter($id, [
-            '$inc' => array_map(function ($v) { return - $v;}, $values)],
+        return $this->alter(
+            $id,
+            [
+            '$inc' => array_map(function ($v) {
+                return - $v;
+            }, $values)],
             $options
         );
     }
@@ -501,7 +533,7 @@ class RepositoryService implements RepositoryInterface
     /**
      * Alter (raw update) the specified document with the specified data.
      *
-     * @param string|array $id primary key or criteria array
+     * @param string|array $id      primary key or criteria array
      * @param array        $data
      * @param array        $options
      *
@@ -512,7 +544,10 @@ class RepositoryService implements RepositoryInterface
         $criteria = is_array($id) ? $id : ['_id' => $id];
 
         return $this->getDatabaseService()->update(
-            $this->getCollectionName(), $criteria, $data, ['upsert' => false] + $options
+            $this->getCollectionName(),
+            $criteria,
+            $data,
+            ['upsert' => false] + $options
         );
     }
     /**
@@ -527,7 +562,7 @@ class RepositoryService implements RepositoryInterface
     {
         $docs = [];
 
-        foreach($bulkData as $id => $data) {
+        foreach ($bulkData as $id => $data) {
             $docs[$id] = $this->update($id, $data, $options);
         }
 
@@ -545,7 +580,7 @@ class RepositoryService implements RepositoryInterface
     {
         $properties  = [];
 
-        foreach($bulkIds as $id) {
+        foreach ($bulkIds as $id) {
             $properties[$id] = ['_id' => $id];
         }
 
@@ -569,8 +604,8 @@ class RepositoryService implements RepositoryInterface
         $document = $this->get($id, [$property], $options);
         $value    = $document;
 
-        foreach(explode('.', $property) as $key) {
-            if (!isset($value[$key]))
+        foreach (explode('.', $property) as $key) {
+            if (!isset($value[$key])) {
                 throw $this->createException(
                     412,
                     "Unknown %s in %s '%s'",
@@ -578,6 +613,7 @@ class RepositoryService implements RepositoryInterface
                     $this->getCollectionName(),
                     is_array($id) ? json_encode($id) : $id
                 );
+            }
 
             $value = $value[$key];
         }
@@ -598,7 +634,7 @@ class RepositoryService implements RepositoryInterface
         $document = $this->get($id, [$property], $options);
         $value    = $document;
 
-        foreach(explode('.', $property) as $key) {
+        foreach (explode('.', $property) as $key) {
             if (!isset($value[$key])) {
                 return false;
             }
@@ -656,7 +692,7 @@ class RepositoryService implements RepositoryInterface
      */
     public function createIndexes($indexes, $options = [])
     {
-        foreach($indexes as $index) {
+        foreach ($indexes as $index) {
             if (is_string($index)) {
                 $index = ['field' => $index];
             }

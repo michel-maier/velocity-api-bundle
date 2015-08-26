@@ -37,13 +37,14 @@ class DatabaseService
         $this->setMongoClient($mongoClient);
 
         if (true === $randomDatabaseName) {
-            $databaseName .= '_' . ((int)microtime(true)) . '_' . substr(md5(rand(0, 10000)), -8);
+            $databaseName .= '_'.((int) microtime(true)).'_'.substr(md5(rand(0, 10000)), -8);
         }
 
         if (64 <= strlen($databaseName)) {
             throw $this->createException(
                 500,
-                "Database name is too long, maximum is 64 characters (found: %d)", strlen($databaseName)
+                "Database name is too long, maximum is 64 characters (found: %d)",
+                strlen($databaseName)
             );
         }
         
@@ -159,7 +160,7 @@ class DatabaseService
         }
 
         if (isset($criteria['$or']) && is_array($criteria['$or'])) {
-            foreach($criteria['$or'] as $a => $b) {
+            foreach ($criteria['$or'] as $a => $b) {
                 if (isset($b['_id'])) {
                     $criteria['$or'][$a]['_id'] = $this->ensureMongoId($b['_id']);
                 }
@@ -200,7 +201,7 @@ class DatabaseService
             return [];
         }
 
-        foreach($bulkData as $a => $b) {
+        foreach ($bulkData as $a => $b) {
             $bulkData[$a] = $this->buildData($b);
         }
 
@@ -284,18 +285,30 @@ class DatabaseService
      * @return \MongoCursor
      */
     public function find(
-        $collection, $criteria = [], $fields = [], $limit = null, $offset = 0,
-        $sorts = [], $options = []
-    )
-    {
+        $collection,
+        $criteria = [],
+        $fields = [],
+        $limit = null,
+        $offset = 0,
+        $sorts = [],
+        $options = []
+    )     {
         $cursor = $this->getCollection($collection, $options)->find(
             $this->buildCriteria($criteria)
         );
 
-        if (is_array($fields)   && count($fields)) $cursor->fields($fields);
-        if (is_array($sorts)    && count($sorts))  $cursor->sort($sorts);
-        if (is_numeric($offset) && $offset > 0)    $cursor->skip($offset);
-        if (is_numeric($limit)  && $limit > 0)     $cursor->limit($limit);
+        if (is_array($fields)   && count($fields)) {
+            $cursor->fields($fields);
+        }
+        if (is_array($sorts)    && count($sorts)) {
+            $cursor->sort($sorts);
+        }
+        if (is_numeric($offset) && $offset > 0) {
+            $cursor->skip($offset);
+        }
+        if (is_numeric($limit)  && $limit > 0) {
+            $cursor->limit($limit);
+        }
 
         return $cursor;
     }

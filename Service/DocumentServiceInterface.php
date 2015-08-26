@@ -39,7 +39,12 @@ interface DocumentServiceInterface
      * @return mixed
      */
     public function find(
-        $criteria = [], $fields = [], $limit = null, $offset = 0, $sorts = [], $options = []
+        $criteria = [],
+        $fields = [],
+        $limit = null,
+        $offset = 0,
+        $sorts = [],
+        $options = []
     );
     /**
      * Retrieve the documents matching the specified criteria and return a page with total count.
@@ -54,7 +59,12 @@ interface DocumentServiceInterface
      * @return mixed
      */
     public function findWithTotal(
-        $criteria = [], $fields = [], $limit = null, $offset = 0, $sorts = [], $options = []
+        $criteria = [],
+        $fields = [],
+        $limit = null,
+        $offset = 0,
+        $sorts = [],
+        $options = []
     );
     /**
      * Return the specified document.
@@ -90,9 +100,9 @@ interface DocumentServiceInterface
     /**
      * Return the list of the specified documents.
      *
-     * @param array  $ids
-     * @param array  $fields
-     * @param array  $options
+     * @param array $ids
+     * @param array $fields
+     * @param array $options
      *
      * @return mixed
      */

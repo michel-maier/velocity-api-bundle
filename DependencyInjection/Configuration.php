@@ -114,7 +114,9 @@ class Configuration implements ConfigurationInterface
     {
         $rootNode
             ->beforeNormalization()
-                ->always(function ($v) { return $v + ['recipients' => []]; })
+                ->always(function ($v) {
+                    return $v + ['recipients' => []];
+                })
             ->end()
             ->children()
                 ->arrayNode('recipients')
@@ -122,9 +124,15 @@ class Configuration implements ConfigurationInterface
                         ->prototype('array')
                             ->beforeNormalization()
                                 ->always(function ($v) {
-                                    if (!is_array($v)) $v = [];
-                                    if (!isset($v['envs'])) $v += ['envs' => ['*']];
-                                    if (!isset($v['types'])) $v += ['types' => ['*']];
+                                    if (!is_array($v)) {
+                                        $v = [];
+                                    }
+                                    if (!isset($v['envs'])) {
+                                        $v += ['envs' => ['*']];
+                                    }
+                                    if (!isset($v['types'])) {
+                                        $v += ['types' => ['*']];
+                                    }
                                     return $v;
                                 })
                             ->end()
@@ -155,7 +163,9 @@ class Configuration implements ConfigurationInterface
     {
         $rootNode
             ->beforeNormalization()
-                ->always(function ($v) { return $v + ['events' => []]; })
+                ->always(function ($v) {
+                    return $v + ['events' => []];
+                })
             ->end()
             ->children()
                 ->arrayNode('events')
@@ -165,7 +175,9 @@ class Configuration implements ConfigurationInterface
                                 ->prototype('array')
                                     ->beforeNormalization()
                                         ->always(function ($v) {
-                                            if (null === $v) $v = [];
+                                            if (null === $v) {
+                                                $v = [];
+                                            }
                                             if (is_string($v)) {
                                                 if (preg_match('/^([^\(]+)\(([^\)]*)\)$/', $v, $matches)) {
                                                     $v = ['action' => $matches[1], 'params' => ['value' => $matches[2]]];
@@ -173,7 +185,9 @@ class Configuration implements ConfigurationInterface
                                                     $v = ['action' => $v];
                                                 }
                                             }
-                                            if (!is_array($v)) $v = [];
+                                            if (!is_array($v)) {
+                                                $v = [];
+                                            }
                                             return $v;
                                         })
                                     ->end()

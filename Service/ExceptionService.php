@@ -43,7 +43,7 @@ class ExceptionService
     }
     /**
      * @param RequestStack $requestStack
-     * 
+     *
      * @return $this
      */
     public function setRequestStack(RequestStack $requestStack)
@@ -69,7 +69,9 @@ class ExceptionService
         $info = $this->describe($e);
 
         return new JsonResponse(
-            $info['data'], null !== $code ? $code : $info['code'], $headers + $info['headers']
+            $info['data'],
+            null !== $code ? $code : $info['code'],
+            $headers + $info['headers']
         );
     }
     /**
@@ -94,7 +96,7 @@ class ExceptionService
             'message' => $e->getMessage(),
         ];
 
-        switch(true) {
+        switch (true) {
             case $e instanceof MethodNotAllowedHttpException:
                 $code = 403;
                 $data['code'] = 403;

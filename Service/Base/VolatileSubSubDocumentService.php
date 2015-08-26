@@ -103,7 +103,7 @@ class VolatileSubSubDocumentService
             return $this;
         }
 
-        return $this->dispatch($this->buildEventName($event), [($this->getType() . 'Id') => $pParentId, ($this->getSubType() . 'Id') => $parentId] + $data);
+        return $this->dispatch($this->buildEventName($event), [($this->getType().'Id') => $pParentId, ($this->getSubType().'Id') => $parentId] + $data);
     }
     /**
      * Test if specified document event has registered event listeners.
@@ -133,7 +133,9 @@ class VolatileSubSubDocumentService
         unset($parentId);
 
         return $this->getMetaDataService()->callback(
-            $this->buildEventName($key), $subject, $options
+            $this->buildEventName($key),
+            $subject,
+            $options
         );
     }
     /**
@@ -233,13 +235,13 @@ class VolatileSubSubDocumentService
         $docs   = [];
         $arrays = [];
 
-        foreach($bulkData as $i => $data) {
+        foreach ($bulkData as $i => $data) {
             list($doc, $array) = $this->prepareCreate($pParentId, $parentId, $data, $options);
             $docs[$i]   = $doc;
             $arrays[$i] = $array;
         }
 
-        foreach($arrays as $i => $array) {
+        foreach ($arrays as $i => $array) {
             unset($arrays[$i]);
             $this->completeCreate($pParentId, $parentId, $docs[$i], $array, $options);
         }

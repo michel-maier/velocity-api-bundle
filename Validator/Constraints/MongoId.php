@@ -30,5 +30,4 @@ class MongoId extends Constraint
     {
         return 'velocity_mongoId';
     }
-
 }

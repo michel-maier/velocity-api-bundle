@@ -70,14 +70,14 @@ class VelocityService
             'param.events'            => [],
 
             // classes
-            'repo.class'              => __NAMESPACE__ . '\\RepositoryService',
-            'crud.class'              => __NAMESPACE__ . '\\Base\\DocumentService',
-            'crud.sub.class'          => __NAMESPACE__ . '\\Base\\SubDocumentService',
-            'crud.sub.sub.class'      => __NAMESPACE__ . '\\Base\\SubSubDocumentService',
-            'volatile.class'          => __NAMESPACE__ . '\\Base\\VolatileDocumentService',
-            'volatile.sub.class'      => __NAMESPACE__ . '\\Base\\VolatileSubDocumentService',
-            'volatile.sub.sub.class'  => __NAMESPACE__ . '\\Base\\VolatileSubSubDocumentService',
-            'decorated_client.class'  => __NAMESPACE__ . '\\DecoratedClientService',
+            'repo.class'              => __NAMESPACE__.'\\RepositoryService',
+            'crud.class'              => __NAMESPACE__.'\\Base\\DocumentService',
+            'crud.sub.class'          => __NAMESPACE__.'\\Base\\SubDocumentService',
+            'crud.sub.sub.class'      => __NAMESPACE__.'\\Base\\SubSubDocumentService',
+            'volatile.class'          => __NAMESPACE__.'\\Base\\VolatileDocumentService',
+            'volatile.sub.class'      => __NAMESPACE__.'\\Base\\VolatileSubDocumentService',
+            'volatile.sub.sub.class'  => __NAMESPACE__.'\\Base\\VolatileSubSubDocumentService',
+            'decorated_client.class'  => __NAMESPACE__.'\\DecoratedClientService',
 
             // interfaces
             'container_aware.interface' => 'Symfony\\Component\\DependencyInjection\\ContainerAwareInterface',
@@ -102,8 +102,8 @@ class VelocityService
 
         ];
 
-        foreach($defaults as $k => $v) {
-            $this->setParameter('default_' . $k, $v);
+        foreach ($defaults as $k => $v) {
+            $this->setParameter('default_'.$k, $v);
         }
     }
     /**
@@ -115,10 +115,10 @@ class VelocityService
     protected function getDefault($key, $defaultValue = null)
     {
         if (null !== $defaultValue) {
-            return $this->getParameterIfExists('default_' . $key, $defaultValue);
+            return $this->getParameterIfExists('default_'.$key, $defaultValue);
         }
 
-        return $this->getParameter('default_' . $key);
+        return $this->getParameter('default_'.$key);
     }
     /**
      * @param AnnotationReader $reader
@@ -138,7 +138,7 @@ class VelocityService
     }
     /**
      * @param ContainerBuilder $container
-     * @param KernelInterface $kernel
+     * @param KernelInterface  $kernel
      *
      * @return $this
      */
@@ -173,7 +173,7 @@ class VelocityService
 
         $classes = [];
 
-        foreach($trackedBundles as $trackedBundle) {
+        foreach ($trackedBundles as $trackedBundle) {
             $classes = array_merge(
                 $classes,
                 $this->findVelocityAnnotatedClassesInDirectory($kernel->getBundle($trackedBundle)->getPath())
@@ -187,7 +187,7 @@ class VelocityService
     }
     /**
      * @param array      $classes
-     * @param Definition $m MetaData service definition
+     * @param Definition $m       MetaData service definition
      *
      * @return $this
      *
@@ -197,7 +197,7 @@ class VelocityService
         foreach ($classes as $class) {
             $rClass = new \ReflectionClass($class);
             foreach ($this->getAnnotationReader()->getClassAnnotations($rClass) as $a) {
-                switch(true) {
+                switch (true) {
                     case $a instanceof Velocity\Model:
                         $m->addMethodCall('addModel', [$class, []]);
                         break;
@@ -207,7 +207,7 @@ class VelocityService
                 foreach ($this->getAnnotationReader()->getPropertyAnnotations($rProperty) as $a) {
                     $vars     = get_object_vars($a);
                     $property = $rProperty->getName();
-                    switch(true) {
+                    switch (true) {
                         case $a instanceof Velocity\EmbeddedReference:
                             $m->addMethodCall('addModelPropertyEmbeddedReference', [$class, $property, $vars]);
                             break;
@@ -253,18 +253,18 @@ class VelocityService
 
         $classes = [];
 
-        foreach($f as $file) {
+        foreach ($f as $file) {
             $matches = null;
             $ns = null;
             /** @var SplFileInfo $file */
             $content = $file->getContents();
             if (0 < preg_match('/namespace\s+([^\s;]+)\s*;/', $content, $matches)) {
-                $ns = $matches[1] . '\\';
+                $ns = $matches[1].'\\';
             }
             if (0 < preg_match_all('/^\s*class\s+([^\s\:]+)\s+/m', $content, $matches)) {
                 require_once $file->getRealPath();
-                foreach($matches[1] as $class) {
-                    $fullClass = $ns . $class;
+                foreach ($matches[1] as $class) {
+                    $fullClass = $ns.$class;
                     if (!$this->isVelocityAnnotatedClass($fullClass)) {
                         continue;
                     }
@@ -287,17 +287,23 @@ class VelocityService
     {
         $rClass = new ReflectionClass($class);
 
-        foreach($this->getAnnotationReader()->getClassAnnotations($rClass) as $a) {
-            if ($a instanceof Velocity\AnnotationInterface) return true;
-        }
-        foreach($rClass->getMethods() as $rMethod) {
-            foreach($this->getAnnotationReader()->getMethodAnnotations($rMethod) as $a) {
-                if ($a instanceof Velocity\AnnotationInterface) return true;
+        foreach ($this->getAnnotationReader()->getClassAnnotations($rClass) as $a) {
+            if ($a instanceof Velocity\AnnotationInterface) {
+                return true;
             }
         }
-        foreach($rClass->getProperties() as $rProperty) {
-            foreach($this->getAnnotationReader()->getPropertyAnnotations($rProperty) as $a) {
-                if ($a instanceof Velocity\AnnotationInterface) return true;
+        foreach ($rClass->getMethods() as $rMethod) {
+            foreach ($this->getAnnotationReader()->getMethodAnnotations($rMethod) as $a) {
+                if ($a instanceof Velocity\AnnotationInterface) {
+                    return true;
+                }
+            }
+        }
+        foreach ($rClass->getProperties() as $rProperty) {
+            foreach ($this->getAnnotationReader()->getPropertyAnnotations($rProperty) as $a) {
+                if ($a instanceof Velocity\AnnotationInterface) {
+                    return true;
+                }
             }
         }
 
@@ -335,7 +341,9 @@ class VelocityService
         foreach ($this->findVelocityTaggedServiceIds($container, 'repo') as $id => $attributes) {
             $typeName = substr($id, strrpos($id, '.') + 1);
             $d = $container->getDefinition($id);
-            if (!$d->getClass()) $d->setClass($this->getDefault('repo.class'));
+            if (!$d->getClass()) {
+                $d->setClass($this->getDefault('repo.class'));
+            }
             $params = array_shift($attributes);
             $d->addMethodCall('setCollectionName', [isset($params['collection']) ? $params['collection'] : $typeName]);
             $this->addLoggerSetterCall($d);
@@ -358,7 +366,9 @@ class VelocityService
             $d = $container->getDefinition($id);
             $this->ensureDefinitionClassSet($d, 'crud');
             $repositoryId = $this->buildRepoId(array_shift($attributes), $type);
-            if (!$container->has($repositoryId)) $this->createRepositoryDefinition($container, $repositoryId);
+            if (!$container->has($repositoryId)) {
+                $this->createRepositoryDefinition($container, $repositoryId);
+            }
             $d->addMethodCall('setType', [$type]);
             $this->addRepositorySetterCall($d, $repositoryId);
             $this->addFormSetterCall($d);
@@ -368,36 +378,36 @@ class VelocityService
 
             $rClass = new ReflectionClass($d->getClass());
 
-            foreach($rClass->getMethods(\ReflectionMethod::IS_PUBLIC) as $rMethod) {
+            foreach ($rClass->getMethods(\ReflectionMethod::IS_PUBLIC) as $rMethod) {
                 foreach ($this->getAnnotationReader()->getMethodAnnotations($rMethod) as $a) {
                     $method = $rMethod->getName();
                     switch (true) {
                         case $a instanceof Velocity\Callback:
-                            $m->addMethodCall('addCallback', ['.' === $a->value{0} ? ($type . $a->value) : $a->value, [$this->ref($id), $method]]);
+                            $m->addMethodCall('addCallback', ['.' === $a->value{0} ? ($type.$a->value) : $a->value, [$this->ref($id), $method]]);
                             break;
                         case $a instanceof Velocity\Callback\AfterSave:
-                            $m->addMethodCall('addCallback', ['.' === $a->value{0} ? ($type . $a->value) : $a->value, [$this->ref($id), $method]]);
+                            $m->addMethodCall('addCallback', ['.' === $a->value{0} ? ($type.$a->value) : $a->value, [$this->ref($id), $method]]);
                             break;
                         case $a instanceof Velocity\Callback\BeforeCreateSave:
-                            $m->addMethodCall('addCallback', ['.' === $a->value{0} ? ($type . $a->value) : $a->value, [$this->ref($id), $method]]);
+                            $m->addMethodCall('addCallback', ['.' === $a->value{0} ? ($type.$a->value) : $a->value, [$this->ref($id), $method]]);
                             break;
                         case $a instanceof Velocity\Callback\BeforeDelete:
-                            $m->addMethodCall('addCallback', ['.' === $a->value{0} ? ($type . $a->value) : $a->value, [$this->ref($id), $method]]);
+                            $m->addMethodCall('addCallback', ['.' === $a->value{0} ? ($type.$a->value) : $a->value, [$this->ref($id), $method]]);
                             break;
                         case $a instanceof Velocity\Callback\BeforeSave:
-                            $m->addMethodCall('addCallback', ['.' === $a->value{0} ? ($type . $a->value) : $a->value, [$this->ref($id), $method]]);
+                            $m->addMethodCall('addCallback', ['.' === $a->value{0} ? ($type.$a->value) : $a->value, [$this->ref($id), $method]]);
                             break;
                         case $a instanceof Velocity\Callback\Created:
-                            $m->addMethodCall('addCallback', ['.' === $a->value{0} ? ($type . $a->value) : $a->value, [$this->ref($id), $method]]);
+                            $m->addMethodCall('addCallback', ['.' === $a->value{0} ? ($type.$a->value) : $a->value, [$this->ref($id), $method]]);
                             break;
                         case $a instanceof Velocity\Callback\Deleted:
-                            $m->addMethodCall('addCallback', ['.' === $a->value{0} ? ($type . $a->value) : $a->value, [$this->ref($id), $method]]);
+                            $m->addMethodCall('addCallback', ['.' === $a->value{0} ? ($type.$a->value) : $a->value, [$this->ref($id), $method]]);
                             break;
                         case $a instanceof Velocity\Callback\Saved:
-                            $m->addMethodCall('addCallback', ['.' === $a->value{0} ? ($type . $a->value) : $a->value, [$this->ref($id), $method]]);
+                            $m->addMethodCall('addCallback', ['.' === $a->value{0} ? ($type.$a->value) : $a->value, [$this->ref($id), $method]]);
                             break;
                         case $a instanceof Velocity\Callback\Updated:
-                            $m->addMethodCall('addCallback', ['.' === $a->value{0} ? ($type . $a->value) : $a->value, [$this->ref($id), $method]]);
+                            $m->addMethodCall('addCallback', ['.' === $a->value{0} ? ($type.$a->value) : $a->value, [$this->ref($id), $method]]);
                             break;
                     }
                 }
@@ -483,12 +493,12 @@ class VelocityService
 
             $rClass = new ReflectionClass($d->getClass());
 
-            foreach($rClass->getMethods(\ReflectionMethod::IS_PUBLIC) as $rMethod) {
+            foreach ($rClass->getMethods(\ReflectionMethod::IS_PUBLIC) as $rMethod) {
                 foreach ($this->getAnnotationReader()->getMethodAnnotations($rMethod) as $a) {
                     $method = $rMethod->getName();
                     switch (true) {
                         case $a instanceof Velocity\Callback:
-                            $m->addMethodCall('addCallback', ['.' === $a->value{0} ? ($type . $a->value) : $a->value, [$this->ref($id), $method]]);
+                            $m->addMethodCall('addCallback', ['.' === $a->value{0} ? ($type.$a->value) : $a->value, [$this->ref($id), $method]]);
                             break;
                     }
                 }
@@ -517,12 +527,12 @@ class VelocityService
 
             $rClass = new ReflectionClass($d->getClass());
 
-            foreach($rClass->getMethods(\ReflectionMethod::IS_PUBLIC) as $rMethod) {
+            foreach ($rClass->getMethods(\ReflectionMethod::IS_PUBLIC) as $rMethod) {
                 foreach ($this->getAnnotationReader()->getMethodAnnotations($rMethod) as $a) {
                     $method = $rMethod->getName();
                     switch (true) {
                         case $a instanceof Velocity\Callback:
-                            $m->addMethodCall('addCallback', ['.' === $a->value{0} ? ($type . '.' . $subType . $a->value) : $a->value, [$this->ref($id), $method]]);
+                            $m->addMethodCall('addCallback', ['.' === $a->value{0} ? ($type.'.'.$subType.$a->value) : $a->value, [$this->ref($id), $method]]);
                             break;
                     }
                 }
@@ -552,12 +562,12 @@ class VelocityService
 
             $rClass = new ReflectionClass($d->getClass());
 
-            foreach($rClass->getMethods(\ReflectionMethod::IS_PUBLIC) as $rMethod) {
+            foreach ($rClass->getMethods(\ReflectionMethod::IS_PUBLIC) as $rMethod) {
                 foreach ($this->getAnnotationReader()->getMethodAnnotations($rMethod) as $a) {
                     $method = $rMethod->getName();
                     switch (true) {
                         case $a instanceof Velocity\Callback:
-                            $m->addMethodCall('addCallback', ['.' === $a->value{0} ? ($type . '.' . $subType . '.' . $subSubType . $a->value) : $a->value, [$this->ref($id), $method]]);
+                            $m->addMethodCall('addCallback', ['.' === $a->value{0} ? ($type.'.'.$subType.'.'.$subSubType.$a->value) : $a->value, [$this->ref($id), $method]]);
                             break;
                     }
                 }
@@ -574,7 +584,7 @@ class VelocityService
         $userProviderDefinition = $container->getDefinition($this->getDefault('user_provider.default.key'));
 
         foreach ($this->findVelocityTaggedServiceIds($container, 'account_provider') as $id => $attrs) {
-            foreach($attrs as $params) {
+            foreach ($attrs as $params) {
                 $type   = isset($params['type']) ? $params['type'] : 'default';
                 $method = isset($params['method']) ? $params['method'] : 'get';
                 $format = isset($params['format']) ? $params['format'] : 'plain';
@@ -617,11 +627,15 @@ class VelocityService
 
         foreach ($this->findVelocityTaggedServiceIds($container, 'migrator') as $id => $attributes) {
             $d = $container->getDefinition($id);
-            foreach($attributes as $params) {
+            foreach ($attributes as $params) {
                 $extension = $params['extension'];
                 $rClass = new \ReflectionClass($d->getClass());
-                if ($rClass->isSubclassOf($containerAwareInterface)) $this->addContainerSetterCall($d);
-                if ($rClass->isSubclassOf($loggerAwareInterface)) $this->addLoggerSetterCall($d);
+                if ($rClass->isSubclassOf($containerAwareInterface)) {
+                    $this->addContainerSetterCall($d);
+                }
+                if ($rClass->isSubclassOf($loggerAwareInterface)) {
+                    $this->addLoggerSetterCall($d);
+                }
                 $migrationServiceDefinition->addMethodCall('addMigrator', [$this->ref($id), $extension]);
             }
         }
@@ -637,14 +651,14 @@ class VelocityService
 
         foreach ($this->findVelocityTaggedServiceIds($container, 'event_action') as $id => $attributes) {
             $d = $container->getDefinition($id);
-            foreach($attributes as $params) {
+            foreach ($attributes as $params) {
                 unset($params);
                 $rClass = new \ReflectionClass($d->getClass());
                 foreach ($rClass->getMethods(\ReflectionProperty::IS_PUBLIC) as $rMethod) {
                     foreach ($this->getAnnotationReader()->getMethodAnnotations($rMethod) as $a) {
                         $vars   = get_object_vars($a);
                         $method = $rMethod->getName();
-                        switch(true) {
+                        switch (true) {
                             case $a instanceof Velocity\EventAction:
                                 $name = $vars['value'];
                                 unset($vars['value']);
@@ -667,14 +681,14 @@ class VelocityService
 
         foreach ($this->findVelocityTaggedServiceIds($container, 'generator') as $id => $attributes) {
             $d = $container->getDefinition($id);
-            foreach($attributes as $params) {
+            foreach ($attributes as $params) {
                 unset($params);
                 $rClass = new \ReflectionClass($d->getClass());
                 foreach ($rClass->getMethods(\ReflectionProperty::IS_PUBLIC) as $rMethod) {
                     foreach ($this->getAnnotationReader()->getMethodAnnotations($rMethod) as $a) {
                         $vars   = get_object_vars($a);
                         $method = $rMethod->getName();
-                        switch(true) {
+                        switch (true) {
                             case $a instanceof Velocity\Generator:
                                 $name = $vars['value'];
                                 unset($vars['value']);
@@ -724,19 +738,21 @@ class VelocityService
      */
     protected function ensureDefinitionClassSet(Definition $definition, $defaultClassType)
     {
-        if ($definition->getClass()) return;
+        if ($definition->getClass()) {
+            return;
+        }
 
-        $definition->setClass($this->getDefault($defaultClassType . '.class'));
+        $definition->setClass($this->getDefault($defaultClassType.'.class'));
     }
     /**
      * @param ContainerBuilder $container
      * @param string           $tagAlias
-     * 
+     *
      * @return array
      */
     protected function findVelocityTaggedServiceIds(ContainerBuilder $container, $tagAlias)
     {
-        return $container->findTaggedServiceIds($this->getDefault($tagAlias . '.tag'));        
+        return $container->findTaggedServiceIds($this->getDefault($tagAlias.'.tag'));
     }
     /**
      * @param string $alias
@@ -745,11 +761,11 @@ class VelocityService
      */
     protected function getServiceKey($alias)
     {
-        return $this->getDefault($alias . '.key', $alias);
+        return $this->getDefault($alias.'.key', $alias);
     }
     /**
      * @param $alias
-     * 
+     *
      * @return Reference
      */
     protected function ref($alias)
@@ -773,10 +789,10 @@ class VelocityService
     {
         $ea = $container->getDefinition($this->getServiceKey('eventAction'));
 
-        foreach($container->getParameter($this->getDefault('param.events.key', $this->getDefault('param.events'))) as $eventName => $info) {
+        foreach ($container->getParameter($this->getDefault('param.events.key', $this->getDefault('param.events'))) as $eventName => $info) {
             $eventName = false === strpos($eventName, '.') ? str_replace('_', '.', $eventName) : $eventName;
             $ea->addTag('kernel.event_listener', ['event' => $eventName, 'method' => 'consume']);
-            foreach($info['actions'] as $action) {
+            foreach ($info['actions'] as $action) {
                 $ea->addMethodCall('addEventAction', [$eventName, $action['action'], $action['params']]);
             }
         }

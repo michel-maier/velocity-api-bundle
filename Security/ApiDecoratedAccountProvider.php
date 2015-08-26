@@ -40,7 +40,7 @@ class ApiDecoratedAccountProvider
         }
 
         $this->setParameter('accountProvider', $accountProvider);
-        $this->setParameter('method',          $method);
+        $this->setParameter('method', $method);
     }
     /**
      * Return the specified account.
