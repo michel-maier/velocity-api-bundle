@@ -31,12 +31,56 @@ class Configuration implements ConfigurationInterface
         $rootNode = $treeBuilder->root('velocity_api');
 
         $this
+            ->addFrontSection($rootNode)
+            ->addSendersSection($rootNode)
             ->addModelsSection($rootNode)
-            ->addEmailsSection($rootNode)
+            ->addRecipientsSection($rootNode)
             ->addEventsSection($rootNode)
         ;
 
         return $treeBuilder;
+    }
+    /**
+     * @param ArrayNodeDefinition $rootNode
+     *
+     * @return $this
+     */
+    protected function addFrontSection(ArrayNodeDefinition $rootNode)
+    {
+        $rootNode
+            ->children()
+                ->arrayNode('front')
+                    ->children()
+                        ->scalarNode('name')->end()
+                        ->scalarNode('url')->end()
+                    ->end()
+                ->end()
+            ->end()
+        ;
+
+        return $this;
+    }
+    /**
+     * @param ArrayNodeDefinition $rootNode
+     *
+     * @return $this
+     */
+    protected function addSendersSection(ArrayNodeDefinition $rootNode)
+    {
+        $rootNode
+            ->children()
+                ->arrayNode('senders')
+                    ->prototype('array')
+                        ->children()
+                            ->scalarNode('sender')->end()
+                            ->scalarNode('name')->end()
+                        ->end()
+                    ->end()
+                ->end()
+            ->end()
+        ;
+
+        return $this;
     }
     /**
      * @param ArrayNodeDefinition $rootNode
@@ -66,19 +110,19 @@ class Configuration implements ConfigurationInterface
      *
      * @return $this
      */
-    protected function addEmailsSection(ArrayNodeDefinition $rootNode)
+    protected function addRecipientsSection(ArrayNodeDefinition $rootNode)
     {
         $rootNode
             ->beforeNormalization()
-                ->always(function ($v) { return $v + ['emails' => []]; })
+                ->always(function ($v) { return $v + ['recipients' => []]; })
             ->end()
             ->children()
-                ->arrayNode('emails')
+                ->arrayNode('recipients')
                     ->prototype('array')
                         ->prototype('array')
                             ->beforeNormalization()
                                 ->always(function ($v) {
-                                    if (is_string($v)) $v = ['name' => $v];
+                                    if (!is_array($v)) $v = [];
                                     if (!isset($v['envs'])) $v += ['envs' => ['*']];
                                     if (!isset($v['types'])) $v += ['types' => ['*']];
                                     return $v;

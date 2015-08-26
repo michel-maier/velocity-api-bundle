@@ -34,11 +34,15 @@ class VelocityApiExtension extends Extension
         $configuration = new Configuration();
         $config = $this->processConfiguration($configuration, $configs);
 
+        $container->setParameter('app_variables', [
+            'front' => $config['front'],
+            'senders' => $config['senders'],
+        ]);
         $container->setParameter('app_models_bundles', $config['models']['bundles']);
         $container->setParameter('app_events', $config['events']);
 
-        foreach($config['emails'] as $type => $emails) {
-            $container->setParameter(sprintf('app_emails_%s', $type), $emails);
+        foreach($config['recipients'] as $type => $emails) {
+            $container->setParameter(sprintf('app_recipients_%s', $type), $emails);
         }
 
         $loader = new Loader\YamlFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));

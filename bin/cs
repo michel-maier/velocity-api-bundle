@@ -1,0 +1,3 @@
+#!/bin/bash
+
+bin/phpcs --standard=ruleset.xml --colors --encoding=UTF-8 -p $*

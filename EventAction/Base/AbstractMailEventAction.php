@@ -51,14 +51,23 @@ abstract class AbstractMailEventAction
         return [];
     }
     /**
+     * @param string $template
+     *
+     * @return string
+     */
+    protected function getTemplatePath($template)
+    {
+        return 'mail/'.$template.'.html.twig';
+    }
+    /**
      * @param array $mail
      *
      * @return array
      */
     protected function render($mail)
     {
-        $mail['content'] = $this->getTemplating()->render($mail['template'].'.html.twig', $mail['data']);
-        $mail['subject'] = $this->getTranslator()->trans(str_replace('/', '_', $mail['template']), 'mail');
+        $mail['content'] = $this->getTemplating()->render($this->getTemplatePath($mail['template']), $mail['data']);
+        $mail['subject'] = $this->getTranslator()->trans(str_replace('/', '_', $mail['template']), [], 'mail');
 
         unset($mail['template']);
         unset($mail['data']);

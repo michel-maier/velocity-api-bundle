@@ -68,4 +68,10 @@ services:
     class: Velocity\Bundle\ApiBundle\Service\AttachmentService
     arguments:
       - @velocity.generator
+  velocity.twig.extension.velocity:
+    class: Velocity\Bundle\ApiBundle\Twig\ApiExtension
+    arguments:
+      - %app_variables%
+    tags:
+      - {name: twig.extension}
 

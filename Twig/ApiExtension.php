@@ -19,6 +19,26 @@ use Velocity\Core\Twig\Base\TwigBaseExtension;
 class ApiExtension extends TwigBaseExtension
 {
     /**
+     * @var array
+     */
+    protected $globals;
+    /**
+     * @param array $variables
+     */
+    public function __construct(array $variables = [])
+    {
+        $this->globals = $variables;
+    }
+    /**
+     * @return array
+     */
+    public function getGlobals()
+    {
+        return [
+            'velocity' => $this->globals,
+        ];
+    }
+    /**
      * @return array
      */
     public function getFilters()
