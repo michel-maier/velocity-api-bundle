@@ -23,7 +23,9 @@ class MetaDataServiceTest extends PHPUnit_Framework_TestCase
      * @var MetaDataService
      */
     protected $s;
-
+    /**
+     *
+     */
     public function setUp()
     {
         $this->s = new MetaDataService();

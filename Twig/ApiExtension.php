@@ -62,7 +62,7 @@ class ApiExtension extends TwigBaseExtension
         return [];
     }
     /**
-     * @param $string
+     * @param string $string
      *
      * @return string
      */

@@ -107,20 +107,6 @@ class VelocityService
         }
     }
     /**
-     * @param string $key
-     * @param mixed  $defaultValue
-     *
-     * @return mixed
-     */
-    protected function getDefault($key, $defaultValue = null)
-    {
-        if (null !== $defaultValue) {
-            return $this->getParameterIfExists('default_'.$key, $defaultValue);
-        }
-
-        return $this->getParameter('default_'.$key);
-    }
-    /**
      * @param AnnotationReader $reader
      *
      * @return $this
@@ -149,15 +135,6 @@ class VelocityService
         $this->loadEventActionListeners($container);
 
         return $this;
-    }
-    /**
-     * @param ContainerBuilder $container
-     *
-     * @return Definition
-     */
-    protected function getMetaDataDefinitionFromContainer(ContainerBuilder $container)
-    {
-        return $container->getDefinition($this->getDefault('metaData.key'));
     }
     /**
      * @param ContainerBuilder $container
@@ -332,6 +309,29 @@ class VelocityService
         return $this;
     }
     /**
+     * @param string $key
+     * @param mixed  $defaultValue
+     *
+     * @return mixed
+     */
+    protected function getDefault($key, $defaultValue = null)
+    {
+        if (null !== $defaultValue) {
+            return $this->getParameterIfExists('default_'.$key, $defaultValue);
+        }
+
+        return $this->getParameter('default_'.$key);
+    }
+    /**
+     * @param ContainerBuilder $container
+     *
+     * @return Definition
+     */
+    protected function getMetaDataDefinitionFromContainer(ContainerBuilder $container)
+    {
+        return $container->getDefinition($this->getDefault('metaData.key'));
+    }
+    /**
      * Process repository tags.
      *
      * @param ContainerBuilder $container
@@ -360,7 +360,7 @@ class VelocityService
     protected function processCrudTag(ContainerBuilder $container)
     {
         $m = $this->getMetaDataDefinitionFromContainer($container);
-        
+
         foreach ($this->findVelocityTaggedServiceIds($container, 'crud') as $id => $attributes) {
             list($type) = array_slice(explode('.', $id), -1);
             $d = $container->getDefinition($id);

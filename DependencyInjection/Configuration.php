@@ -50,6 +50,7 @@ class Configuration implements ConfigurationInterface
         $rootNode
             ->children()
                 ->arrayNode('front')
+                    ->isRequired()
                     ->children()
                         ->scalarNode('name')->end()
                         ->scalarNode('url')->end()
@@ -133,6 +134,7 @@ class Configuration implements ConfigurationInterface
                                     if (!isset($v['types'])) {
                                         $v += ['types' => ['*']];
                                     }
+
                                     return $v;
                                 })
                             ->end()
@@ -188,6 +190,7 @@ class Configuration implements ConfigurationInterface
                                             if (!is_array($v)) {
                                                 $v = [];
                                             }
+
                                             return $v;
                                         })
                                     ->end()

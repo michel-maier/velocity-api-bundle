@@ -25,7 +25,9 @@ class VelocityServiceTest extends PHPUnit_Framework_TestCase
      * @var VelocityService
      */
     protected $s;
-
+    /**
+     *
+     */
     public function setUp()
     {
         $this->s = new VelocityService(new AnnotationReader());

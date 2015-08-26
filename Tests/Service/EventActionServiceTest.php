@@ -23,7 +23,9 @@ class EventActionServiceTest extends PHPUnit_Framework_TestCase
      * @var EventActionService
      */
     protected $s;
-
+    /**
+     *
+     */
     public function setUp()
     {
         $this->s = new EventActionService();

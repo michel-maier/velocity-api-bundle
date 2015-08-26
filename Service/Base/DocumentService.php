@@ -63,101 +63,6 @@ class DocumentService implements DocumentServiceInterface
         return $this->setService('repository', $repository);
     }
     /**
-     * Build the full event name.
-     *
-     * @param string $event
-     *
-     * @return string
-     */
-    protected function buildEventName($event)
-    {
-        return sprintf('%s.%s', $this->getType(), $event);
-    }
-    /**
-     * Trigger the specified document event if listener are registered.
-     *
-     * @param string $event
-     * @param mixed  $data
-     *
-     * @return $this
-     */
-    protected function event($event, $data = null)
-    {
-        if (!$this->observed($event)) {
-            return $this;
-        }
-
-        return $this->dispatch($this->buildEventName($event), $data);
-    }
-    /**
-     * Test if specified document event has registered event listeners.
-     *
-     * @param string $event
-     *
-     * @return bool
-     */
-    protected function observed($event)
-    {
-        return $this->hasListeners($this->buildEventName($event));
-    }
-    /**
-     * Execute the registered callback and return the updated subject.
-     *
-     * @param string $key
-     * @param mixed  $subject
-     * @param array  $options
-     *
-     * @return mixed
-     */
-    protected function callback($key, $subject, $options = [])
-    {
-        return $this->getMetaDataService()->callback(
-            $this->buildEventName($key),
-            $subject,
-            $options
-        );
-    }
-    /**
-     * @param array $data
-     * @param array $options
-     *
-     * @return array
-     */
-    protected function prepareCreate($data, $options = [])
-    {
-        $data  = $this->callback('create.validate.before', $data, $options);
-        $doc   = $this->getFormService()->validate($this->getType(), 'create', $data, [], true, $options);
-        $doc   = $this->callback('create.validate.after', $doc, $options);
-        $doc   = $this->getMetaDataService()->refresh($doc, $options);
-        $doc   = $this->callback('save.before', $doc, $options);
-        $array = $this->getMetaDataService()->convertObjectToArray($doc, $options + ['removeNulls' => true]);
-        $array = $this->callback('create.save.before', $array, $options);
-
-        return [$doc, $array];
-    }
-    /**
-     * @param $doc
-     * @param $array
-     * @param array $options
-     *
-     * @return mixed
-     */
-    protected function completeCreate($doc, $array, $options = [])
-    {
-        $array = $this->callback('create.save.after', $array, $options);
-
-        $doc->id = (string) $array['_id'];
-
-        $doc = $this->callback('save.after', $doc, $options);
-        $doc = $this->callback('created', $doc, $options);
-
-        $this->event('created.refresh', $doc);
-        $this->event('created', $doc);
-        $this->event('created.notify', $doc);
-
-        return $doc;
-    }
-    /**
      * Create a new document.
      *
      * @param mixed $data
@@ -186,32 +91,11 @@ class DocumentService implements DocumentServiceInterface
         if (isset($data['id']) && $this->has($data['id'])) {
             $id = $data['id'];
             unset($data['id']);
+
             return $this->update($id, $data, $options);
         }
 
         return $this->create($data, $options);
-    }
-    /**
-     * @param mixed $bulkData
-     * @param array $options
-     *
-     * @return $this
-     *
-     * @throws Exception
-     */
-    protected function checkBulkData($bulkData, $options = [])
-    {
-        if (!is_array($bulkData)) {
-            throw $this->createException(412, "Missing bulk data");
-        }
-
-        if (!count($bulkData)) {
-            throw $this->createException(412, "No data to process");
-        }
-
-        unset($options);
-
-        return $this;
     }
     /**
      * Create a list of documents.
@@ -333,14 +217,8 @@ class DocumentService implements DocumentServiceInterface
      *
      * @return mixed
      */
-    public function find(
-        $criteria = [],
-        $fields = [],
-        $limit = null,
-        $offset = 0,
-        $sorts = [],
-        $options = []
-    )     {
+    public function find($criteria = [], $fields = [], $limit = null, $offset = 0, $sorts = [], $options = [])
+    {
         $cursor = $this->getRepository()->find($criteria, $fields, $limit, $offset, $sorts, $options);
         $data   = [];
 
@@ -362,14 +240,8 @@ class DocumentService implements DocumentServiceInterface
      *
      * @return mixed
      */
-    public function findWithTotal(
-        $criteria = [],
-        $fields = [],
-        $limit = null,
-        $offset = 0,
-        $sorts = [],
-        $options = []
-    )     {
+    public function findWithTotal($criteria = [], $fields = [], $limit = null, $offset = 0, $sorts = [], $options = [])
+    {
         return [
             $this->find($criteria, $fields, $limit, $offset, $sorts, $options),
             $this->count($criteria),
@@ -591,122 +463,6 @@ class DocumentService implements DocumentServiceInterface
         return $this->update($this->getBy($fieldName, $fieldValue, ['id'], $options)->id, $data, $options);
     }
     /**
-     * @param mixed $id
-     * @param array $data
-     * @param array $options
-     *
-     * @return array
-     */
-    protected function prepareUpdate($id, $data = [], $options = [])
-    {
-        $old = ($this->observed('updated.fullWithOld')
-            || $this->observed('updated.fullWithOld.refresh')
-            || $this->observed('updated.fullWithOld.notify'))
-            ? $this->get($id) : null;
-
-        $data  = $this->callback('update.validate.before', $data, $options);
-        $doc   = $this->getFormService()->validate($this->getType(), 'update', $data, [], false, $options);
-        $doc   = $this->callback('update.validate.after', $doc, $options);
-        $doc   = $this->getMetaDataService()->refresh($doc, $options);
-        $array = $this->getMetaDataService()->convertObjectToArray($doc, $options + ['removeNulls' => true]);
-        $array = $this->callback('update.save.before', $array, $options);
-
-        return [$doc, $array, $old];
-    }
-    /**
-     * @param mixed $id
-     * @param mixed $doc
-     * @param array $array
-     * @param mixed $old
-     * @param array $options
-     *
-     * @return mixed
-     */
-    protected function completeUpdate($id, $doc, $array, $old, $options = [])
-    {
-        $this->callback('update.save.after', $array, $options);
-
-        $doc = $this->callback('updated', $doc, $options);
-
-        $full = ($this->observed('updated.full')
-            || $this->observed('updated.full.refresh')
-            || $this->observed('updated.full.notify'))
-            ? $this->get($id, [], $options) : null;
-
-        $this->event('updated.refresh', $doc);
-        if (null !== $old) {
-            $this->event('updated.fullWithOld.refresh', $doc);
-        }
-        if (null !== $full) {
-            $this->event('updated.full.refresh', $full);
-        }
-
-        $this->event('updated', $doc);
-        if (null !== $old) {
-            $this->event('updated.fullWithOld', $doc);
-        }
-        if (null !== $full) {
-            $this->event('updated.full', $full);
-        }
-
-        $this->event('updated.notify', $doc);
-        if (null !== $old) {
-            $this->event('updated.fullWithOld.notify', $doc);
-        }
-        if (null !== $full) {
-            $this->event('updated.full.notify', $full);
-        }
-
-        return $doc;
-    }
-    /**
-     * @param mixed $id
-     * @param array $options
-     *
-     * @return array
-     */
-    protected function prepareDelete($id, $options = [])
-    {
-        $old = ($this->observed('deleted.withOld')
-            || $this->observed('deleted.withOld.refresh')
-            || $this->observed('deleted.withOld.notify'))
-            ? $this->get($id) : null;
-
-        $this->callback('delete.save.before', ['id' => $id, 'old' => $old], $options);
-
-        return [$old];
-    }
-    /**
-     * @param mixed $id
-     * @param mixed $old
-     * @param array $options
-     *
-     * @return mixed
-     */
-    protected function completeDelete($id, $old, $options = [])
-    {
-        $this->callback('delete.save.after', ['id' => $id, 'old' => $old], $options);
-
-        $this->callback('deleted', ['id' => $id, 'old' => $old], $options);
-
-        $this->event('deleted.refresh', ['id' => $id]);
-        if (null !== $old) {
-            $this->event('deleted.withOld.refresh', $old);
-        }
-
-        $this->event('deleted', ['id' => $id]);
-        if (null !== $old) {
-            $this->event('deleted.withOld', $old);
-        }
-
-        $this->event('deleted.notify', ['id' => $id]);
-        if (null !== $old) {
-            $this->event('deleted.withOld.notify', $old);
-        }
-
-        return ['id' => $id];
-    }
-    /**
      * @param array $bulkData
      * @param array $options
      *
@@ -834,6 +590,239 @@ class DocumentService implements DocumentServiceInterface
         return $this->getRepository()->decrementProperty($id, $property, $value, $options);
     }
     /**
+     * Build the full event name.
+     *
+     * @param string $event
+     *
+     * @return string
+     */
+    protected function buildEventName($event)
+    {
+        return sprintf('%s.%s', $this->getType(), $event);
+    }
+    /**
+     * Trigger the specified document event if listener are registered.
+     *
+     * @param string $event
+     * @param mixed  $data
+     *
+     * @return $this
+     */
+    protected function event($event, $data = null)
+    {
+        if (!$this->observed($event)) {
+            return $this;
+        }
+
+        return $this->dispatch($this->buildEventName($event), $data);
+    }
+    /**
+     * Test if specified document event has registered event listeners.
+     *
+     * @param string $event
+     *
+     * @return bool
+     */
+    protected function observed($event)
+    {
+        return $this->hasListeners($this->buildEventName($event));
+    }
+    /**
+     * Execute the registered callback and return the updated subject.
+     *
+     * @param string $key
+     * @param mixed  $subject
+     * @param array  $options
+     *
+     * @return mixed
+     */
+    protected function callback($key, $subject, $options = [])
+    {
+        return $this->getMetaDataService()->callback(
+            $this->buildEventName($key),
+            $subject,
+            $options
+        );
+    }
+    /**
+     * @param array $data
+     * @param array $options
+     *
+     * @return array
+     */
+    protected function prepareCreate($data, $options = [])
+    {
+        $data  = $this->callback('create.validate.before', $data, $options);
+        $doc   = $this->getFormService()->validate($this->getType(), 'create', $data, [], true, $options);
+        $doc   = $this->callback('create.validate.after', $doc, $options);
+        $doc   = $this->getMetaDataService()->refresh($doc, $options);
+        $doc   = $this->callback('save.before', $doc, $options);
+        $array = $this->getMetaDataService()->convertObjectToArray($doc, $options + ['removeNulls' => true]);
+        $array = $this->callback('create.save.before', $array, $options);
+
+        return [$doc, $array];
+    }
+    /**
+     * @param $doc
+     * @param $array
+     * @param array $options
+     *
+     * @return mixed
+     */
+    protected function completeCreate($doc, $array, $options = [])
+    {
+        $array = $this->callback('create.save.after', $array, $options);
+
+        $doc->id = (string) $array['_id'];
+
+        $doc = $this->callback('save.after', $doc, $options);
+        $doc = $this->callback('created', $doc, $options);
+
+        $this->event('created.refresh', $doc);
+        $this->event('created', $doc);
+        $this->event('created.notify', $doc);
+
+        return $doc;
+    }
+    /**
+     * @param mixed $bulkData
+     * @param array $options
+     *
+     * @return $this
+     *
+     * @throws Exception
+     */
+    protected function checkBulkData($bulkData, $options = [])
+    {
+        if (!is_array($bulkData)) {
+            throw $this->createException(412, "Missing bulk data");
+        }
+
+        if (!count($bulkData)) {
+            throw $this->createException(412, "No data to process");
+        }
+
+        unset($options);
+
+        return $this;
+    }
+    /**
+     * @param mixed $id
+     * @param array $data
+     * @param array $options
+     *
+     * @return array
+     */
+    protected function prepareUpdate($id, $data = [], $options = [])
+    {
+        $old = ($this->observed('updated.fullWithOld')
+            || $this->observed('updated.fullWithOld.refresh')
+            || $this->observed('updated.fullWithOld.notify'))
+            ? $this->get($id) : null;
+
+        $data  = $this->callback('update.validate.before', $data, $options);
+        $doc   = $this->getFormService()->validate($this->getType(), 'update', $data, [], false, $options);
+        $doc   = $this->callback('update.validate.after', $doc, $options);
+        $doc   = $this->getMetaDataService()->refresh($doc, $options);
+        $array = $this->getMetaDataService()->convertObjectToArray($doc, $options + ['removeNulls' => true]);
+        $array = $this->callback('update.save.before', $array, $options);
+
+        return [$doc, $array, $old];
+    }
+    /**
+     * @param mixed $id
+     * @param mixed $doc
+     * @param array $array
+     * @param mixed $old
+     * @param array $options
+     *
+     * @return mixed
+     */
+    protected function completeUpdate($id, $doc, $array, $old, $options = [])
+    {
+        $this->callback('update.save.after', $array, $options);
+
+        $doc = $this->callback('updated', $doc, $options);
+
+        $full = ($this->observed('updated.full')
+            || $this->observed('updated.full.refresh')
+            || $this->observed('updated.full.notify'))
+            ? $this->get($id, [], $options) : null;
+
+        $this->event('updated.refresh', $doc);
+        if (null !== $old) {
+            $this->event('updated.fullWithOld.refresh', $doc);
+        }
+        if (null !== $full) {
+            $this->event('updated.full.refresh', $full);
+        }
+
+        $this->event('updated', $doc);
+        if (null !== $old) {
+            $this->event('updated.fullWithOld', $doc);
+        }
+        if (null !== $full) {
+            $this->event('updated.full', $full);
+        }
+
+        $this->event('updated.notify', $doc);
+        if (null !== $old) {
+            $this->event('updated.fullWithOld.notify', $doc);
+        }
+        if (null !== $full) {
+            $this->event('updated.full.notify', $full);
+        }
+
+        return $doc;
+    }
+    /**
+     * @param mixed $id
+     * @param array $options
+     *
+     * @return array
+     */
+    protected function prepareDelete($id, $options = [])
+    {
+        $old = ($this->observed('deleted.withOld')
+            || $this->observed('deleted.withOld.refresh')
+            || $this->observed('deleted.withOld.notify'))
+            ? $this->get($id) : null;
+
+        $this->callback('delete.save.before', ['id' => $id, 'old' => $old], $options);
+
+        return [$old];
+    }
+    /**
+     * @param mixed $id
+     * @param mixed $old
+     * @param array $options
+     *
+     * @return mixed
+     */
+    protected function completeDelete($id, $old, $options = [])
+    {
+        $this->callback('delete.save.after', ['id' => $id, 'old' => $old], $options);
+
+        $this->callback('deleted', ['id' => $id, 'old' => $old], $options);
+
+        $this->event('deleted.refresh', ['id' => $id]);
+        if (null !== $old) {
+            $this->event('deleted.withOld.refresh', $old);
+        }
+
+        $this->event('deleted', ['id' => $id]);
+        if (null !== $old) {
+            $this->event('deleted.withOld', $old);
+        }
+
+        $this->event('deleted.notify', ['id' => $id]);
+        if (null !== $old) {
+            $this->event('deleted.withOld.notify', $old);
+        }
+
+        return ['id' => $id];
+    }
+    /**
      * Return the underlying model class.
      *
      * @param string $alias
@@ -848,6 +837,7 @@ class DocumentService implements DocumentServiceInterface
             if ('.' === substr($alias, 0, 1)) {
                 return $this->getModelClass().'\\'.substr($alias, 1);
             }
+
             return $alias;
         }
 
@@ -871,7 +861,7 @@ class DocumentService implements DocumentServiceInterface
             $class = $this->getModelClass();
         }
 
-        return new $class;
+        return new $class();
     }
     /**
      * Convert provided data (array) to a model.

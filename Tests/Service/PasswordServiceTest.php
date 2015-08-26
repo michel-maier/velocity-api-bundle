@@ -23,7 +23,9 @@ class PasswordServiceTest extends PHPUnit_Framework_TestCase
      * @var PasswordService
      */
     protected $s;
-
+    /**
+     *
+     */
     public function setUp()
     {
         $this->s = new PasswordService();

@@ -17,7 +17,7 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 /**
  * @author Olivier Hoareau <olivier@phppro.fr>
  */
-abstract class ContainerAwareTestCase extends KernelTestCase
+abstract class AbstractContainerAwareTestCase extends KernelTestCase
 {
     /**
      * @return ContainerInterface
@@ -52,10 +52,8 @@ abstract class ContainerAwareTestCase extends KernelTestCase
      * @param string      $id
      * @param null|string $failMessage
      */
-    protected function assertContainerHasService(
-        $id,
-        $failMessage = null
-    )     {
+    protected function assertContainerHasService($id, $failMessage = null)
+    {
         $this->assertTrue(
             $this->getContainer()->has($id),
             $failMessage
@@ -65,10 +63,8 @@ abstract class ContainerAwareTestCase extends KernelTestCase
      * @param string      $name
      * @param null|string $failMessage
      */
-    protected function assertContainerHasParameter(
-        $name,
-        $failMessage = null
-    )     {
+    protected function assertContainerHasParameter($name, $failMessage = null)
+    {
         $this->assertTrue(
             $this->getContainer()->hasParameter($name),
             $failMessage
@@ -79,11 +75,8 @@ abstract class ContainerAwareTestCase extends KernelTestCase
      * @param mixed       $value
      * @param null|string $failMessage
      */
-    protected function assertContainerParameterEquals(
-        $name,
-        $value,
-        $failMessage = null
-    )     {
+    protected function assertContainerParameterEquals($name, $value, $failMessage = null)
+    {
         $this->assertEquals(
             $value,
             $this->getParameter($name),

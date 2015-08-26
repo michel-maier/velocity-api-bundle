@@ -29,7 +29,9 @@ class AttachmentServiceTest extends PHPUnit_Framework_TestCase
      * @var GeneratorService|PHPUnit_Framework_MockObject_MockObject
      */
     protected $generator;
-
+    /**
+     *
+     */
     public function setUp()
     {
         $this->generator = $this->getMock('Velocity\\Bundle\\ApiBundle\\Service\\GeneratorService', ['generate'], [], '', false);

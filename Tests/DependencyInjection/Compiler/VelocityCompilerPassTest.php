@@ -35,7 +35,9 @@ class VelocityCompilerPassTest extends PHPUnit_Framework_TestCase
      * @var VelocityService|PHPUnit_Framework_MockObject_MockObject
      */
     protected $velocity;
-
+    /**
+     *
+     */
     public function setUp()
     {
         $this->velocity = $this->getMock('Velocity\\Bundle\\ApiBundle\\Service\\VelocityService', ['load'], [], '', false);

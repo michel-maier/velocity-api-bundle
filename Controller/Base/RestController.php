@@ -20,7 +20,7 @@ use Velocity\Bundle\ApiBundle\Traits\ServiceAwareController;
  *
  * @author Olivier Hoareau <olivier@phppro.fr>
  */
-abstract class RestController extends BaseController
+class RestController extends BaseController
 {
     use ServiceAwareController\SerializerAwareControllerTrait;
     use ServiceAwareController\RequestServiceAwareControllerTrait;
@@ -46,11 +46,7 @@ abstract class RestController extends BaseController
         return new Response(
             $this->getSerializer()->serialize($data, 'json', $context),
             $code,
-            $headers
-            +
-            [
-                'Content-Type' => 'application/json; charset=UTF-8',
-            ]
+            $headers + ['Content-Type' => 'application/json; charset=UTF-8']
         );
     }
 }

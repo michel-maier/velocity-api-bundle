@@ -82,13 +82,12 @@ class DateService
     }
     /**
      * @param \DateTime $date
-     * @param $holidays
+     * @param array     $holidays
      *
      * @return \DateTime
      */
     public function shiftDateOutsideHolidays(\DateTime $date, $holidays)
     {
-
         foreach ($holidays as $holiday) {
             $start = new \DateTime($holiday[0]);
             $end = new \DateTime($holiday[1]);

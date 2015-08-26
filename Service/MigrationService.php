@@ -52,15 +52,8 @@ class MigrationService implements ContainerAwareInterface
      * @param string             $directory
      * @param string             $environment
      */
-    public function __construct(
-        DatabaseService $databaseService,
-        LoggerInterface $logger,
-        FormService $formService,
-        ContainerInterface $container,
-        $collectionName,
-        $directory,
-        $environment
-    )     {
+    public function __construct(DatabaseService $databaseService, LoggerInterface $logger, FormService $formService, ContainerInterface $container, $collectionName, $directory, $environment)
+    {
         $this->setDatabaseService($databaseService);
         $this->setLogger($logger);
         $this->setFormService($formService);

@@ -161,7 +161,7 @@ class EventActionService
         return $this;
     }
     /**
-     * @param $eventName
+     * @param string $eventName
      *
      * @return array
      */

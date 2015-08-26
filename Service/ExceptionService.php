@@ -125,7 +125,7 @@ class ExceptionService
         if ($this->isDebug()) {
             $data['debug'] = $e->getTrace();
         }
-        
+
         return [
             'code'    => $code,
             'data'    => $data,

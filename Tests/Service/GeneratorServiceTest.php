@@ -23,7 +23,9 @@ class GeneratorServiceTest extends PHPUnit_Framework_TestCase
      * @var GeneratorService
      */
     protected $s;
-
+    /**
+     *
+     */
     public function setUp()
     {
         $this->s = new GeneratorService();

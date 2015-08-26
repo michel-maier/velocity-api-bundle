@@ -62,40 +62,6 @@ class FormService
         return $errors;
     }
     /**
-     * @param FormInterface $form
-     * @param array         $errors
-     * @param null          $prefix
-     *
-     * @return $this
-     */
-    protected function populateFormErrors(FormInterface $form, &$errors, $prefix = null)
-    {
-        if (null !== $prefix) {
-            $currentPrefix = ($prefix ? ($prefix.'.') : '').$form->getName();
-        } else {
-            $currentPrefix = '';
-        }
-
-        if (null !== $prefix) {
-            foreach ($form->getErrors() as $error) {
-                if (false === isset($errors[$currentPrefix])) {
-                    $errors[$currentPrefix] = array();
-                }
-                if (method_exists($error, 'getMessage')) {
-                    $errors[$currentPrefix][] = $error->getMessage();
-                } else {
-                    $errors[$currentPrefix][] = (string) $error;
-                }
-            }
-        }
-
-        foreach ($form->all() as $child) {
-            $this->populateFormErrors($child, $errors, $currentPrefix);
-        }
-
-        return $this;
-    }
-    /**
      * @param FormValidationException $exception
      *
      * @return string
@@ -197,5 +163,39 @@ class FormService
         unset($options);
 
         return $this->createBuilder($type, $mode, $cleanData)->getForm();
+    }
+    /**
+     * @param FormInterface $form
+     * @param array         $errors
+     * @param null          $prefix
+     *
+     * @return $this
+     */
+    protected function populateFormErrors(FormInterface $form, &$errors, $prefix = null)
+    {
+        if (null !== $prefix) {
+            $currentPrefix = ($prefix ? ($prefix.'.') : '').$form->getName();
+        } else {
+            $currentPrefix = '';
+        }
+
+        if (null !== $prefix) {
+            foreach ($form->getErrors() as $error) {
+                if (false === isset($errors[$currentPrefix])) {
+                    $errors[$currentPrefix] = array();
+                }
+                if (method_exists($error, 'getMessage')) {
+                    $errors[$currentPrefix][] = $error->getMessage();
+                } else {
+                    $errors[$currentPrefix][] = (string) $error;
+                }
+            }
+        }
+
+        foreach ($form->all() as $child) {
+            $this->populateFormErrors($child, $errors, $currentPrefix);
+        }
+
+        return $this;
     }
 }

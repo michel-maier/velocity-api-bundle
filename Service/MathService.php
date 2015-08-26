@@ -161,6 +161,7 @@ class MathService
                 $result = $data[$intvalindex];
             }
         }
+
         return $result;
     }
 }

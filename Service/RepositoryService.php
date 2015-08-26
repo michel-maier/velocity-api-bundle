@@ -352,14 +352,8 @@ class RepositoryService implements RepositoryInterface
      *
      * @return MongoCursor
      */
-    public function find(
-        $criteria = [],
-        $fields = [],
-        $limit = null,
-        $offset = 0,
-        $sorts = [],
-        $options = []
-    )     {
+    public function find($criteria = [], $fields = [], $limit = null, $offset = 0, $sorts = [], $options = [])
+    {
         return $this->getDatabaseService()->find(
             $this->getCollectionName(),
             $criteria,
@@ -495,14 +489,9 @@ class RepositoryService implements RepositoryInterface
             return $this;
         }
 
-        return $this->alter(
-            $id,
-            [
-            '$inc' => array_map(function ($v) {
-                return - $v;
-            }, $values)],
-            $options
-        );
+        return $this->alter($id, ['$inc' => array_map(function ($v) {
+            return - $v;
+        }, $values), ], $options);
     }
     /**
      * Unset the specified property of the specified document.

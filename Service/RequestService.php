@@ -120,6 +120,7 @@ class RequestService
                     $parts[$key] = $value;
                 }
             }
+
             return array_merge(['id' => null, 'expire' => null, 'token' => null], $parts);
         });
         $this->setUserHeaderParsingFunction(function ($header) {
@@ -138,6 +139,7 @@ class RequestService
                     $parts[$key] = $value;
                 }
             }
+
             return array_merge(['id' => null, 'password' => null, 'expire' => null, 'token' => null], $parts);
         });
         $this->setSudoHeaderParsingFunction(function ($header) {
@@ -156,6 +158,7 @@ class RequestService
                     $parts[$key] = $value;
                 }
             }
+
             return array_merge(['id' => null], $parts);
         });
         $this->setUserProvider($userProvider);
