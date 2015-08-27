@@ -9,18 +9,18 @@
  * file that was distributed with this source code.
  */
 
-namespace Velocity\Bundle\ApiBundle\Annotation\Callback;
+namespace Velocity\Bundle\ApiBundle\Annotation;
 
-use Doctrine\Common\Annotations\Annotation;
+use Velocity\Bundle\ApiBundle\Annotation\Base\Annotation;
 
 /**
- * Created Callback annotation
+ * Change Event annotation
  *
  * @author Olivier Hoareau <olivier@phppro.fr>
  *
  * @Annotation
- * @Target("METHOD")
+ * @Target("PROPERTY")
  */
-final class Created extends Annotation
+final class ChangeEvent extends Annotation
 {
 }

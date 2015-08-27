@@ -385,30 +385,6 @@ class VelocityService
                         case $a instanceof Velocity\Callback:
                             $m->addMethodCall('addCallback', ['.' === $a->value{0} ? ($type.$a->value) : $a->value, [$this->ref($id), $method]]);
                             break;
-                        case $a instanceof Velocity\Callback\AfterSave:
-                            $m->addMethodCall('addCallback', ['.' === $a->value{0} ? ($type.$a->value) : $a->value, [$this->ref($id), $method]]);
-                            break;
-                        case $a instanceof Velocity\Callback\BeforeCreateSave:
-                            $m->addMethodCall('addCallback', ['.' === $a->value{0} ? ($type.$a->value) : $a->value, [$this->ref($id), $method]]);
-                            break;
-                        case $a instanceof Velocity\Callback\BeforeDelete:
-                            $m->addMethodCall('addCallback', ['.' === $a->value{0} ? ($type.$a->value) : $a->value, [$this->ref($id), $method]]);
-                            break;
-                        case $a instanceof Velocity\Callback\BeforeSave:
-                            $m->addMethodCall('addCallback', ['.' === $a->value{0} ? ($type.$a->value) : $a->value, [$this->ref($id), $method]]);
-                            break;
-                        case $a instanceof Velocity\Callback\Created:
-                            $m->addMethodCall('addCallback', ['.' === $a->value{0} ? ($type.$a->value) : $a->value, [$this->ref($id), $method]]);
-                            break;
-                        case $a instanceof Velocity\Callback\Deleted:
-                            $m->addMethodCall('addCallback', ['.' === $a->value{0} ? ($type.$a->value) : $a->value, [$this->ref($id), $method]]);
-                            break;
-                        case $a instanceof Velocity\Callback\Saved:
-                            $m->addMethodCall('addCallback', ['.' === $a->value{0} ? ($type.$a->value) : $a->value, [$this->ref($id), $method]]);
-                            break;
-                        case $a instanceof Velocity\Callback\Updated:
-                            $m->addMethodCall('addCallback', ['.' === $a->value{0} ? ($type.$a->value) : $a->value, [$this->ref($id), $method]]);
-                            break;
                     }
                 }
             }
