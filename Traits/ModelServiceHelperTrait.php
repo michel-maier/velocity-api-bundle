@@ -87,7 +87,7 @@ trait ModelServiceHelperTrait
      */
     protected function buildEventName($event)
     {
-        return join('.', $this->getTypes()).$event;
+        return join('.', $this->getTypes()).'.'.$event;
     }
     /**
      * @param mixed $bulkData
