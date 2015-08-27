@@ -716,7 +716,7 @@ class SubDocumentService implements SubDocumentServiceInterface
         $old = $this->get($parentId, $id, array_keys($data), $options);
 
         $data  = $this->callback($parentId, 'update.pre_validate', $data, $options);
-        $doc   = $this->validateData('update', $data, ['clearMissing' => false] + $options);
+        $doc   = $this->validateData($data, 'update', ['clearMissing' => false] + $options);
 
         unset($data);
 
