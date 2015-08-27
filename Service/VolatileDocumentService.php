@@ -9,13 +9,9 @@
  * file that was distributed with this source code.
  */
 
-namespace Velocity\Bundle\ApiBundle\Service\Base;
+namespace Velocity\Bundle\ApiBundle\Service;
 
-use Exception;
-use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
-use Velocity\Bundle\ApiBundle\Traits\LoggerAwareTrait;
-use Velocity\Bundle\ApiBundle\Traits\FormServiceAwareTrait;
-use Velocity\Bundle\ApiBundle\Traits\MetaDataServiceAwareTrait;
+use Velocity\Bundle\ApiBundle\Traits\VolatileModelServiceTrait;
 
 /**
  * Volatile Document Service.
@@ -24,118 +20,13 @@ use Velocity\Bundle\ApiBundle\Traits\MetaDataServiceAwareTrait;
  */
 class VolatileDocumentService
 {
-    use ServiceTrait;
-    use LoggerAwareTrait;
-    use FormServiceAwareTrait;
-    use MetaDataServiceAwareTrait;
+    use VolatileModelServiceTrait;
     /**
-     * @param string $type
-     *
-     * @return $this
+     * @return int
      */
-    public function setType($type)
+    public function getExpectedTypeCount()
     {
-        return $this->setParameter('type', $type);
-    }
-    /**
-     * @return string
-     */
-    public function getType()
-    {
-        return $this->getParameter('type');
-    }
-    /**
-     * Build the full event name.
-     *
-     * @param string $event
-     *
-     * @return string
-     */
-    protected function buildEventName($event)
-    {
-        return sprintf('%s.%s', $this->getType(), $event);
-    }
-    /**
-     * Trigger the specified document event if listener are registered.
-     *
-     * @param string $event
-     * @param mixed  $data
-     *
-     * @return $this
-     */
-    protected function event($event, $data = null)
-    {
-        if (!$this->observed($event)) {
-            return $this;
-        }
-
-        return $this->dispatch($this->buildEventName($event), $data);
-    }
-    /**
-     * Test if specified document event has registered event listeners.
-     *
-     * @param string $event
-     *
-     * @return bool
-     */
-    protected function observed($event)
-    {
-        return $this->hasListeners($this->buildEventName($event));
-    }
-    /**
-     * Execute the registered callback and return the updated subject.
-     *
-     * @param string $key
-     * @param mixed  $subject
-     * @param array  $options
-     *
-     * @return mixed
-     */
-    protected function callback($key, $subject, $options = [])
-    {
-        return $this->getMetaDataService()->callback(
-            $this->buildEventName($key),
-            $subject,
-            $options
-        );
-    }
-    /**
-     * @param array $data
-     * @param array $options
-     *
-     * @return array
-     */
-    protected function prepareCreate($data, $options = [])
-    {
-        $data  = $this->callback('create.validate.before', $data, $options);
-        $doc   = $this->getFormService()->validate($this->getType(), 'create', $data, [], true, $options);
-        $doc   = $this->callback('create.validate.after', $doc, $options);
-        $doc   = $this->getMetaDataService()->refresh($doc, $options);
-        $doc   = $this->callback('save.before', $doc, $options);
-        $array = $this->getMetaDataService()->convertObjectToArray($doc, $options + ['removeNulls' => true]);
-        $array = $this->callback('create.save.before', $array, $options);
-
-        return [$doc, $array];
-    }
-    /**
-     * @param $doc
-     * @param $array
-     * @param array $options
-     *
-     * @return mixed
-     */
-    protected function completeCreate($doc, $array, $options = [])
-    {
-        $this->callback('create.save.after', $array, $options);
-
-        $doc = $this->callback('save.after', $doc, $options);
-        $doc = $this->callback('created', $doc, $options);
-
-        $this->event('created.refresh', $doc);
-        $this->event('created', $doc);
-        $this->event('created.notify', $doc);
-
-        return $doc;
+        return 1;
     }
     /**
      * Create a new document.
@@ -149,29 +40,9 @@ class VolatileDocumentService
     {
         list($doc, $array) = $this->prepareCreate($data, $options);
 
+        unset($data);
+
         return $this->completeCreate($doc, $array, $options);
-    }
-    /**
-     * @param mixed $bulkData
-     * @param array $options
-     *
-     * @return $this
-     *
-     * @throws Exception
-     */
-    protected function checkBulkData($bulkData, $options = [])
-    {
-        if (!is_array($bulkData)) {
-            throw $this->createException(412, "Missing bulk data");
-        }
-
-        if (!count($bulkData)) {
-            throw $this->createException(412, "No data to process");
-        }
-
-        unset($options);
-
-        return $this;
     }
     /**
      * Create a list of documents.
@@ -189,9 +60,8 @@ class VolatileDocumentService
         $arrays = [];
 
         foreach ($bulkData as $i => $data) {
-            list($doc, $array) = $this->prepareCreate($data, $options);
-            $docs[$i]   = $doc;
-            $arrays[$i] = $array;
+            list($docs[$i], $arrays[$i]) = $this->prepareCreate($data, $options);
+            unset($bulkData[$i]);
         }
 
         foreach ($arrays as $i => $array) {
@@ -200,5 +70,71 @@ class VolatileDocumentService
         }
 
         return $docs;
+    }
+    /**
+     * Trigger the specified document event if listener are registered.
+     *
+     * @param string $event
+     * @param mixed  $data
+     *
+     * @return $this
+     */
+    protected function event($event, $data = null)
+    {
+        return $this->dispatch($this->buildEventName($event), is_array($data) ? $data : null);
+    }
+    /**
+     * Execute the registered callback and return the updated subject.
+     *
+     * @param string $key
+     * @param mixed  $subject
+     * @param array  $options
+     *
+     * @return mixed
+     */
+    protected function callback($key, $subject = null, $options = [])
+    {
+        return $this->getMetaDataService()->callback($this->buildEventName($key), $subject, $options);
+    }
+    /**
+     * @param array $data
+     * @param array $options
+     *
+     * @return array
+     */
+    protected function prepareCreate($data, $options = [])
+    {
+        $data  = $this->callback('create.pre_validate', $data, $options);
+        $doc   = $this->validateData($data, 'create', $options);
+
+        unset($data);
+
+        $doc   = $this->callback('create.validated', $doc, $options);
+        $doc   = $this->refreshModel($doc, $options);
+        $doc   = $this->callback('pre_save', $doc, $options);
+        $array = $this->convertToArray($doc, $options);
+        $array = $this->callback('create.pre_save', $array, $options);
+
+        return [$doc, $array];
+    }
+    /**
+     * @param $doc
+     * @param $array
+     * @param array $options
+     *
+     * @return mixed
+     */
+    protected function completeCreate($doc, $array, $options = [])
+    {
+        $array = $this->callback('create.saved', $array, $options);
+
+        $doc->id = (string) $array['_id'];
+
+        $doc = $this->callback('saved', $doc, $options);
+        $doc = $this->callback('created', $doc, $options);
+
+        $this->event('created', $doc);
+
+        return $doc;
     }
 }
