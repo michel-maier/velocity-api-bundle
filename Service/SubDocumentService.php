@@ -42,7 +42,13 @@ class SubDocumentService implements SubDocumentServiceInterface
     {
         list($doc, $array) = $this->prepareCreate($parentId, $data, $options);
 
-        $this->getRepository()->setProperty($parentId, $this->getRepoKey([$doc->id]), $doc);
+        unset($data);
+
+        if (!isset($doc->id)) {
+            throw $this->createException(412, 'Empty id for sub document model');
+        }
+
+        $this->getRepository()->setHashProperty($parentId, $this->getRepoKey([$doc->id]), $array);
 
         return $this->completeCreate($parentId, $doc, $array, $options);
     }
@@ -60,6 +66,7 @@ class SubDocumentService implements SubDocumentServiceInterface
         if (isset($data['id']) && $this->has($parentId, $data['id'])) {
             $id = $data['id'];
             unset($data['id']);
+
             return $this->update($parentId, $id, $data, $options);
         }
 
@@ -82,15 +89,19 @@ class SubDocumentService implements SubDocumentServiceInterface
         $arrays = [];
 
         foreach ($bulkData as $i => $data) {
-            list($doc, $array) = $this->prepareCreate($parentId, $data, $options);
-            $docs[$i]   = $doc;
-            $arrays[$i] = $array;
+            list($docs[$i], $array) = $this->prepareCreate($parentId, $data, $options);
+            if (!isset($docs[$i]->id)) {
+                throw $this->createException(412, 'Empty id for sub document model');
+            }
+            $arrays[$this->mutateKeyToRepoChangesKey('', [$docs[$i]->id])] = $array;
+            unset($bulkData[$i]);
         }
 
         foreach ($this->getRepository()->setProperties($parentId, $arrays, $options) as $i => $array) {
-            unset($arrays[$i]);
             $this->completeCreate($parentId, $docs[$i], $array, $options);
         }
+
+        unset($arrays);
 
         return $docs;
     }
@@ -111,6 +122,7 @@ class SubDocumentService implements SubDocumentServiceInterface
         $toUpdate = [];
 
         foreach ($bulkData as $i => $data) {
+            unset($bulkData[$i]);
             if (isset($data['id']) && $this->has($parentId, $data['id'])) {
                 $toUpdate[$i] = $data;
             } else {
@@ -118,14 +130,21 @@ class SubDocumentService implements SubDocumentServiceInterface
             }
         }
 
+        unset($bulkData);
+
         $docs = [];
 
         if (count($toCreate)) {
             $docs += $this->createBulk($parentId, $toCreate, $options);
         }
+
+        unset($toCreate);
+
         if (count($toUpdate)) {
             $docs += $this->updateBulk($parentId, $toUpdate, $options);
         }
+
+        unset($toUpdate);
 
         return $docs;
     }
@@ -151,16 +170,24 @@ class SubDocumentService implements SubDocumentServiceInterface
             } else {
                 $toCreate[$i] = $data;
             }
+            unset($bulkData[$i]);
         }
+
+        unset($bulkData);
 
         $docs = [];
 
         if (count($toCreate)) {
             $docs += $this->createBulk($parentId, $toCreate, $options);
         }
+
+        unset($toCreate);
+
         if (count($toDelete)) {
             $docs += $this->deleteBulk($parentId, $toDelete, $options);
         }
+
+        unset($toDelete);
 
         return $docs;
     }
@@ -179,13 +206,11 @@ class SubDocumentService implements SubDocumentServiceInterface
             return 0;
         }
 
-        $items = $this->getRepository()->getProperty($parentId, $this->getRepoKey(), $options);
-
-        if (!is_array($items) || !count($items)) {
-            return 0;
-        }
+        $items = $this->getRepository()->getListProperty($parentId, $this->getRepoKey(), $options);
 
         $this->filterItems($items, $criteria);
+
+        unset($criteria);
 
         return count($items);
     }
@@ -208,18 +233,14 @@ class SubDocumentService implements SubDocumentServiceInterface
             return [];
         }
 
-        $items = $this->getRepository()->getProperty($parentId, $this->getRepoKey());
-
-        if (!is_array($items) || !count($items)) {
-            return [];
-        }
+        $items = $this->getRepository()->getListProperty($parentId, $this->getRepoKey());
 
         $this->sortItems($items, $sorts, $options);
         $this->filterItems($items, $criteria, $fields, $options);
         $this->paginateItems($items, $limit, $offset, $options);
 
         foreach ($items as $k => $v) {
-            $items[$k] = $this->callback('fetched', $this->convertArrayToObject($v, $options), $options);
+            $items[$k] = $this->callback('fetched', $this->convertToModel($v, $options), $options);
         }
 
         return $items;
@@ -243,6 +264,20 @@ class SubDocumentService implements SubDocumentServiceInterface
             $this->find($parentId, $criteria, $fields, $limit, $offset, $sorts, $options),
             $this->count($parentId, $criteria, $options),
         ];
+    }
+    /**
+     * Return the property of the specified document.
+     *
+     * @param mixed  $parentId
+     * @param mixed  $id
+     * @param string $property
+     * @param array  $options
+     *
+     * @return mixed
+     */
+    public function getProperty($parentId, $id, $property, $options = [])
+    {
+        return $this->getRepository()->getProperty($parentId, $this->getRepoKey([$id, $property]), $options);
     }
     /**
      * Test if specified document exist.
@@ -269,7 +304,7 @@ class SubDocumentService implements SubDocumentServiceInterface
      */
     public function hasBy($parentId, $fieldName, $fieldValue, $options = [])
     {
-        return count($this->find($parentId, [$fieldName => $fieldValue], 1, 0, $options));
+        return 0 < count($this->find($parentId, [$fieldName => $fieldValue], 1, 0, $options));
     }
     /**
      * Test if specified document does not exist.
@@ -296,12 +331,10 @@ class SubDocumentService implements SubDocumentServiceInterface
      */
     public function get($parentId, $id, $fields = [], $options = [])
     {
-        unset($fields);
-
         return $this->callback(
             'fetched',
-            $this->convertArrayToObject(
-                $this->getRepository()->getProperty($parentId, $this->getRepoKey([$id]), $options),
+            $this->convertToModel(
+                $this->getRepository()->getHashProperty($parentId, $this->getRepoKey([$id], $options), $fields, $options),
                 $options
             ),
             $options
@@ -319,15 +352,21 @@ class SubDocumentService implements SubDocumentServiceInterface
     public function purge($parentId, $criteria = [], $options = [])
     {
         if ([] !== $criteria) {
-            throw $this->createException(500, "Purging sub documents with criteria not supported.");
+            throw $this->createException(500, 'Purging sub documents with criteria not supported');
         }
 
-        $this->getRepository()->setProperty($parentId, $this->getRepoKey(), (object) []);
 
-        unset($criteria);
+        $this->callback($parentId, 'pre_purge', [], $options);
+
+        $this->getRepository()->resetListProperty($parentId, $this->getRepoKey(), $options);
+
+        $this->callback($parentId, 'purged', $criteria, $options);
+        $this->event($parentId, 'purged');
+
         unset($options);
+        unset($criteria);
 
-        return $this->event($parentId, 'purged');
+        return $this;
     }
     /**
      * Delete the specified document.
@@ -342,18 +381,11 @@ class SubDocumentService implements SubDocumentServiceInterface
      */
     public function delete($parentId, $id, $options = [])
     {
-        try {
-            list($old) = $this->prepareDelete($parentId, $id, $options);
+        list($old) = $this->prepareDelete($parentId, $id, $options);
 
-            $this->getRepository()->unsetProperty($parentId, $this->getRepoKey([$id]), $options);
+        $this->getRepository()->unsetProperty($parentId, $this->getRepoKey([$id]), $options);
 
-            return $this->completeDelete($id, $old, $options);
-        } catch (\Exception $e) {
-            if ($this->observed('delete.failed')) {
-                $this->event($parentId, 'delete.failed', ['id' => $id, 'exception' => $e]);
-            }
-            throw $e;
-        }
+        return $this->completeDelete($parentId, $id, $old, $options);
     }
     /**
      * Delete the specified documents.
@@ -372,8 +404,7 @@ class SubDocumentService implements SubDocumentServiceInterface
         $deleteds = [];
 
         foreach ($ids as $id) {
-            list($old)  = $this->prepareDelete($parentId, $id, $options);
-            $olds[$id]  = $old;
+            list($olds[$id])  = $this->prepareDelete($parentId, $id, $options);
             $deleteds[$id] = $this->getRepoKey([$id]);
         }
 
@@ -381,10 +412,12 @@ class SubDocumentService implements SubDocumentServiceInterface
             $this->getRepository()->unsetProperty($parentId, array_values($deleteds), $options);
         }
 
-        foreach (array_keys($deleteds) as $id) {
+        foreach ($ids as $id) {
             $deleteds[$id] = $this->completeDelete($parentId, $id, $olds[$id], $options);
-            unset($olds[$id]);
+            unset($olds[$id], $ids[$id]);
         }
+
+        unset($ods, $ids);
 
         return $deleteds;
     }
@@ -400,7 +433,9 @@ class SubDocumentService implements SubDocumentServiceInterface
     {
         list($doc, $array, $old) = $this->prepareUpdate($parentId, $id, $data, $options);
 
-        $this->getRepository()->update($id, ['$set' => $array], $options);
+        unset($data);
+
+        $this->getRepository()->setProperties($parentId, $this->mutateArrayToRepoChanges($array, [$id]), $options);
 
         return $this->completeUpdate($parentId, $id, $doc, $array, $old, $options);
     }
@@ -415,18 +450,10 @@ class SubDocumentService implements SubDocumentServiceInterface
      */
     public function updateBy($parentId, $fieldName, $fieldValue, $data, $options = [])
     {
-        $docs = $this->find($parentId, [$fieldName => $fieldValue], ['id'], $options);
+        $docs = $this->find($parentId, [$fieldName => $fieldValue], ['id'], 1, 0, $options);
 
         if (!count($docs)) {
-            throw $this->createException(
-                404,
-                "Unknown %s with %s '%s' in %s '%s'",
-                $this->getSubType(),
-                $fieldName,
-                $fieldValue,
-                $this->getType(),
-                $parentId
-            );
+            throw $this->createException(404, "Unknown %s with %s '%s' (%s)", join(' ', $this->getTypes()), $fieldName, $fieldValue, $parentId);
         }
 
         return $this->update($parentId, array_shift($docs)->id, $data, $options);
@@ -451,6 +478,7 @@ class SubDocumentService implements SubDocumentServiceInterface
             $id = $data['id'];
             unset($data['id']);
             list($docs[$i], $arrays[$i], $olds[$i]) = $this->prepareUpdate($parentId, $id, $data, $options);
+            unset($bulkData[$i]);
             $changes += $this->mutateArrayToRepoChanges($arrays[$i], [$id]);
         }
 
@@ -458,8 +486,11 @@ class SubDocumentService implements SubDocumentServiceInterface
 
         foreach ($arrays as $i => $array) {
             $this->completeUpdate($parentId, $i, $docs[$i], $array, $olds[$i], $options);
-            unset($arrays[$array]);
+            unset($arrays[$array], $olds[$i]);
         }
+
+        unset($olds);
+        unset($arrays);
 
         return $docs;
     }
@@ -474,11 +505,42 @@ class SubDocumentService implements SubDocumentServiceInterface
      */
     public function replaceAll($parentId, $data, $options = [])
     {
-        $this->getRepository()->setProperty($parentId, $this->getRepoKey(), (object) [], $options);
+        $this->callback($parentId, 'pre_empty', []);
 
+        $this->getRepository()->resetListProperty($parentId, $this->getRepoKey(), $options);
+
+        $this->callback($parentId, 'emptied', []);
         $this->event($parentId, 'emptied');
 
-        return $this->createBulk($parentId, $data);
+        return $this->createBulk($parentId, $data, $options);
+    }
+    /**
+     * Replace all the specified documents.
+     *
+     * @param mixed $parentId
+     * @param array $bulkData
+     * @param array $options
+     *
+     * @return mixed
+     */
+    public function replaceBulk($parentId, $bulkData, $options = [])
+    {
+        $this->checkBulkData($bulkData, $options);
+
+        $ids = [];
+
+        foreach ($bulkData as $k => $v) {
+            if (!isset($v['id'])) {
+                throw $this->createException(412, 'Missing id for item #%s', $k);
+            }
+            $ids[] = $v['id'];
+        }
+
+        $this->deleteBulk($parentId, $ids, $options);
+
+        unset($ids);
+
+        return $this->createBulk($parentId, $bulkData, $options);
     }
     /**
      * Check if specified document exist.
@@ -493,16 +555,7 @@ class SubDocumentService implements SubDocumentServiceInterface
      */
     public function checkExist($parentId, $id, $options = [])
     {
-        if ($this->hasNot($parentId, $id, $options)) {
-            throw $this->createException(
-                404,
-                "Unknown %s '%s' for %s '%s'",
-                $this->getSubType(),
-                $id,
-                $this->getType(),
-                $parentId
-            );
-        }
+        $this->getRepository()->checkPropertyExist($parentId, $this->getRepoKey([$id], $options), $options);
 
         return $this;
     }
@@ -519,16 +572,7 @@ class SubDocumentService implements SubDocumentServiceInterface
      */
     public function checkNotExist($parentId, $id, $options = [])
     {
-        if ($this->has($parentId, $id, $options)) {
-            throw $this->createException(
-                404,
-                "%s '%s' already exist for %s '%s'",
-                ucfirst($this->getSubType()),
-                $id,
-                $this->getType(),
-                $parentId
-            );
-        }
+        $this->getRepository()->checkPropertyNotExist($parentId, $this->getRepoKey([$id], $options), $options);
 
         return $this;
     }
@@ -545,11 +589,17 @@ class SubDocumentService implements SubDocumentServiceInterface
      */
     public function increment($parentId, $id, $property, $value = 1, $options = [])
     {
-        $repoKey = sprintf('%s.%s', $this->getRepoKey([$id]), $property);
+        $this->callback($parentId, 'pre_increment', ['id' => $id, 'value' => $value, 'property' => $property]);
+        $this->callback($parentId, 'pre_increment.'.$property, ['id' => $id, 'value' => $value]);
 
-        $this->getRepository()->incrementProperty($parentId, $repoKey, $value, $options);
+        $this->getRepository()->incrementProperty($parentId, $this->getRepoKey([$id, $property]), $value, $options);
 
-        return $this->event($parentId, 'updated', ['id' => $id] + [$id => $this->getRepository()->getProperty($parentId, $repoKey)]);
+        $this->callback($parentId, 'incremented', ['id' => $id, 'value' => $value, 'property' => $property]);
+        $this->callback($parentId, 'incremented.'.$property, ['id' => $id, 'value' => $value]);
+        $this->event($parentId, 'incremented', ['id' => $id, 'value' => $value, 'property' => $property]);
+        $this->event($parentId, 'incremented.'.$property, ['id' => $id, 'value' => $value]);
+
+        return $this;
     }
     /**
      * Decrement the specified property of the specified document.
@@ -564,11 +614,17 @@ class SubDocumentService implements SubDocumentServiceInterface
      */
     public function decrement($parentId, $id, $property, $value = 1, $options = [])
     {
-        $repoKey = sprintf('%s.%s', $this->getRepoKey([$id]), $property);
+        $this->callback($parentId, 'pre_decrement', ['id' => $id, 'value' => $value, 'property' => $property]);
+        $this->callback($parentId, 'pre_decrement.'.$property, ['id' => $id, 'value' => $value]);
 
-        $this->getRepository()->decrementProperty($parentId, $repoKey, $value, $options);
+        $this->getRepository()->decrementProperty($parentId, $this->getRepoKey([$id, $property]), $value, $options);
 
-        return $this->event($parentId, 'updated', ['id' => $id] + [$id => $this->getRepository()->getProperty($parentId, $repoKey)]);
+        $this->callback($parentId, 'decremented', ['id' => $id, 'value' => $value, 'property' => $property]);
+        $this->callback($parentId, 'decremented.'.$property, ['id' => $id, 'value' => $value]);
+        $this->event($parentId, 'decremented', ['id' => $id, 'value' => $value, 'property' => $property]);
+        $this->event($parentId, 'decremented.'.$property, ['id' => $id, 'value' => $value]);
+
+        return $this;
     }
     /**
      * Trigger the specified document event if listener are registered.
@@ -581,12 +637,9 @@ class SubDocumentService implements SubDocumentServiceInterface
      */
     protected function event($parentId, $event, $data = null)
     {
-        if (!$this->observed($event)) {
-            return $this;
-        }
-
         return $this->dispatch(
-            $this->buildEventName($event), $this->buildTypeVars([$parentId]) + (is_array($data) ? $data : [])
+            $this->buildEventName($event),
+            $this->buildTypeVars([$parentId]) + (is_array($data) ? $data : [])
         );
     }
     /**
@@ -601,12 +654,10 @@ class SubDocumentService implements SubDocumentServiceInterface
      */
     protected function callback($parentId, $key, $subject, $options = [])
     {
-        unset($parentId);
-
         return $this->getMetaDataService()->callback(
             $this->buildEventName($key),
             $subject,
-            $options
+            $this->buildTypeVars([$parentId]) + $options
         );
     }
     /**
@@ -618,13 +669,16 @@ class SubDocumentService implements SubDocumentServiceInterface
      */
     protected function prepareCreate($parentId, $data, $options = [])
     {
-        $data  = $this->callback($parentId, 'create.validate.before', $data, $options);
-        $doc   = $this->getFormService()->validate($this->getFullType(), 'create', $data, [], true, $options);
-        $doc   = $this->callback($parentId, 'create.validate.after', $doc, $options);
-        $doc   = $this->getMetaDataService()->refresh($doc, $options);
-        $doc   = $this->callback($parentId, 'save.before', $doc, $options);
-        $array = $this->getMetaDataService()->convertObjectToArray($doc, $options + ['removeNulls' => true]);
-        $array = $this->callback($parentId, 'create.save.before', $array, $options);
+        $data  = $this->callback($parentId, 'create.pre_validate', $data, $options);
+        $doc   = $this->validateData($data, 'create', $options);
+
+        unset($data);
+
+        $doc   = $this->callback($parentId, 'create.validated', $doc, $options);
+        $doc   = $this->refreshModel($doc, $options);
+        $doc   = $this->callback($parentId, 'pre_save', $doc, $options);
+        $array = $this->convertToArray($doc, $options);
+        $array = $this->callback($parentId, 'create.pre_save', $array, $options);
 
         return [$doc, $array];
     }
@@ -638,16 +692,14 @@ class SubDocumentService implements SubDocumentServiceInterface
      */
     protected function completeCreate($parentId, $doc, $array, $options = [])
     {
-        $array = $this->callback($parentId, 'create.save.after', $array, $options);
+        $array = $this->callback($parentId, 'create.saved', $array, $options);
 
         $doc->id = (string) $array['_id'];
 
-        $doc = $this->callback($parentId, 'save.after', $doc, $options);
+        $doc = $this->callback($parentId, 'saved', $doc, $options);
         $doc = $this->callback($parentId, 'created', $doc, $options);
 
-        $this->event($parentId, 'created.refresh', $doc);
         $this->event($parentId, 'created', $doc);
-        $this->event($parentId, 'created.notify', $doc);
 
         return $doc;
     }
@@ -661,17 +713,18 @@ class SubDocumentService implements SubDocumentServiceInterface
      */
     protected function prepareUpdate($parentId, $id, $data = [], $options = [])
     {
-        $old = ($this->observed('updated.fullWithOld')
-            || $this->observed('updated.fullWithOld.refresh')
-            || $this->observed('updated.fullWithOld.notify'))
-            ? $this->get($parentId, $id) : null;
+        $old = $this->get($parentId, $id, array_keys($data), $options);
 
-        $data  = $this->callback($parentId, 'update.validate.before', $data, $options);
-        $doc   = $this->getFormService()->validate($this->getFullType(), 'update', $data, [], false, $options);
-        $doc   = $this->callback($parentId, 'update.validate.after', $doc, $options);
-        $doc   = $this->getMetaDataService()->refresh($doc, $options);
-        $array = $this->getMetaDataService()->convertObjectToArray($doc, $options + ['removeNulls' => true]);
-        $array = $this->callback($parentId, 'update.save.before', $array, $options);
+        $data  = $this->callback($parentId, 'update.pre_validate', $data, $options);
+        $doc   = $this->validateData('update', $data, ['clearMissing' => false] + $options);
+
+        unset($data);
+
+        $doc   = $this->callback($parentId, 'update.validated', $doc, $options);
+        $doc   = $this->refreshModel($doc, $options);
+        $doc   = $this->callback($parentId, 'pre_save', $doc, $options);
+        $array = $this->convertToArray($doc, $options);
+        $array = $this->callback($parentId, 'update.pre_save', $array, $options);
 
         return [$doc, $array, $old];
     }
@@ -687,37 +740,21 @@ class SubDocumentService implements SubDocumentServiceInterface
      */
     protected function completeUpdate($parentId, $id, $doc, $array, $old, $options = [])
     {
-        $this->callback($parentId, 'update.save.after', $array, $options);
+        $this->callback($parentId, 'update.saved', $array, $options);
 
+        unset($array);
+
+        $doc = $this->callback($parentId, 'saved', $doc, $options);
         $doc = $this->callback($parentId, 'updated', $doc, $options);
 
-        $full = ($this->observed('updated.full')
-            || $this->observed('updated.full.refresh')
-            || $this->observed('updated.full.notify'))
-            ? $this->get($parentId, $id, [], $options) : null;
-
-        $this->event($parentId, 'updated.refresh', $doc);
-        if (null !== $old) {
-            $this->event($parentId, 'updated.fullWithOld.refresh', $doc);
-        }
-        if (null !== $full) {
-            $this->event($parentId, 'updated.full.refresh', $full);
-        }
-
         $this->event($parentId, 'updated', $doc);
-        if (null !== $old) {
-            $this->event($parentId, 'updated.fullWithOld', $doc);
-        }
-        if (null !== $full) {
-            $this->event($parentId, 'updated.full', $full);
-        }
+        $this->event($parentId, 'updated_old', ['new' => $doc, 'old' => $old]);
 
-        $this->event($parentId, 'updated.notify', $doc);
-        if (null !== $old) {
-            $this->event($parentId, 'updated.fullWithOld.notify', $doc);
-        }
-        if (null !== $full) {
-            $this->event($parentId, 'updated.full.notify', $full);
+        if ($this->observed('updated_full') || $this->observed('updated_full_old')) {
+            $full = $this->get($parentId, $id, [], $options);
+            $this->event($parentId, 'updated_full', $doc);
+            $this->event($parentId, 'updated_full_old', ['new' => $full, 'old' => $old]);
+            unset($full);
         }
 
         return $doc;
@@ -731,12 +768,9 @@ class SubDocumentService implements SubDocumentServiceInterface
      */
     protected function prepareDelete($parentId, $id, $options = [])
     {
-        $old = ($this->observed('deleted.withOld')
-            || $this->observed('deleted.withOld.refresh')
-            || $this->observed('deleted.withOld.notify'))
-            ? $this->get($parentId, $id) : null;
+        $old = $this->get($parentId, $id, [], $options);
 
-        $this->callback($parentId, 'delete.save.before', ['id' => $id, 'old' => $old], $options);
+        $this->callback($parentId, 'delete.pre_save', ['id' => $id, 'old' => $old], $options);
 
         return [$old];
     }
@@ -750,81 +784,12 @@ class SubDocumentService implements SubDocumentServiceInterface
      */
     protected function completeDelete($parentId, $id, $old, $options = [])
     {
-        $this->callback($parentId, 'delete.save.after', ['id' => $id, 'old' => $old], $options);
-
+        $this->callback($parentId, 'delete.saved', ['id' => $id, 'old' => $old], $options);
         $this->callback($parentId, 'deleted', ['id' => $id, 'old' => $old], $options);
 
-        $this->event($parentId, 'deleted.refresh', ['id' => $id]);
-        if (null !== $old) {
-            $this->event($parentId, 'deleted.withOld.refresh', $old);
-        }
+        $this->event($parentId, 'deleted', $id);
+        $this->event($parentId, 'deleted_old', $old);
 
-        $this->event($parentId, 'deleted', ['id' => $id]);
-        if (null !== $old) {
-            $this->event($parentId, 'deleted.withOld', $old);
-        }
-
-        $this->event($parentId, 'deleted.notify', ['id' => $id]);
-        if (null !== $old) {
-            $this->event($parentId, 'deleted.withOld.notify', $old);
-        }
-
-        return ['id' => $id];
-    }
-    /**
-     * @param string $parentId
-     * @param string $id
-     * @param mixed  $data
-     *
-     * @return $this
-     */
-    protected function set($parentId, $id, $data)
-    {
-        $repoKey = $this->getRepoKey([$id]);
-
-        $this->getRepository()->setProperty(
-            $parentId,
-            $repoKey,
-            array_merge($this->getRepository()->getProperty($parentId, $repoKey), $data)
-        );
-
-        return $this;
-    }
-    /**
-     * @param string $parentId
-     * @param string $id
-     * @param mixed  $value
-     *
-     * @return $this
-     */
-    protected function setValue($parentId, $id, $value)
-    {
-        $this->getRepository()->setProperty($parentId, $this->getRepoKey([$id]), $value);
-
-        return $this;
-    }
-    /**
-     * @param string $parentId
-     * @param array  $values
-     *
-     * @return $this
-     */
-    protected function setValues($parentId, $values)
-    {
-        $that = $this;
-
-        $values = array_combine(
-            array_map(
-                function ($a) use ($that, $parentId) {
-                    return $that->getRepoKey([$a]);
-                },
-                array_keys($values)
-            ),
-            array_values($values)
-        );
-
-        $this->getRepository()->setProperties($parentId, $values);
-
-        return $this;
+        return $old;
     }
 }

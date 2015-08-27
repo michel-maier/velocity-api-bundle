@@ -27,11 +27,11 @@ class ApiFactory implements SecurityFactoryInterface
     /**
      * Create a new API Factory.
      *
-     * @param ContainerBuilder  $container
-     * @param $id
-     * @param $config
-     * @param $userProvider
-     * @param $defaultEntryPoint
+     * @param ContainerBuilder $container
+     * @param string           $id
+     * @param mixed            $config
+     * @param string           $userProvider
+     * @param mixed            $defaultEntryPoint
      *
      * @return array
      */

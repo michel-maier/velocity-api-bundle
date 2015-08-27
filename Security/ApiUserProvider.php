@@ -101,6 +101,32 @@ class ApiUserProvider implements UserProviderInterface
         return $a;
     }
     /**
+     * @param UserInterface $user
+     *
+     * @return UserInterface
+     *
+     * @throws \Exception
+     */
+    public function refreshUser(UserInterface $user)
+    {
+        if (!$user instanceof ApiUser) {
+            throw new UnsupportedUserException(sprintf('Instances of "%s" are not supported.', get_class($user)));
+        }
+
+        /** @var UserInterface $user */
+
+        return $this->loadUserByUsername($user->getUsername());
+    }
+    /**
+     * @param string $class
+     *
+     * @return bool
+     */
+    public function supportsClass($class)
+    {
+        return $class === 'Velocity\\Bundle\\ApiBundle\\Security\\ApiUser';
+    }
+    /**
      * @param string $value
      * @param string $format
      *
@@ -128,30 +154,5 @@ class ApiUserProvider implements UserProviderInterface
         }
 
         return $this->accountProviders[$type];
-    }
-    /**
-     * @param UserInterface $user
-     *
-     * @return UserInterface
-     *
-     * @throws \Exception
-     */
-    public function refreshUser(UserInterface $user)
-    {
-        if (!$user instanceof ApiUser) {
-            throw new UnsupportedUserException(sprintf('Instances of "%s" are not supported.', get_class($user)));
-        }
-
-        /** @var UserInterface $user */
-        return $this->loadUserByUsername($user->getUsername());
-    }
-    /**
-     * @param string $class
-     *
-     * @return bool
-     */
-    public function supportsClass($class)
-    {
-        return $class === 'Velocity\\Bundle\\ApiBundle\\Security\\ApiUser';
     }
 }

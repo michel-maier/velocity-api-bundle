@@ -326,6 +326,139 @@ class MetaDataService
      *
      * @return mixed
      */
+    public function refresh($doc, $options = [])
+    {
+        $doc   = $this->convertScalarProperties($doc, $options);
+        $doc   = $this->fetchEmbeddedReferences($doc, $options);
+        $doc   = $this->triggerRefreshes($doc, $options);
+        $doc   = $this->buildGenerateds($doc, $options);
+
+        return $doc;
+    }
+    /**
+     * Process the registered callbacks.
+     *
+     * @param string $type
+     * @param mixed  $subject
+     * @param array  $options
+     *
+     * @return mixed
+     */
+    public function callback($type, $subject = null, $options = [])
+    {
+        if (!isset($this->callbacks[$type]) || !count($this->callbacks[$type])) {
+            return $subject;
+        }
+
+        foreach ($this->callbacks[$type] as $callback) {
+            $r = call_user_func_array($callback, [$subject, $options]);
+
+            if (null !== $r) {
+                $subject = $r;
+            }
+        }
+
+        return $subject;
+    }
+    /**
+     * @param string|Object $class
+     *
+     * @return array
+     */
+    public function getModel($class)
+    {
+        if (is_object($class)) {
+            $class = get_class($class);
+        }
+
+        $this->checkModel($class);
+
+        return $this->models[$class];
+    }
+    /**
+     * @param mixed $doc
+     * @param array $options
+     *
+     * @return mixed
+     */
+    public function convertObjectToArray($doc, $options = [])
+    {
+        $options += ['removeNulls' => true];
+
+        if (!is_object($doc)) {
+            throw $this->createException(412, "Not a valid object");
+        }
+
+        $removeNulls = true === $options['removeNulls'];
+
+        $meta = $this->getModel($doc);
+        $data = get_object_vars($doc);
+
+        foreach ($data as $k => $v) {
+            if ($removeNulls && null === $v) {
+                unset($data[$k]);
+                continue;
+            }
+            if (isset($meta['types'][$k])) {
+                switch (true) {
+                    case 'DateTime' === substr($meta['types'][$k], 0, 8):
+                        $data = $this->convertDataDateTimeFieldToMongoDateWithTimeZone($data, $k);
+                        continue 2;
+                }
+            }
+            if (is_object($v)) {
+                $v = $this->convertObjectToArray($v, $options);
+            }
+            $data[$k] = $v;
+        }
+
+        return $data;
+    }
+    /**
+     * @param mixed $doc
+     * @param array $data
+     * @param array $options
+     *
+     * @return mixed
+     */
+    public function populateObject($doc, $data = [], $options = [])
+    {
+        $embeddedReferences = $this->getModelEmbeddedReferences($doc);
+        $embeddedReferenceLists = $this->getModelEmbeddedReferenceLists($doc);
+        $types = $this->getModelTypes($doc);
+
+        if (isset($data['_id']) && !isset($data['id'])) {
+            $data['id'] = (string) $data['_id'];
+            unset($data['_id']);
+        }
+
+        foreach ($data as $k => $v) {
+            if (isset($embeddedReferences[$k])) {
+                $v = $this->mutateArrayToObject($v, $embeddedReferences[$k]['class']);
+            }
+            if (isset($embeddedReferenceLists[$k])) {
+                $v = []; // @todo
+            }
+            if (isset($types[$k])) {
+                switch (true) {
+                    case 'DateTime' === substr($types[$k], 0, 8):
+                        $data = $this->revertDocumentMongoDateWithTimeZoneFieldToDateTime($data, $k);
+                        $v = $data[$k];
+                }
+                $doc->$k = $v;
+            }
+        }
+
+        unset($options);
+
+        return $doc;
+    }
+    /**
+     * @param mixed $doc
+     * @param array $options
+     *
+     * @return mixed
+     */
     protected function fetchEmbeddedReferences($doc, $options = [])
     {
         if (!is_object($doc)) {
@@ -435,141 +568,6 @@ class MetaDataService
         return $doc;
     }
     /**
-     * @param mixed $doc
-     * @param array $options
-     *
-     * @return mixed
-     */
-    public function refresh($doc, $options = [])
-    {
-        $doc   = $this->convertScalarProperties($doc, $options);
-        $doc   = $this->fetchEmbeddedReferences($doc, $options);
-        $doc   = $this->triggerRefreshes($doc, $options);
-        $doc   = $this->buildGenerateds($doc, $options);
-
-        return $doc;
-    }
-    /**
-     * Process the registered callbacks.
-     *
-     * @param string $type
-     * @param mixed  $subject
-     * @param array  $options
-     *
-     * @return mixed
-     */
-    public function callback($type, $subject = null, $options = [])
-    {
-        if (!isset($this->callbacks[$type]) || !count($this->callbacks[$type])) {
-            return $subject;
-        }
-
-        foreach ($this->callbacks[$type] as $callback) {
-            $r = call_user_func_array($callback, [$subject, $options]);
-
-            if (null !== $r) {
-                $subject = $r;
-            }
-        }
-
-        return $subject;
-    }
-    /**
-     * @param string|Object $class
-     *
-     * @return array
-     */
-    public function getModel($class)
-    {
-        if (is_object($class)) {
-            $class = get_class($class);
-        }
-
-        $this->checkModel($class);
-
-        return $this->models[$class];
-    }
-    /**
-     * @param $doc
-     * @param array $options
-     * @return mixed
-     */
-    public function convertObjectToArray($doc, $options = [])
-    {
-        if (!is_object($doc)) {
-            throw $this->createException(412, "Not a valid object");
-        }
-
-        $removeNulls = isset($options['removeNulls']) && true === $options['removeNulls'];
-
-        $meta = $this->getModel($doc);
-        $data = get_object_vars($doc);
-
-        foreach ($data as $k => $v) {
-            if ($removeNulls && null === $v) {
-                unset($data[$k]);
-                continue;
-            }
-            if (isset($meta['types'][$k])) {
-                switch (true) {
-                    case 'DateTime' === substr($meta['types'][$k], 0, 8):
-                        $data = $this->convertDataDateTimeFieldToMongoDateWithTimeZone($data, $k);
-                        continue 2;
-                }
-            }
-            if (is_object($v)) {
-                $v = $this->convertObjectToArray($v, $options);
-            }
-            $data[$k] = $v;
-        }
-
-        return $data;
-    }
-    /**
-     * @param mixed $doc
-     * @param array $data
-     * @param array $options
-     *
-     * @return mixed
-     */
-    public function populateObject($doc, $data = [], $options = [])
-    {
-        $embeddedReferences = $this->getModelEmbeddedReferences($doc);
-        $embeddedReferenceLists = $this->getModelEmbeddedReferenceLists($doc);
-        $types = $this->getModelTypes($doc);
-
-        if (isset($data['_id']) && !isset($data['id'])) {
-            $data['id'] = (string) $data['_id'];
-            unset($data['_id']);
-        }
-
-        foreach ($data as $k => $v) {
-            if (isset($embeddedReferences[$k])) {
-                $v = $this->mutateArrayToObject($v, $embeddedReferences[$k]['class']);
-            }
-            if (isset($embeddedReferenceLists[$k])) {
-                $v = []; // @todo
-            }
-            if (isset($types[$k])) {
-                switch (true) {
-                    case 'DateTime' === substr($types[$k], 0, 8):
-                        $data = $this->revertDocumentMongoDateWithTimeZoneFieldToDateTime($data, $k);
-                        $v = $data[$k];
-                }
-                $doc->$k = $v;
-            }
-        }
-
-        unset($options);
-
-        return $doc;
-    }
-
-
-
-
-
-    /**
      * @param array $definition
      * @param mixed $entireDoc
      *
@@ -598,7 +596,7 @@ class MetaDataService
             $class = get_class($class);
         }
 
-        $doc = new $class;
+        $doc = new $class();
 
         foreach ($data as $k => $v) {
             $doc->$k = $v;

@@ -401,41 +401,6 @@ class RequestService
         ];
     }
     /**
-     * @param Request $request
-     *
-     * @return array
-     *
-     * @throws \Exception
-     */
-    protected function getRequestClient(Request $request)
-    {
-        $function = $this->getClientHeaderParsingFunction();
-
-        return $function($request->headers->get(strtolower($this->getClientHeaderKey())));
-    }
-    /**
-     * @param Request $request
-     *
-     * @return string
-     */
-    protected function getRequestUser(Request $request)
-    {
-        $function = $this->getUserHeaderParsingFunction();
-
-        return $function($request->headers->get(strtolower($this->getUserHeaderKey())));
-    }
-    /**
-     * @param Request $request
-     *
-     * @return string
-     */
-    protected function getRequestSudo(Request $request)
-    {
-        $function = $this->getSudoHeaderParsingFunction();
-
-        return $function($request->headers->get(strtolower($this->getSudoHeaderKey())));
-    }
-    /**
      * @param string $id
      * @param string $expire
      * @param string $secret
@@ -561,56 +526,6 @@ class RequestService
         );
     }
     /**
-     * @param \DateTime $expire
-     *
-     * @return string
-     */
-    protected function convertDateTimeToString(\DateTime $expire)
-    {
-        return $expire->format(\DateTime::ISO8601);
-    }
-    /**
-     * @param string    $id
-     * @param \DateTime $expire
-     *
-     * @return string
-     */
-    protected function createClientToken($id, \DateTime $expire)
-    {
-        $this->getClientProvider()->get($id, ['id']);
-
-        return $this->buildClientToken($id, $this->convertDateTimeToString($expire), $this->getClientSecret());
-    }
-    /**
-     * @param string    $id
-     * @param \DateTime $expire
-     *
-     * @return string
-     */
-    protected function createUserToken($id, \DateTime $expire)
-    {
-        return $this->buildUserToken($id, $this->convertDateTimeToString($expire), $this->getUserSecret());
-    }
-    /**
-     * @param string    $headerKey
-     * @param string    $id
-     * @param \DateTime $expire
-     * @param string    $token
-     *
-     * @return array
-     */
-    protected function buildGenericTokenExpirableHeaders($headerKey, $id, \DateTime $expire, $token)
-    {
-        return [
-            $headerKey => sprintf(
-                'id: %s, expire: %s, token: %s',
-                $id,
-                $this->convertDateTimeToString($expire),
-                $token
-            )
-        ];
-    }
-    /**
      * @param Request $request
      * @return array
      */
@@ -709,5 +624,85 @@ class RequestService
     public function fetchRouteParameter(Request $request, $parameter)
     {
         return $request->attributes->get($parameter);
+    }
+    /**
+     * @param Request $request
+     *
+     * @return array
+     *
+     * @throws \Exception
+     */
+    protected function getRequestClient(Request $request)
+    {
+        $function = $this->getClientHeaderParsingFunction();
+
+        return $function($request->headers->get(strtolower($this->getClientHeaderKey())));
+    }
+    /**
+     * @param Request $request
+     *
+     * @return string
+     */
+    protected function getRequestUser(Request $request)
+    {
+        $function = $this->getUserHeaderParsingFunction();
+
+        return $function($request->headers->get(strtolower($this->getUserHeaderKey())));
+    }
+    /**
+     * @param Request $request
+     *
+     * @return string
+     */
+    protected function getRequestSudo(Request $request)
+    {
+        $function = $this->getSudoHeaderParsingFunction();
+
+        return $function($request->headers->get(strtolower($this->getSudoHeaderKey())));
+    }
+    /**
+     * @param \DateTime $expire
+     *
+     * @return string
+     */
+    protected function convertDateTimeToString(\DateTime $expire)
+    {
+        return $expire->format(\DateTime::ISO8601);
+    }
+    /**
+     * @param string    $id
+     * @param \DateTime $expire
+     *
+     * @return string
+     */
+    protected function createClientToken($id, \DateTime $expire)
+    {
+        $this->getClientProvider()->get($id, ['id']);
+
+        return $this->buildClientToken($id, $this->convertDateTimeToString($expire), $this->getClientSecret());
+    }
+    /**
+     * @param string    $id
+     * @param \DateTime $expire
+     *
+     * @return string
+     */
+    protected function createUserToken($id, \DateTime $expire)
+    {
+        return $this->buildUserToken($id, $this->convertDateTimeToString($expire), $this->getUserSecret());
+    }
+    /**
+     * @param string    $headerKey
+     * @param string    $id
+     * @param \DateTime $expire
+     * @param string    $token
+     *
+     * @return array
+     */
+    protected function buildGenericTokenExpirableHeaders($headerKey, $id, \DateTime $expire, $token)
+    {
+        return [
+            $headerKey => sprintf('id: %s, expire: %s, token: %s', $id, $this->convertDateTimeToString($expire), $token),
+        ];
     }
 }

@@ -413,6 +413,33 @@ class RepositoryService implements RepositoryInterface
         return $this->alter($id, ['$set' => [$property => $value]], $options);
     }
     /**
+     * Set the specified hash property of the specified document.
+     *
+     * @param string|array $id
+     * @param string       $property
+     * @param array        $data
+     * @param array        $options
+     *
+     * @return $this
+     */
+    public function setHashProperty($id, $property, array $data, $options = [])
+    {
+        return $this->setProperty($id, $property, (object) $data, $options);
+    }
+    /**
+     * Reset the specified list property of the specified document.
+     *
+     * @param string|array $id
+     * @param string       $property
+     * @param array        $options
+     *
+     * @return $this
+     */
+    public function resetListProperty($id, $property, $options = [])
+    {
+        return $this->setProperty($id, $property, (object) [], $options);
+    }
+    /**
      * Set the specified properties of the specified document.
      *
      * @param string|array $id
@@ -504,7 +531,11 @@ class RepositoryService implements RepositoryInterface
      */
     public function unsetProperty($id, $property, $options = [])
     {
-        return $this->alter($id, ['$unset' => [$property => '']], $options);
+        if (!is_array($property)) {
+            $property = [$property];
+        }
+
+        return $this->alter($id, ['$unset' => array_fill_keys($property, '')], $options);
     }
     /**
      * Update the specified document with the specified data.
@@ -590,7 +621,17 @@ class RepositoryService implements RepositoryInterface
      */
     public function getProperty($id, $property, $options = [])
     {
-        $document = $this->get($id, [$property], $options);
+        $fields = [];
+
+        if (isset($options['fields']) && is_array($options['fields']) && count($options['fields'])) {
+            foreach ($options['fields'] as $field) {
+                $fields[] = $property.'.'.$field;
+            }
+        } else {
+            $fields[] = $property;
+        }
+
+        $document = $this->get($id, $fields, $options);
         $value    = $document;
 
         foreach (explode('.', $property) as $key) {
@@ -605,6 +646,49 @@ class RepositoryService implements RepositoryInterface
             }
 
             $value = $value[$key];
+        }
+
+        return $value;
+    }
+    /**
+     * Return the specified property as a list of the specified document.
+     *
+     * @param string|array $id
+     * @param string       $property
+     * @param array        $options
+     *
+     * @return mixed
+     *
+     * @throws Exception
+     */
+    public function getListProperty($id, $property, $options = [])
+    {
+        $value = $this->getProperty($id, $property, $options);
+
+        if (!is_array($value)) {
+            $value = [];
+        }
+
+        return $value;
+    }
+    /**
+     * Return the specified property as a hash of the specified document.
+     *
+     * @param string|array $id
+     * @param string       $property
+     * @param array        $fields
+     * @param array        $options
+     *
+     * @return mixed
+     *
+     * @throws Exception
+     */
+    public function getHashProperty($id, $property, $fields = [], $options = [])
+    {
+        $value = $this->getProperty($id, $property, ['fields' => $fields] + $options);
+
+        if (!is_array($value)) {
+            $value = [];
         }
 
         return $value;
@@ -649,6 +733,31 @@ class RepositoryService implements RepositoryInterface
             throw $this->createException(
                 412,
                 "Unknown %s in %s '%s'",
+                str_replace('.', ' ', $property),
+                $this->getCollectionName(),
+                is_array($id) ? json_encode($id) : $id
+            );
+        }
+
+        return $this;
+    }
+    /**
+     * Check if specified property is not present in specified document.
+     *
+     * @param string|array $id
+     * @param string       $property
+     * @param array        $options
+     *
+     * @return $this
+     *
+     * @throws Exception
+     */
+    public function checkPropertyNotExist($id, $property, $options = [])
+    {
+        if ($this->hasProperty($id, $property, $options)) {
+            throw $this->createException(
+                412,
+                "%s in %s '%s' already exist",
                 str_replace('.', ' ', $property),
                 $this->getCollectionName(),
                 is_array($id) ? json_encode($id) : $id

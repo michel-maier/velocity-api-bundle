@@ -182,6 +182,17 @@ interface SubDocumentServiceInterface
      */
     public function purge($parentId, $criteria = [], $options = []);
     /**
+     * Return the property of the specified document.
+     *
+     * @param mixed  $parentId
+     * @param mixed  $id
+     * @param string $property
+     * @param array  $options
+     *
+     * @return mixed
+     */
+    public function getProperty($parentId, $id, $property, $options = []);
+    /**
      * Test if specified document exist.
      *
      * @param mixed $parentId
@@ -210,6 +221,16 @@ interface SubDocumentServiceInterface
      * @throws Exception
      */
     public function checkExist($parentId, $id);
+    /**
+     * Replace all the specified documents.
+     *
+     * @param mixed $parentId
+     * @param array $bulkData
+     * @param array $options
+     *
+     * @return mixed
+     */
+    public function replaceBulk($parentId, $bulkData, $options = []);
     /**
      * Check is specified document does not exist.
      *

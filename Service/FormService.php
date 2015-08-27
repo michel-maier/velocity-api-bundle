@@ -82,16 +82,19 @@ class FormService
      * @param string $type
      * @param string $mode
      * @param array  $data
-     * @param array  $cleanData
-     * @param bool   $clearMissing
      * @param array  $options
      *
      * @return mixed
      *
      * @throws \Exception
      */
-    public function validate($type, $mode, $data, $cleanData = [], $clearMissing = true, $options = [])
+    public function validate($type, $mode, $data, $options = [])
     {
+        $options += ['clearMissing' => true, 'cleanData' => []];
+
+        $clearMissing = $options['clearMissing'];
+        $cleanData    = $options['cleanData'];
+
         if (!$clearMissing) {
             foreach ($data as $k => $v) {
                 if (null === $v) {

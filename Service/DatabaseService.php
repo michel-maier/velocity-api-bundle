@@ -47,7 +47,7 @@ class DatabaseService
                 strlen($databaseName)
             );
         }
-        
+
         $this->setDatabaseName($databaseName);
     }
     /**
@@ -119,6 +119,152 @@ class DatabaseService
         return $this->getMongoClient()->selectCollection(
             isset($options['db']) ? $options['db'] : $this->getDatabaseName(),
             $name
+        );
+    }
+    /**
+     * Update (the first matching criteria) a document of the specified collection.
+     *
+     * @param string $collection
+     * @param array  $criteria
+     * @param array  $data
+     * @param array  $options
+     *
+     * @return bool
+     */
+    public function update($collection, $criteria = [], $data = [], $options = [])
+    {
+        return $this->getCollection($collection, $options)->update(
+            $this->buildCriteria($criteria),
+            $this->buildData($data),
+            $options
+        );
+    }
+    /**
+     * Remove (the first matching criteria) a document of the specified collection.
+     *
+     * @param string $collection
+     * @param array  $criteria
+     * @param array  $options
+     * @return array|bool
+     */
+    public function remove($collection, $criteria = [], $options = [])
+    {
+        return $this->getCollection($collection, $options)->remove(
+            $this->buildCriteria($criteria),
+            $options
+        );
+    }
+    /**
+     * Insert a single document into the specified collection.
+     *
+     * @param string $collection
+     * @param array  $data
+     * @param array  $options
+     * @return array|bool
+     */
+    public function insert($collection, $data = [], $options = [])
+    {
+        return $this->getCollection($collection, $options)->insert(
+            $this->buildData($data),
+            $options
+        );
+    }
+    /**
+     * Insert a list of documents into the specified collection.
+     *
+     * @param string $collection
+     * @param array  $bulkData
+     * @param array  $options
+     *
+     * @return mixed
+     */
+    public function bulkInsert($collection, $bulkData = [], $options = [])
+    {
+        return $this->getCollection($collection, $options)->batchInsert(
+            $this->buildBulkData($bulkData),
+            $options
+        );
+    }
+    /**
+     * Retrieve (if match criteria) a list of documents from the specified collection.
+     *
+     * @param string   $collection
+     * @param array    $criteria
+     * @param array    $fields
+     * @param null|int $limit
+     * @param int      $offset
+     * @param array    $sorts
+     * @param array    $options
+     *
+     * @return \MongoCursor
+     */
+    public function find($collection, $criteria = [], $fields = [], $limit = null, $offset = 0, $sorts = [], $options = [])
+    {
+        $cursor = $this->getCollection($collection, $options)->find(
+            $this->buildCriteria($criteria)
+        );
+
+        if (is_array($fields)   && count($fields)) {
+            $cursor->fields($fields);
+        }
+        if (is_array($sorts)    && count($sorts)) {
+            $cursor->sort($sorts);
+        }
+        if (is_numeric($offset) && $offset > 0) {
+            $cursor->skip($offset);
+        }
+        if (is_numeric($limit)  && $limit > 0) {
+            $cursor->limit($limit);
+        }
+
+        return $cursor;
+    }
+    /**
+     * Retrieve (if match criteria) one document from the specified collection.
+     *
+     * @param string $collection
+     * @param array  $criteria
+     * @param array  $fields
+     * @param array  $options
+     *
+     * @return array|null
+     */
+    public function findOne($collection, $criteria = [], $fields = [], $options = [])
+    {
+        return $this->getCollection($collection, $options)->findOne(
+            $this->buildCriteria($criteria),
+            $fields
+        );
+    }
+    /**
+     * Count the documents matching the criteria.
+     *
+     * @param string $collection
+     * @param array  $criteria
+     * @param array  $options
+     *
+     * @return int
+     */
+    public function count($collection, $criteria = [], $options = [])
+    {
+        return $this->find($collection, $criteria, ['_id'], null, 0, [], $options)
+            ->count(true);
+    }
+    /**
+     * Ensures the specified index is present on the specified fields of the collection.
+     *
+     * @param string       $collection
+     * @param string|array $fields
+     * @param mixed        $index
+     * @param array        $options
+     *
+     * @return bool
+     */
+    public function ensureIndex($collection, $fields, $index, $options = [])
+    {
+        return $this->getCollection($collection, $options)->ensureIndex(
+            is_array($fields) ? $fields : [$fields => true],
+            $index
         );
     }
     /**
@@ -206,158 +352,5 @@ class DatabaseService
         }
 
         return $bulkData;
-    }
-    /**
-     * Update (the first matching criteria) a document of the specified collection.
-     *
-     * @param string $collection
-     * @param array  $criteria
-     * @param array  $data
-     * @param array  $options
-     *
-     * @return bool
-     */
-    public function update($collection, $criteria = [], $data = [], $options = [])
-    {
-        return $this->getCollection($collection, $options)->update(
-            $this->buildCriteria($criteria),
-            $this->buildData($data),
-            $options
-        );
-    }
-    /**
-     * Remove (the first matching criteria) a document of the specified collection.
-     *
-     * @param string $collection
-     * @param array  $criteria
-     * @param array  $options
-     * @return array|bool
-     */
-    public function remove($collection, $criteria = [], $options = [])
-    {
-        return $this->getCollection($collection, $options)->remove(
-            $this->buildCriteria($criteria),
-            $options
-        );
-    }
-    /**
-     * Insert a single document into the specified collection.
-     *
-     * @param string $collection
-     * @param array  $data
-     * @param array  $options
-     * @return array|bool
-     */
-    public function insert($collection, $data = [], $options = [])
-    {
-        return $this->getCollection($collection, $options)->insert(
-            $this->buildData($data),
-            $options
-        );
-    }
-    /**
-     * Insert a list of documents into the specified collection.
-     *
-     * @param string $collection
-     * @param array  $bulkData
-     * @param array  $options
-     *
-     * @return mixed
-     */
-    public function bulkInsert($collection, $bulkData = [], $options = [])
-    {
-        return $this->getCollection($collection, $options)->batchInsert(
-            $this->buildBulkData($bulkData),
-            $options
-        );
-    }
-    /**
-     * Retrieve (if match criteria) a list of documents from the specified collection.
-     *
-     * @param string   $collection
-     * @param array    $criteria
-     * @param array    $fields
-     * @param null|int $limit
-     * @param int      $offset
-     * @param array    $sorts
-     * @param array    $options
-     *
-     * @return \MongoCursor
-     */
-    public function find(
-        $collection,
-        $criteria = [],
-        $fields = [],
-        $limit = null,
-        $offset = 0,
-        $sorts = [],
-        $options = []
-    )     {
-        $cursor = $this->getCollection($collection, $options)->find(
-            $this->buildCriteria($criteria)
-        );
-
-        if (is_array($fields)   && count($fields)) {
-            $cursor->fields($fields);
-        }
-        if (is_array($sorts)    && count($sorts)) {
-            $cursor->sort($sorts);
-        }
-        if (is_numeric($offset) && $offset > 0) {
-            $cursor->skip($offset);
-        }
-        if (is_numeric($limit)  && $limit > 0) {
-            $cursor->limit($limit);
-        }
-
-        return $cursor;
-    }
-    /**
-     * Retrieve (if match criteria) one document from the specified collection.
-     *
-     * @param string $collection
-     * @param array  $criteria
-     * @param array  $fields
-     * @param array  $options
-     *
-     * @return array|null
-     */
-    public function findOne($collection, $criteria = [], $fields = [], $options = [])
-    {
-        return $this->getCollection($collection, $options)->findOne(
-            $this->buildCriteria($criteria),
-            $fields
-        );
-    }
-    /**
-     * Count the documents matching the criteria.
-     *
-     * @param string $collection
-     * @param array  $criteria
-     * @param array  $options
-     *
-     * @return int
-     */
-    public function count($collection, $criteria = [], $options = [])
-    {
-        return $this->find($collection, $criteria, ['_id'], null, 0, [], $options)
-            ->count(true);
-    }
-    /**
-     * Ensures the specified index is present on the specified fields of the collection.
-     *
-     * @param string       $collection
-     * @param string|array $fields
-     * @param mixed        $index
-     * @param array        $options
-     *
-     * @return bool
-     */
-    public function ensureIndex($collection, $fields, $index, $options = [])
-    {
-        return $this->getCollection($collection, $options)->ensureIndex(
-            is_array($fields) ? $fields : [$fields => true],
-            $index
-        );
     }
 }

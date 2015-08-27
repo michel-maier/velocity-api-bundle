@@ -33,10 +33,7 @@ class ApiListener implements ListenerInterface
      * @param TokenStorageInterface          $tokenStorage
      * @param AuthenticationManagerInterface $authenticationManager
      */
-    public function __construct(
-        TokenStorageInterface $tokenStorage,
-        AuthenticationManagerInterface $authenticationManager
-    )
+    public function __construct(TokenStorageInterface $tokenStorage, AuthenticationManagerInterface $authenticationManager)
     {
         $this->setService('tokenStorage', $tokenStorage);
         $this->setService('authenticationManager', $authenticationManager);

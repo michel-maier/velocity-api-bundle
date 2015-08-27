@@ -41,6 +41,8 @@ class DocumentService implements DocumentServiceInterface
     {
         list($doc, $array) = $this->prepareCreate($data, $options);
 
+        unset($data);
+
         $this->getRepository()->create($array, $options);
 
         return $this->completeCreate($doc, $array, $options);
@@ -81,9 +83,10 @@ class DocumentService implements DocumentServiceInterface
 
         foreach ($bulkData as $i => $data) {
             list($docs[$i], $arrays[$i]) = $this->prepareCreate($data, $options);
+            unset($bulkData[$i]);
         }
 
-        foreach ($this->getRepository()->createBulk($arrays) as $i => $array) {
+        foreach ($this->getRepository()->createBulk($arrays, $options) as $i => $array) {
             unset($arrays[$i]);
             $this->completeCreate($docs[$i], $array, $options);
         }
@@ -106,6 +109,7 @@ class DocumentService implements DocumentServiceInterface
         $toUpdate = [];
 
         foreach ($bulkData as $i => $data) {
+            unset($bulkData[$i]);
             if (isset($data['id']) && $this->has($data['id'])) {
                 $toUpdate[$i] = $data;
             } else {
@@ -113,14 +117,21 @@ class DocumentService implements DocumentServiceInterface
             }
         }
 
+        unset($bulkData);
+
         $docs = [];
 
         if (count($toCreate)) {
             $docs += $this->createBulk($toCreate, $options);
         }
+
+        unset($toCreate);
+
         if (count($toUpdate)) {
             $docs += $this->updateBulk($toUpdate, $options);
         }
+
+        unset($toUpdate);
 
         return $docs;
     }
@@ -145,16 +156,24 @@ class DocumentService implements DocumentServiceInterface
             } else {
                 $toCreate[$i] = $data;
             }
+            unset($bulkData[$i]);
         }
+
+        unset($bulkData);
 
         $docs = [];
 
         if (count($toCreate)) {
             $docs += $this->createBulk($toCreate, $options);
         }
+
+        unset($toCreate);
+
         if (count($toDelete)) {
             $docs += $this->deleteBulk($toDelete, $options);
         }
+
+        unset($toDelete);
 
         return $docs;
     }
@@ -164,11 +183,11 @@ class DocumentService implements DocumentServiceInterface
      * @param mixed $criteria
      * @param array $options
      *
-     * @return mixed
+     * @return int
      */
     public function count($criteria = [], $options = [])
     {
-        return $this->getRepository()->count($criteria);
+        return $this->getRepository()->count($criteria, $options);
     }
     /**
      * Retrieve the documents matching the specified criteria.
@@ -187,9 +206,13 @@ class DocumentService implements DocumentServiceInterface
         $cursor = $this->getRepository()->find($criteria, $fields, $limit, $offset, $sorts, $options);
         $data   = [];
 
+        unset($criteria, $fields, $limit, $offset, $sorts);
+
         foreach ($cursor as $k => $v) {
-            $data[$k] = $this->callback('fetched', $this->convertArrayToObject($v, $options), $options);
+            $data[$k] = $this->callback('fetched', $this->convertToModel($v, $options), $options);
         }
+
+        unset($cursor);
 
         return $data;
     }
@@ -209,7 +232,7 @@ class DocumentService implements DocumentServiceInterface
     {
         return [
             $this->find($criteria, $fields, $limit, $offset, $sorts, $options),
-            $this->count($criteria),
+            $this->count($criteria, $options),
         ];
     }
     /**
@@ -275,10 +298,7 @@ class DocumentService implements DocumentServiceInterface
     {
         return $this->callback(
             'fetched',
-            $this->convertArrayToObject(
-                $this->getRepository()->get($id, $fields, $options),
-                $options
-            ),
+            $this->convertToModel($this->getRepository()->get($id, $fields, $options), $options),
             $options
         );
     }
@@ -296,7 +316,7 @@ class DocumentService implements DocumentServiceInterface
         $docs = [];
 
         foreach ($this->getRepository()->find(['_id' => $ids], $fields, $options) as $k => $v) {
-            $docs[$k] = $this->callback('fetched', $this->convertArrayToObject($v, $options), $options);
+            $docs[$k] = $this->callback('fetched', $this->convertToModel($v, $options), $options);
         }
 
         return $docs;
@@ -315,9 +335,7 @@ class DocumentService implements DocumentServiceInterface
     {
         return $this->callback(
             'fetched',
-            $this->convertArrayToObject(
-                $this->getRepository()->getBy($fieldName, $fieldValue, $fields, $options)
-            ),
+            $this->convertToModel($this->getRepository()->getBy($fieldName, $fieldValue, $fields, $options)),
             $options
         );
     }
@@ -332,7 +350,11 @@ class DocumentService implements DocumentServiceInterface
      */
     public function getRandom($fields = [], $criteria = [], $options = [])
     {
-        return $this->getRepository()->getRandom($fields, $criteria, $options);
+        return $this->callback(
+            'fetched',
+            $this->convertToModel($this->getRepository()->getRandom($fields, $criteria, $options)),
+            $options
+        );
     }
     /**
      * Purge all the documents matching the specified criteria.
@@ -344,9 +366,14 @@ class DocumentService implements DocumentServiceInterface
      */
     public function purge($criteria = [], $options = [])
     {
+        $this->callback('pre_purge', $criteria, $options);
+
         $this->getRepository()->deleteFound($criteria, $options);
 
-        return $this->event('purged');
+        $this->callback('purged', $criteria, $options);
+        $this->event('purged');
+
+        return $this;
     }
     /**
      * Delete the specified document.
@@ -360,18 +387,11 @@ class DocumentService implements DocumentServiceInterface
      */
     public function delete($id, $options = [])
     {
-        try {
-            list($old) = $this->prepareDelete($id, $options);
+        list($old) = $this->prepareDelete($id, $options);
 
-            $this->getRepository()->delete($id, $options);
+        $this->getRepository()->delete($id, $options);
 
-            return $this->completeDelete($id, $old, $options);
-        } catch (\Exception $e) {
-            if ($this->observed('delete.failed')) {
-                $this->event('delete.failed', ['id' => $id, 'exception' => $e]);
-            }
-            throw $e;
-        }
+        return $this->completeDelete($id, $old, $options);
     }
     /**
      * Delete the specified documents.
@@ -389,14 +409,18 @@ class DocumentService implements DocumentServiceInterface
         $deleteds = [];
 
         foreach ($ids as $id) {
-            list($old) = $this->prepareDelete($id, $options);
-            $olds[$id] = $old;
+            list($olds[$id]) = $this->prepareDelete($id, $options);
+            unset($ids[$id]);
         }
+
 
         foreach ($this->getRepository()->deleteBulk($ids, $options) as $id) {
             $deleteds[$id] = $this->completeDelete($id, $olds[$id], $options);
             unset($olds[$id]);
         }
+
+        unset($ids);
+        unset($olds);
 
         return $deleteds;
     }
@@ -410,6 +434,8 @@ class DocumentService implements DocumentServiceInterface
     public function update($id, $data, $options = [])
     {
         list($doc, $array, $old) = $this->prepareUpdate($id, $data, $options);
+
+        unset($data);
 
         $this->getRepository()->update($id, $array, $options);
 
@@ -444,17 +470,20 @@ class DocumentService implements DocumentServiceInterface
         foreach ($bulkData as $i => $data) {
             $id = $data['id'];
             unset($data['id']);
-            list($doc, $array, $old) = $this->prepareUpdate($id, $data, $options);
-            $docs[$i]   = $doc;
-            $arrays[$i] = ['$set' => $array];
-            $olds[$i] = $old;
+            list($docs[$i], $arrays[$i], $olds[$i]) = $this->prepareUpdate($id, $data, $options);
+            unset($bulkData[$i]);
         }
+
+        unset($bulkData);
 
         foreach ($this->getRepository()->updateBulk($arrays, $options) as $i => $array) {
             unset($arrays[$i]);
             $this->completeUpdate($docs[$i], $array, $olds[$i], $options);
             unset($olds[$i]);
         }
+
+        unset($olds);
+        unset($arrays);
 
         return $docs;
     }
@@ -468,11 +497,14 @@ class DocumentService implements DocumentServiceInterface
      */
     public function replaceAll($data, $options = [])
     {
+        $this->callback('pre_empty', []);
+
         $this->getRepository()->deleteFound([], $options);
 
+        $this->callback('emptied', []);
         $this->event('emptied');
 
-        return $this->createBulk($data);
+        return $this->createBulk($data, $options);
     }
     /**
      * Replace all the specified documents.
@@ -486,13 +518,20 @@ class DocumentService implements DocumentServiceInterface
     {
         $this->checkBulkData($bulkData, $options);
 
-        $docs = [];
+        $ids = [];
 
-        foreach ($this->getRepository()->updateBulk($bulkData, $options) as $k => $v) {
-            $docs[$k] = $this->convertArrayToObject($v, $options);
+        foreach ($bulkData as $k => $v) {
+            if (!isset($v['id'])) {
+                throw $this->createException(412, 'Missing id for item #%s', $k);
+            }
+            $ids[] = $v['id'];
         }
 
-        return $docs;
+        $this->deleteBulk($ids, $options);
+
+        unset($ids);
+
+        return $this->createBulk($bulkData, $options);
     }
     /**
      * Check if specified document exist.
@@ -538,7 +577,17 @@ class DocumentService implements DocumentServiceInterface
      */
     public function increment($id, $property, $value = 1, $options = [])
     {
-        return $this->getRepository()->incrementProperty($id, $property, $value, $options);
+        $this->callback('pre_increment', ['id' => $id, 'value' => $value, 'property' => $property]);
+        $this->callback('pre_increment.'.$property, ['id' => $id, 'value' => $value]);
+
+        $this->getRepository()->incrementProperty($id, $property, $value, $options);
+
+        $this->callback('incremented', ['id' => $id, 'value' => $value, 'property' => $property]);
+        $this->callback('incremented.'.$property, ['id' => $id, 'value' => $value]);
+        $this->event('incremented', ['id' => $id, 'value' => $value, 'property' => $property]);
+        $this->event('incremented.'.$property, ['id' => $id, 'value' => $value]);
+
+        return $this;
     }
     /**
      * Decrement the specified property of the specified document.
@@ -552,7 +601,17 @@ class DocumentService implements DocumentServiceInterface
      */
     public function decrement($id, $property, $value = 1, $options = [])
     {
-        return $this->getRepository()->decrementProperty($id, $property, $value, $options);
+        $this->callback('pre_decrement', ['id' => $id, 'value' => $value, 'property' => $property]);
+        $this->callback('pre_decrement.'.$property, ['id' => $id, 'value' => $value]);
+
+        $this->getRepository()->decrementProperty($id, $property, $value, $options);
+
+        $this->callback('decremented', ['id' => $id, 'value' => $value, 'property' => $property]);
+        $this->callback('decremented.'.$property, ['id' => $id, 'value' => $value]);
+        $this->event('decremented', ['id' => $id, 'value' => $value, 'property' => $property]);
+        $this->event('decremented.'.$property, ['id' => $id, 'value' => $value]);
+
+        return $this;
     }
     /**
      * Trigger the specified document event if listener are registered.
@@ -564,11 +623,7 @@ class DocumentService implements DocumentServiceInterface
      */
     protected function event($event, $data = null)
     {
-        if (!$this->observed($event)) {
-            return $this;
-        }
-
-        return $this->dispatch($this->buildEventName($event), $data);
+        return $this->dispatch($this->buildEventName($event), is_array($data) ? $data : null);
     }
     /**
      * Execute the registered callback and return the updated subject.
@@ -579,13 +634,9 @@ class DocumentService implements DocumentServiceInterface
      *
      * @return mixed
      */
-    protected function callback($key, $subject, $options = [])
+    protected function callback($key, $subject = null, $options = [])
     {
-        return $this->getMetaDataService()->callback(
-            $this->buildEventName($key),
-            $subject,
-            $options
-        );
+        return $this->getMetaDataService()->callback($this->buildEventName($key), $subject, $options);
     }
     /**
      * @param array $data
@@ -595,13 +646,16 @@ class DocumentService implements DocumentServiceInterface
      */
     protected function prepareCreate($data, $options = [])
     {
-        $data  = $this->callback('create.validate.before', $data, $options);
-        $doc   = $this->getFormService()->validate($this->getFullType(), 'create', $data, [], true, $options);
-        $doc   = $this->callback('create.validate.after', $doc, $options);
-        $doc   = $this->getMetaDataService()->refresh($doc, $options);
-        $doc   = $this->callback('save.before', $doc, $options);
-        $array = $this->getMetaDataService()->convertObjectToArray($doc, $options + ['removeNulls' => true]);
-        $array = $this->callback('create.save.before', $array, $options);
+        $data  = $this->callback('create.pre_validate', $data, $options);
+        $doc   = $this->validateData($data, 'create', $options);
+
+        unset($data);
+
+        $doc   = $this->callback('create.validated', $doc, $options);
+        $doc   = $this->refreshModel($doc, $options);
+        $doc   = $this->callback('pre_save', $doc, $options);
+        $array = $this->convertToArray($doc, $options);
+        $array = $this->callback('create.pre_save', $array, $options);
 
         return [$doc, $array];
     }
@@ -614,16 +668,14 @@ class DocumentService implements DocumentServiceInterface
      */
     protected function completeCreate($doc, $array, $options = [])
     {
-        $array = $this->callback('create.save.after', $array, $options);
+        $array = $this->callback('create.saved', $array, $options);
 
         $doc->id = (string) $array['_id'];
 
-        $doc = $this->callback('save.after', $doc, $options);
+        $doc = $this->callback('saved', $doc, $options);
         $doc = $this->callback('created', $doc, $options);
 
-        $this->event('created.refresh', $doc);
         $this->event('created', $doc);
-        $this->event('created.notify', $doc);
 
         return $doc;
     }
@@ -636,17 +688,18 @@ class DocumentService implements DocumentServiceInterface
      */
     protected function prepareUpdate($id, $data = [], $options = [])
     {
-        $old = ($this->observed('updated.fullWithOld')
-            || $this->observed('updated.fullWithOld.refresh')
-            || $this->observed('updated.fullWithOld.notify'))
-            ? $this->get($id) : null;
+        $old = $this->get($id, array_keys($data), $options);
 
-        $data  = $this->callback('update.validate.before', $data, $options);
-        $doc   = $this->getFormService()->validate($this->getFullType(), 'update', $data, [], false, $options);
-        $doc   = $this->callback('update.validate.after', $doc, $options);
-        $doc   = $this->getMetaDataService()->refresh($doc, $options);
-        $array = $this->getMetaDataService()->convertObjectToArray($doc, $options + ['removeNulls' => true]);
-        $array = $this->callback('update.save.before', $array, $options);
+        $data  = $this->callback('update.pre_validate', $data, $options);
+        $doc   = $this->validateData('update', $data, ['clearMissing' => false] + $options);
+
+        unset($data);
+
+        $doc   = $this->callback('update.validated', $doc, $options);
+        $doc   = $this->refreshModel($doc, $options);
+        $doc   = $this->callback('pre_save', $doc, $options);
+        $array = $this->convertToArray($doc, $options);
+        $array = $this->callback('update.pre_save', $array, $options);
 
         return [$doc, $array, $old];
     }
@@ -661,37 +714,21 @@ class DocumentService implements DocumentServiceInterface
      */
     protected function completeUpdate($id, $doc, $array, $old, $options = [])
     {
-        $this->callback('update.save.after', $array, $options);
+        $this->callback('update.saved', $array, $options);
 
+        unset($array);
+
+        $doc = $this->callback('saved', $doc, $options);
         $doc = $this->callback('updated', $doc, $options);
 
-        $full = ($this->observed('updated.full')
-            || $this->observed('updated.full.refresh')
-            || $this->observed('updated.full.notify'))
-            ? $this->get($id, [], $options) : null;
-
-        $this->event('updated.refresh', $doc);
-        if (null !== $old) {
-            $this->event('updated.fullWithOld.refresh', $doc);
-        }
-        if (null !== $full) {
-            $this->event('updated.full.refresh', $full);
-        }
-
         $this->event('updated', $doc);
-        if (null !== $old) {
-            $this->event('updated.fullWithOld', $doc);
-        }
-        if (null !== $full) {
-            $this->event('updated.full', $full);
-        }
+        $this->event('updated_old', ['new' => $doc, 'old' => $old]);
 
-        $this->event('updated.notify', $doc);
-        if (null !== $old) {
-            $this->event('updated.fullWithOld.notify', $doc);
-        }
-        if (null !== $full) {
-            $this->event('updated.full.notify', $full);
+        if ($this->observed('updated_full') || $this->observed('updated_full_old')) {
+            $full = $this->get($id, [], $options);
+            $this->event('updated_full', $doc);
+            $this->event('updated_full_old', ['new' => $full, 'old' => $old]);
+            unset($full);
         }
 
         return $doc;
@@ -704,12 +741,9 @@ class DocumentService implements DocumentServiceInterface
      */
     protected function prepareDelete($id, $options = [])
     {
-        $old = ($this->observed('deleted.withOld')
-            || $this->observed('deleted.withOld.refresh')
-            || $this->observed('deleted.withOld.notify'))
-            ? $this->get($id) : null;
+        $old = $this->get($id, [], $options);
 
-        $this->callback('delete.save.before', ['id' => $id, 'old' => $old], $options);
+        $this->callback('delete.pre_save', ['id' => $id, 'old' => $old], $options);
 
         return [$old];
     }
@@ -722,25 +756,12 @@ class DocumentService implements DocumentServiceInterface
      */
     protected function completeDelete($id, $old, $options = [])
     {
-        $this->callback('delete.save.after', ['id' => $id, 'old' => $old], $options);
-
+        $this->callback('delete.saved', ['id' => $id, 'old' => $old], $options);
         $this->callback('deleted', ['id' => $id, 'old' => $old], $options);
 
-        $this->event('deleted.refresh', ['id' => $id]);
-        if (null !== $old) {
-            $this->event('deleted.withOld.refresh', $old);
-        }
+        $this->event('deleted', $id);
+        $this->event('deleted_old', $old);
 
-        $this->event('deleted', ['id' => $id]);
-        if (null !== $old) {
-            $this->event('deleted.withOld', $old);
-        }
-
-        $this->event('deleted.notify', ['id' => $id]);
-        if (null !== $old) {
-            $this->event('deleted.withOld.notify', $old);
-        }
-
-        return ['id' => $id];
+        return $old;
     }
 }

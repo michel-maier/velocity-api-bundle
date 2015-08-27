@@ -92,15 +92,19 @@ trait ModelServiceTrait
      */
     public function getRepoKey(array $ids = [], $options = [])
     {
-        $options += ['pattern' => '%ss', 'skip' => 0];
+        $options += ['pattern' => '%ss', 'skip' => 0, 'separator' => '.'];
 
         $key    = '';
         $types  = $this->getTypes();
         $toSkip = $options['skip'];
+        $sep    = $options['separator'];
 
-        while($type = array_shift($types)) {
+        array_shift($types);
+
+        while (count($types)) {
+            $type = array_shift($types);
             if (!$toSkip) {
-                $key .= ($key ? '.' : '') . sprintf($options['pattern'], $type);
+                $key .= ($key ? $sep : '').sprintf($options['pattern'], $type);
             } else {
                 $toSkip--;
                 if ($toSkip) {
@@ -117,7 +121,16 @@ trait ModelServiceTrait
                 $id = array_shift($ids);
             }
 
-            $key .= ($key ? '.' : '').$id;
+            $this->checkRepoKeyTokenIsValid($id, $sep);
+
+            $key .= ($key ? $sep : '').$id;
+        }
+
+        if (count($ids)) {
+            foreach ($ids as $id) {
+                $this->checkRepoKeyTokenIsValid($id, $sep);
+                $key .= ($key ? $sep : '').$id;
+            }
         }
 
         return $key;
@@ -181,7 +194,7 @@ trait ModelServiceTrait
 
         $m = $this->get($object->id, $fields, $options);
 
-        foreach($fields as $field) {
+        foreach ($fields as $field) {
             if (isset($object->$field)) {
                 continue;
             }
@@ -205,7 +218,7 @@ trait ModelServiceTrait
 
         $m = $this->get($object->id, $fields, $options);
 
-        foreach($fields as $field) {
+        foreach ($fields as $field) {
             if (!isset($object->$field)) {
                 continue;
             }
@@ -256,22 +269,6 @@ trait ModelServiceTrait
         return new $class();
     }
     /**
-     * Convert provided data (array) to a model.
-     *
-     * @param mixed $data
-     * @param array $options
-     *
-     * @return mixed
-     */
-    protected function convertArrayToObject($data, $options = [])
-    {
-        return $this->getMetaDataService()->populateObject(
-            $this->createModelInstance($options),
-            $data,
-            $options
-        );
-    }
-    /**
      * @param array    $items
      * @param array    $criteria
      * @param array    $fields
@@ -287,6 +284,10 @@ trait ModelServiceTrait
         }
         if (!is_array($criteria)) {
             $criteria = [];
+        }
+
+        if (empty($items)) {
+            return $this;
         }
 
         $keyFields     = array_fill_keys($fields, true);
@@ -381,6 +382,10 @@ trait ModelServiceTrait
      */
     protected function paginateItems(&$items, $limit, $offset, $options = [])
     {
+        if (empty($items)) {
+            return $this;
+        }
+
         if (is_numeric($offset) && $offset > 0) {
             if (is_numeric($limit) && $limit > 0) {
                 $items = array_slice($items, $offset, $limit, true);
@@ -406,6 +411,10 @@ trait ModelServiceTrait
      */
     protected function sortItems(&$items, $sorts = [], $options = [])
     {
+        if (empty($items)) {
+            return $this;
+        }
+
         if (!is_array($sorts)) {
             $sorts = [];
         }
@@ -464,7 +473,7 @@ trait ModelServiceTrait
 
         $options += ['suffix' => 'Id'];
 
-        foreach($this->getTypes() as $type) {
+        foreach ($this->getTypes() as $type) {
             if (!count($values)) {
                 $value = null;
             } else {
@@ -482,16 +491,93 @@ trait ModelServiceTrait
      *
      * @return array
      */
-    protected function mutateArrayToRepoChanges($array, $ids, $options = [])
+    protected function mutateArrayToRepoChanges($array, array $ids = [], $options = [])
     {
         $changes  = [];
 
         foreach ($array as $k => $v) {
-            $changes[sprintf('%s.%s', $this->getRepoKey($ids), $k)] = $v;
+            $changes[$this->mutateKeyToRepoChangesKey($k, $ids)] = $v;
         }
 
         unset($options);
 
         return $changes;
+    }
+
+    /**
+     * @param string $key
+     * @param array  $ids
+     * @param array  $options
+     *
+     * @return string
+     */
+    protected function mutateKeyToRepoChangesKey($key, array $ids = [], array $options = [])
+    {
+        unset($options);
+
+        return sprintf('%s.%s', $this->getRepoKey($ids), $key);
+    }
+    /**
+     * @param string $mode
+     * @param array  $data
+     * @param array  $options
+     *
+     * @return mixed
+     */
+    protected function validateData($mode, array $data = [], array $options = [])
+    {
+        return $this->getFormService()->validate($this->getFullType(), $mode, $data, $options);
+    }
+    /**
+     * @param mixed $model
+     * @param array $options
+     *
+     * @return mixed
+     */
+    protected function refreshModel($model, array $options = [])
+    {
+        return $this->getMetaDataService()->refresh($model, $options);
+    }
+    /**
+     * Convert provided model (object) to an array.
+     *
+     * @param mixed $model
+     * @param array $options
+     *
+     * @return array
+     */
+    protected function convertToArray($model, array $options = [])
+    {
+        return $this->getMetaDataService()->convertObjectToArray($model, $options);
+    }
+    /**
+     * Convert provided data (array) to a model.
+     *
+     * @param array $data
+     * @param array $options
+     *
+     * @return mixed
+     */
+    protected function convertToModel(array $data, $options = [])
+    {
+        return $this->getMetaDataService()->populateObject($this->createModelInstance($options), $data, $options);
+    }
+    /**
+     * @param string $token
+     * @param string $sep
+     *
+     * @return $this
+     */
+    protected function checkRepoKeyTokenIsValid($token, $sep)
+    {
+        if (false !== strpos($token, $sep)) {
+            throw $this->createException(412, "Key token '%s' is invalid (found: %s)", $token, $sep);
+        }
+
+        if (0 === strlen($token)) {
+            throw $this->createException(412, 'Key token is empty', $token, $sep);
+        }
+
+        return $this;
     }
 }

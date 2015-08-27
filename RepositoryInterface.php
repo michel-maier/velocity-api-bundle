@@ -267,6 +267,27 @@ interface RepositoryInterface
      */
     public function updateBulk($bulkData, $options = []);
     /**
+     * Reset the specified list property of the specified document.
+     *
+     * @param string|array $id
+     * @param string       $property
+     * @param array        $options
+     *
+     * @return $this
+     */
+    public function resetListProperty($id, $property, $options = []);
+    /**
+     * Set the specified hash property of the specified document.
+     *
+     * @param string|array $id
+     * @param string       $property
+     * @param array        $data
+     * @param array        $options
+     *
+     * @return $this
+     */
+    public function setHashProperty($id, $property, array $data, $options = []);
+    /**
      * Return the specified property of the specified document.
      *
      * @param string $id
@@ -278,6 +299,31 @@ interface RepositoryInterface
      * @throws Exception
      */
     public function getProperty($id, $property, $options = []);
+    /**
+     * Return the specified property as a list of the specified document.
+     *
+     * @param string|array $id
+     * @param string       $property
+     * @param array        $options
+     *
+     * @return mixed
+     *
+     * @throws Exception
+     */
+    public function getListProperty($id, $property, $options = []);
+    /**
+     * Return the specified property as a hash of the specified document.
+     *
+     * @param string|array $id
+     * @param string       $property
+     * @param array        $fields
+     * @param array        $options
+     *
+     * @return mixed
+     *
+     * @throws Exception
+     */
+    public function getHashProperty($id, $property, $fields = [], $options = []);
     /**
      * Test if specified property is present in specified document.
      *
@@ -298,6 +344,18 @@ interface RepositoryInterface
      * @return $this
      */
     public function checkPropertyExist($id, $property, $options = []);
+    /**
+     * Check if specified property is not present in specified document.
+     *
+     * @param string|array $id
+     * @param string       $property
+     * @param array        $options
+     *
+     * @return $this
+     *
+     * @throws Exception
+     */
+    public function checkPropertyNotExist($id, $property, $options = []);
     /**
      * Create the specified index.
      *

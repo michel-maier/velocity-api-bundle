@@ -59,12 +59,10 @@ class SubDocumentServiceTest extends PHPUnit_Framework_TestCase
     {
         $this->s->setTypes(['x', 'y']);
 
-        $this->assertEquals('xs.a.ys', $this->s->getRepoKey(['a']));
-        $this->assertEquals('xs.a.ys.b', $this->s->getRepoKey(['a', 'b']));
-        $this->assertEquals('xs.a.ys.b', $this->s->getRepoKey(['a', 'b', 'c']));
-        $this->assertEquals('xs.unknown.ys', $this->s->getRepoKey());
+        $this->assertEquals('ys.a', $this->s->getRepoKey(['a']));
+        $this->assertEquals('ys.a.b', $this->s->getRepoKey(['a', 'b']));
+        $this->assertEquals('ys', $this->s->getRepoKey());
 
-        $this->assertEquals('a.ys', $this->s->getRepoKey(['a'], ['skip' => 1]));
-        $this->assertEquals('a', $this->s->getRepoKey(['a'], ['skip' => 2]));
+        $this->assertEquals('a', $this->s->getRepoKey(['a'], ['skip' => 1]));
     }
 }

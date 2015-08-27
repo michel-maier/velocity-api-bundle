@@ -56,7 +56,7 @@ class DocumentServiceTest extends PHPUnit_Framework_TestCase
     {
         $this->s->setTypes(['x']);
 
-        $this->assertEquals('xs', $this->s->getRepoKey());
-        $this->assertEquals('xs.a', $this->s->getRepoKey(['a']));
+        $this->assertEquals('', $this->s->getRepoKey());
+        $this->assertEquals('a', $this->s->getRepoKey(['a']));
     }
 }

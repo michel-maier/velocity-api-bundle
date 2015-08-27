@@ -86,18 +86,30 @@ class ApiAuthenticationProvider implements AuthenticationProviderInterface
             $sudoer = $this->getUserProvider()->loadUserByUsername($token->getUsername());
 
             if (!$sudoer->isAllowedToSwitch()) {
-                throw new MissingSudoPrivilegeException;
+                throw new MissingSudoPrivilegeException();
             }
 
             $username = $token->getImpersonatedUserInfos()['id'];
         }
 
         /** @noinspection PhpParamsInspection */
+
         return new ApiAuthenticatedUserToken(
             $clientTokenInfos,
             $userTokenInfos,
             $this->getUserProvider()->loadUserByUsername($username)
         );
+    }
+    /**
+     * Test if current authentication provider support the specified token.
+     *
+     * @param TokenInterface $token
+     *
+     * @return bool
+     */
+    public function supports(TokenInterface $token)
+    {
+        return $token instanceof ApiUnauthenticatedUserToken;
     }
     /**
      * Validate the specified client token infos.
@@ -112,14 +124,14 @@ class ApiAuthenticationProvider implements AuthenticationProviderInterface
     protected function validateClientToken($infos, \DateTime $now)
     {
         if (!isset($infos['id'])) {
-            throw new MissingClientIdentityException;
+            throw new MissingClientIdentityException();
         }
 
         if (false === (
                 $this->getRequestService()->buildClientToken($infos['id'], $infos['expire'], $this->getRequestService()->getClientSecret()) === $infos['token']
                 && false === $this->getRequestService()->isDateExpired($now, $this->getRequestService()->convertStringToDateTime($infos['expire']))
             )) {
-            throw new BadClientTokenException;
+            throw new BadClientTokenException();
         }
 
         if (isset($infos['id'])) {
@@ -141,27 +153,16 @@ class ApiAuthenticationProvider implements AuthenticationProviderInterface
     protected function validateUserToken($infos, \DateTime $now)
     {
         if (!isset($infos['id'])) {
-            throw new MissingUserIdentityException;
+            throw new MissingUserIdentityException();
         }
 
         if (false === (
                 $this->getRequestService()->buildUserToken($infos['id'], $infos['expire'], $this->getRequestService()->getUserSecret()) === $infos['token']
                 && false === $this->getRequestService()->isDateExpired($now, $this->getRequestService()->convertStringToDateTime($infos['expire']))
             )) {
-            throw new BadUserTokenException;
+            throw new BadUserTokenException();
         }
 
         return $infos;
-    }
-    /**
-     * Test if current authentication provider support the specified token.
-     *
-     * @param TokenInterface $token
-     *
-     * @return bool
-     */
-    public function supports(TokenInterface $token)
-    {
-        return $token instanceof ApiUnauthenticatedUserToken;
     }
 }
