@@ -21,32 +21,31 @@ use Velocity\Bundle\ApiBundle\Traits\TemplatingAwareTrait;
 use Velocity\Bundle\ApiBundle\Traits\TranslatorAwareTrait;
 
 /**
- * Abstract Mail Event Action.
+ * Abstract Sms Event Action.
  *
  * @author Olivier Hoareau <olivier@phppro.fr>
  */
-abstract class AbstractMailEventAction
+abstract class AbstractSmsEventAction
 {
     use ServiceTrait;
     use ArrayizerTrait;
     use TemplatingAwareTrait;
     use TranslatorAwareTrait;
-    use ServiceAware\AttachmentServiceAwareTrait;
     /**
-     * @param array $mail
+     * @param array $sms
      *
      * @return $this
      */
-    protected function renderAndSend($mail)
+    protected function renderAndSend($sms)
     {
-        return $this->send($this->render($mail));
+        return $this->send($this->render($sms));
     }
     /**
-     * @param array $mail
+     * @param array $sms
      *
      * @return $this
      */
-    abstract protected function send($mail);
+    abstract protected function send($sms);
     /**
      * @return array
      */
@@ -61,22 +60,21 @@ abstract class AbstractMailEventAction
      */
     protected function getTemplatePath($template)
     {
-        return 'mail/'.$template.'.html.twig';
+        return 'sms/'.$template.'.html.twig';
     }
     /**
-     * @param array $mail
+     * @param array $sms
      *
      * @return array
      */
-    protected function render($mail)
+    protected function render($sms)
     {
-        $mail['content'] = $this->getTemplating()->render($this->getTemplatePath($mail['template']), $mail['data']);
-        $mail['subject'] = $this->getTranslator()->trans(str_replace('/', '_', $mail['template']), [], 'mail');
+        $sms['content'] = $this->getTemplating()->render($this->getTemplatePath($sms['template']), $sms['data']);
 
-        unset($mail['template']);
-        unset($mail['data']);
+        unset($sms['template']);
+        unset($sms['data']);
 
-        return $mail;
+        return $sms;
     }
     /**
      * @param Event  $event
@@ -95,8 +93,6 @@ abstract class AbstractMailEventAction
             'template'    => str_replace('.', '/', $eventName),
             'data'        => $this->buildData($data),
             'recipients'  => $this->buildRecipients($data),
-            'attachments' => $this->buildAttachments($data),
-            'images'      => $this->buildImages($data),
             'sender'      => $this->buildSender($data),
             'options'     => $this->buildOptions($data),
         ];
@@ -138,47 +134,13 @@ abstract class AbstractMailEventAction
             return $data['recipients'];
         }
 
-        if (isset($data['email'])) {
+        if (isset($data['phone'])) {
             return [
-                $data['email'] => (isset($data['firstName']) && isset($data['lastName'])) ? sprintf('%s %s', $data['firstName'], $data['lastName']) : $data['email'],
+                $data['phone'] => (isset($data['firstName']) && isset($data['lastName'])) ? sprintf('%s %s', $data['firstName'], $data['lastName']) : $data['phone'],
             ];
         }
 
         return [];
-    }
-    /**
-     * @param array $data
-     *
-     * @return array
-     */
-    protected function buildAttachments(array $data = [])
-    {
-        $attachments = [];
-
-        foreach (isset($data['attachments']) ? $data['attachments'] : [] as $attachment) {
-            $attachments[] = $this->buildAttachment($attachment, $data);
-        }
-
-        return $attachments;
-    }
-    /**
-     * @param array $definition
-     * @param array $data
-     *
-     * @return array
-     */
-    protected function buildAttachment(array $definition, array $data = [])
-    {
-        return $this->getAttachmentService()->build($definition, $data);
-    }
-    /**
-     * @param array $data
-     *
-     * @return array
-     */
-    protected function buildImages(array $data = [])
-    {
-        return isset($data['images']) ? $data['images'] : [];
     }
     /**
      * @param array $data
