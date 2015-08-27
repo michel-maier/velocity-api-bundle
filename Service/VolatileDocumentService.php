@@ -113,8 +113,9 @@ class VolatileDocumentService
         $doc   = $this->callback('create.validated', $doc, $options);
         $doc   = $this->refreshModel($doc, $options);
         $doc   = $this->callback('pre_save', $doc, $options);
+        $doc   = $this->callback('create.pre_save', $doc, $options);
         $array = $this->convertToArray($doc, $options);
-        $array = $this->callback('create.pre_save', $array, $options);
+        $array = $this->callback('create.pre_save_array', $array, $options);
 
         return [$doc, $array];
     }
@@ -127,10 +128,11 @@ class VolatileDocumentService
      */
     protected function completeCreate($doc, $array, $options = [])
     {
-        $array = $this->callback('create.saved', $array, $options);
+        $array = $this->callback('create.saved_array', $array, $options);
 
         $doc->id = (string) $array['_id'];
 
+        $doc = $this->callback('create.saved', $doc, $options);
         $doc = $this->callback('saved', $doc, $options);
         $doc = $this->callback('created', $doc, $options);
 

@@ -678,8 +678,9 @@ class SubDocumentService implements SubDocumentServiceInterface
         $doc   = $this->callback($parentId, 'create.validated', $doc, $options);
         $doc   = $this->refreshModel($doc, $options);
         $doc   = $this->callback($parentId, 'pre_save', $doc, $options);
+        $doc   = $this->callback($parentId, 'create.pre_save', $doc, $options);
         $array = $this->convertToArray($doc, $options);
-        $array = $this->callback($parentId, 'create.pre_save', $array, $options);
+        $array = $this->callback($parentId, 'create.pre_save_array', $array, $options);
 
         return [$doc, $array];
     }
@@ -693,10 +694,11 @@ class SubDocumentService implements SubDocumentServiceInterface
      */
     protected function completeCreate($parentId, $doc, $array, $options = [])
     {
-        $array = $this->callback($parentId, 'create.saved', $array, $options);
+        $array = $this->callback($parentId, 'create.saved_array', $array, $options);
 
         $doc->id = (string) $array['_id'];
 
+        $doc = $this->callback($parentId, 'create.saved', $doc, $options);
         $doc = $this->callback($parentId, 'saved', $doc, $options);
         $doc = $this->callback($parentId, 'created', $doc, $options);
 
@@ -724,8 +726,9 @@ class SubDocumentService implements SubDocumentServiceInterface
         $doc   = $this->callback($parentId, 'update.validated', $doc, $options);
         $doc   = $this->refreshModel($doc, $options);
         $doc   = $this->callback($parentId, 'pre_save', $doc, $options);
+        $doc   = $this->callback($parentId, 'update.pre_save', $doc, $options);
         $array = $this->convertToArray($doc, $options);
-        $array = $this->callback($parentId, 'update.pre_save', $array, $options);
+        $array = $this->callback($parentId, 'update.pre_save_array', $array, $options);
 
         return [$doc, $array, $old];
     }
@@ -741,10 +744,11 @@ class SubDocumentService implements SubDocumentServiceInterface
      */
     protected function completeUpdate($parentId, $id, $doc, $array, $old, $options = [])
     {
-        $this->callback($parentId, 'update.saved', $array, $options);
+        $this->callback($parentId, 'update.saved_array', $array, $options);
 
         unset($array);
 
+        $doc = $this->callback($parentId, 'update.saved', $doc, $options);
         $doc = $this->callback($parentId, 'saved', $doc, $options);
         $doc = $this->callback($parentId, 'updated', $doc, $options);
 

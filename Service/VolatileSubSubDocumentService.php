@@ -138,8 +138,9 @@ class VolatileSubSubDocumentService
         $doc   = $this->callback($pParentId, $parentId, 'create.validated', $doc, $options);
         $doc   = $this->refreshModel($doc, $options);
         $doc   = $this->callback($pParentId, $parentId, 'pre_save', $doc, $options);
+        $doc   = $this->callback($pParentId, $parentId, 'create.pre_save', $doc, $options);
         $array = $this->convertToArray($doc, $options);
-        $array = $this->callback($pParentId, $parentId, 'create.pre_save', $array, $options);
+        $array = $this->callback($pParentId, $parentId, 'create.pre_save_array', $array, $options);
 
         return [$doc, $array];
     }
@@ -154,10 +155,11 @@ class VolatileSubSubDocumentService
      */
     protected function completeCreate($pParentId, $parentId, $doc, $array, $options = [])
     {
-        $array = $this->callback($pParentId, $parentId, 'create.saved', $array, $options);
+        $array = $this->callback($pParentId, $parentId, 'create.saved_array', $array, $options);
 
         $doc->id = (string) $array['_id'];
 
+        $doc = $this->callback($pParentId, $parentId, 'create.saved', $doc, $options);
         $doc = $this->callback($pParentId, $parentId, 'saved', $doc, $options);
         $doc = $this->callback($pParentId, $parentId, 'created', $doc, $options);
 

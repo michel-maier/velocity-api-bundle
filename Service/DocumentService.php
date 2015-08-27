@@ -655,8 +655,9 @@ class DocumentService implements DocumentServiceInterface
         $doc   = $this->callback('create.validated', $doc, $options);
         $doc   = $this->refreshModel($doc, $options);
         $doc   = $this->callback('pre_save', $doc, $options);
+        $doc   = $this->callback('create.pre_save', $doc, $options);
         $array = $this->convertToArray($doc, $options);
-        $array = $this->callback('create.pre_save', $array, $options);
+        $array = $this->callback('create.pre_save_array', $array, $options);
 
         return [$doc, $array];
     }
@@ -669,10 +670,11 @@ class DocumentService implements DocumentServiceInterface
      */
     protected function completeCreate($doc, $array, $options = [])
     {
-        $array = $this->callback('create.saved', $array, $options);
+        $array = $this->callback('create.saved_array', $array, $options);
 
         $doc->id = (string) $array['_id'];
 
+        $doc = $this->callback('create.saved', $doc, $options);
         $doc = $this->callback('saved', $doc, $options);
         $doc = $this->callback('created', $doc, $options);
 
@@ -699,8 +701,9 @@ class DocumentService implements DocumentServiceInterface
         $doc   = $this->callback('update.validated', $doc, $options);
         $doc   = $this->refreshModel($doc, $options);
         $doc   = $this->callback('pre_save', $doc, $options);
+        $doc   = $this->callback('update.pre_save', $doc, $options);
         $array = $this->convertToArray($doc, $options);
-        $array = $this->callback('update.pre_save', $array, $options);
+        $array = $this->callback('update.pre_save_array', $array, $options);
 
         return [$doc, $array, $old];
     }
@@ -715,10 +718,11 @@ class DocumentService implements DocumentServiceInterface
      */
     protected function completeUpdate($id, $doc, $array, $old, $options = [])
     {
-        $this->callback('update.saved', $array, $options);
+        $this->callback('update.saved_array', $array, $options);
 
         unset($array);
 
+        $doc = $this->callback('update.saved', $doc, $options);
         $doc = $this->callback('saved', $doc, $options);
         $doc = $this->callback('updated', $doc, $options);
 
