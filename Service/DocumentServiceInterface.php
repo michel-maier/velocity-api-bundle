@@ -25,7 +25,7 @@ interface DocumentServiceInterface
      *
      * @return string
      */
-    public function getType();
+    public function getTypes();
     /**
      * Retrieve the documents matching the specified criteria.
      *

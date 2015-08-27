@@ -21,17 +21,11 @@ use Exception;
 interface SubDocumentServiceInterface
 {
     /**
-     * Return the document type.
+     * Return the document types.
      *
      * @return string
      */
-    public function getType();
-    /**
-     * Return the document parent type.
-     *
-     * @return string
-     */
-    public function getParentType();
+    public function getTypes();
     /**
      * Retrieve the documents matching the specified criteria.
      *
@@ -87,40 +81,6 @@ interface SubDocumentServiceInterface
      * @return mixed
      */
     public function get($parentId, $id, $fields = [], $options = []);
-    /**
-     * Return the specified document by the specified field.
-     *
-     * @param mixed  $parentId
-     * @param string $fieldName
-     * @param mixed  $fieldValue
-     * @param array  $fields
-     * @param array  $options
-     *
-     * @return mixed
-     */
-    public function getBy($parentId, $fieldName, $fieldValue, $fields = [], $options = []);
-    /**
-     * Return a random document matching the specified criteria.
-     *
-     * @param mixed $parentId
-     * @param array $fields
-     * @param array $criteria
-     * @param array $options
-     *
-     * @return mixed
-     */
-    public function getRandom($parentId, $fields = [], $criteria = [], $options = []);
-    /**
-     * Return the list of the specified documents.
-     *
-     * @param mixed $parentId
-     * @param array $ids
-     * @param array $fields
-     * @param array $options
-     *
-     * @return mixed
-     */
-    public function getBulk($parentId, $ids, $fields = [], $options = []);
     /**
      * Create a new document.
      *
@@ -222,16 +182,6 @@ interface SubDocumentServiceInterface
      */
     public function purge($parentId, $criteria = [], $options = []);
     /**
-     * Return the property of the specified document.
-     *
-     * @param mixed  $parentId
-     * @param mixed  $id
-     * @param string $property
-     *
-     * @return mixed
-     */
-    public function getProperty($parentId, $id, $property);
-    /**
      * Test if specified document exist.
      *
      * @param mixed $parentId
@@ -293,14 +243,4 @@ interface SubDocumentServiceInterface
      * @return $this
      */
     public function decrement($parentId, $id, $property, $value = 1);
-    /**
-     * Replace all the specified documents.
-     *
-     * @param mixed $parentId
-     * @param array $data
-     * @param array $options
-     *
-     * @return mixed
-     */
-    public function replaceBulk($parentId, $data, $options = []);
 }

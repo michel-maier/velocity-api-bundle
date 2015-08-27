@@ -21,23 +21,11 @@ use Exception;
 interface SubSubDocumentServiceInterface
 {
     /**
-     * Return the document type.
+     * Return the document types.
      *
-     * @return string
+     * @return array
      */
-    public function getType();
-    /**
-     * Return the document parent type.
-     *
-     * @return string
-     */
-    public function getParentType();
-    /**
-     * Return the document parent parent type.
-     *
-     * @return string
-     */
-    public function getParentParentType();
+    public function getTypes();
     /**
      * Retrieve the documents matching the specified criteria.
      *
@@ -98,43 +86,6 @@ interface SubSubDocumentServiceInterface
      * @return mixed
      */
     public function get($pParentId, $parentId, $id, $fields = [], $options = []);
-    /**
-     * Return the specified document by the specified field.
-     *
-     * @param mixed  $pParentId
-     * @param mixed  $parentId
-     * @param string $fieldName
-     * @param mixed  $fieldValue
-     * @param array  $fields
-     * @param array  $options
-     *
-     * @return mixed
-     */
-    public function getBy($pParentId, $parentId, $fieldName, $fieldValue, $fields = [], $options = []);
-    /**
-     * Return a random document matching the specified criteria.
-     *
-     * @param mixed $pParentId
-     * @param mixed $parentId
-     * @param array $fields
-     * @param array $criteria
-     * @param array $options
-     *
-     * @return mixed
-     */
-    public function getRandom($pParentId, $parentId, $fields = [], $criteria = [], $options = []);
-    /**
-     * Return the list of the specified documents.
-     *
-     * @param mixed $pParentId
-     * @param mixed $parentId
-     * @param array $ids
-     * @param array $fields
-     * @param array $options
-     *
-     * @return mixed
-     */
-    public function getBulk($pParentId, $parentId, $ids, $fields = [], $options = []);
     /**
      * Create a new document.
      *
@@ -246,17 +197,6 @@ interface SubSubDocumentServiceInterface
      */
     public function purge($pParentId, $parentId, $criteria = [], $options = []);
     /**
-     * Return the property of the specified document.
-     *
-     * @param mixed  $pParentId
-     * @param mixed  $parentId
-     * @param mixed  $id
-     * @param string $property
-     *
-     * @return mixed
-     */
-    public function getProperty($pParentId, $parentId, $id, $property);
-    /**
      * Test if specified document exist.
      *
      * @param mixed $pParentId
@@ -324,15 +264,4 @@ interface SubSubDocumentServiceInterface
      * @return $this
      */
     public function decrement($pParentId, $parentId, $id, $property, $value = 1);
-    /**
-     * Replace all the specified documents.
-     *
-     * @param mixed $pParentId
-     * @param mixed $parentId
-     * @param array $data
-     * @param array $options
-     *
-     * @return mixed
-     */
-    public function replaceBulk($pParentId, $parentId, $data, $options = []);
 }

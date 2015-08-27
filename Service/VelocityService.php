@@ -369,7 +369,7 @@ class VelocityService
             if (!$container->has($repositoryId)) {
                 $this->createRepositoryDefinition($container, $repositoryId);
             }
-            $d->addMethodCall('setType', [$type]);
+            $d->addMethodCall('setTypes', [[$type]]);
             $this->addRepositorySetterCall($d, $repositoryId);
             $this->addFormSetterCall($d);
             $this->addMetaDataSetterCall($d);
@@ -442,8 +442,7 @@ class VelocityService
             list($type, $subType) = array_slice(explode('.', $id), -2);
             $d = $container->getDefinition($id);
             $this->ensureDefinitionClassSet($d, 'crud.sub');
-            $d->addMethodCall('setType', [$type]);
-            $d->addMethodCall('setSubType', [$subType]);
+            $d->addMethodCall('setTypes', [[$type, $subType]]);
             $this->addRepositorySetterCall($d, $this->buildRepoId(array_shift($attrs), $type));
             $this->addFormSetterCall($d);
             $this->addMetaDataSetterCall($d);
@@ -462,9 +461,7 @@ class VelocityService
             list($type, $subType, $subSubType) = array_slice(explode('.', $id), -3);
             $d = $container->getDefinition($id);
             $this->ensureDefinitionClassSet($d, 'crud.sub.sub');
-            $d->addMethodCall('setType', [$type]);
-            $d->addMethodCall('setSubType', [$subType]);
-            $d->addMethodCall('setSubSubType', [$subSubType]);
+            $d->addMethodCall('setTypes', [[$type, $subType, $subSubType]]);
             $this->addRepositorySetterCall($d, $this->buildRepoId(array_shift($attrs), $type));
             $this->addFormSetterCall($d);
             $this->addMetaDataSetterCall($d);
@@ -485,7 +482,7 @@ class VelocityService
             list($type) = array_slice(explode('.', $id), -1);
             $d = $container->getDefinition($id);
             $this->ensureDefinitionClassSet($d, 'volatile');
-            $d->addMethodCall('setType', [$type]);
+            $d->addMethodCall('setTypes', [[$type]]);
             $this->addFormSetterCall($d);
             $this->addMetaDataSetterCall($d);
             $this->addLoggerSetterCall($d);
@@ -518,8 +515,7 @@ class VelocityService
             list($type, $subType) = array_slice(explode('.', $id), -3);
             $d = $container->getDefinition($id);
             $this->ensureDefinitionClassSet($d, 'volatile.sub');
-            $d->addMethodCall('setType', [$type]);
-            $d->addMethodCall('setSubType', [$subType]);
+            $d->addMethodCall('setTypes', [[$type, $subType]]);
             $this->addFormSetterCall($d);
             $this->addMetaDataSetterCall($d);
             $this->addLoggerSetterCall($d);
@@ -552,9 +548,7 @@ class VelocityService
             list($type, $subType, $subSubType) = array_slice(explode('.', $id), -3);
             $d = $container->getDefinition($id);
             $this->ensureDefinitionClassSet($d, 'volatile.sub.sub');
-            $d->addMethodCall('setType', [$type]);
-            $d->addMethodCall('setSubType', [$subType]);
-            $d->addMethodCall('setSubSubType', [$subSubType]);
+            $d->addMethodCall('setTypes', [[$type, $subType, $subSubType]]);
             $this->addFormSetterCall($d);
             $this->addMetaDataSetterCall($d);
             $this->addLoggerSetterCall($d);

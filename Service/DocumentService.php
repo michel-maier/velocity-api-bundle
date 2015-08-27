@@ -9,15 +9,10 @@
  * file that was distributed with this source code.
  */
 
-namespace Velocity\Bundle\ApiBundle\Service\Base;
+namespace Velocity\Bundle\ApiBundle\Service;
 
 use Exception;
-use Velocity\Bundle\ApiBundle\RepositoryInterface;
-use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
-use Velocity\Bundle\ApiBundle\Traits\LoggerAwareTrait;
-use Velocity\Bundle\ApiBundle\Traits\FormServiceAwareTrait;
-use Velocity\Bundle\ApiBundle\Traits\MetaDataServiceAwareTrait;
-use Velocity\Bundle\ApiBundle\Service\DocumentServiceInterface;
+use Velocity\Bundle\ApiBundle\Traits\ModelServiceTrait;
 
 /**
  * Document Service.
@@ -26,41 +21,13 @@ use Velocity\Bundle\ApiBundle\Service\DocumentServiceInterface;
  */
 class DocumentService implements DocumentServiceInterface
 {
-    use ServiceTrait;
-    use LoggerAwareTrait;
-    use FormServiceAwareTrait;
-    use MetaDataServiceAwareTrait;
+    use ModelServiceTrait;
     /**
-     * @param string $type
-     *
-     * @return $this
+     * @return int
      */
-    public function setType($type)
+    public function getExpectedTypeCount()
     {
-        return $this->setParameter('type', $type);
-    }
-    /**
-     * @return string
-     */
-    public function getType()
-    {
-        return $this->getParameter('type');
-    }
-    /**
-     * @return RepositoryInterface
-     */
-    public function getRepository()
-    {
-        return $this->getService('repository');
-    }
-    /**
-     * @param RepositoryInterface $repository
-     *
-     * @return $this
-     */
-    public function setRepository(RepositoryInterface $repository)
-    {
-        return $this->setService('repository', $repository);
+        return 1;
     }
     /**
      * Create a new document.
@@ -113,9 +80,7 @@ class DocumentService implements DocumentServiceInterface
         $arrays = [];
 
         foreach ($bulkData as $i => $data) {
-            list($doc, $array) = $this->prepareCreate($data, $options);
-            $docs[$i]   = $doc;
-            $arrays[$i] = $array;
+            list($docs[$i], $arrays[$i]) = $this->prepareCreate($data, $options);
         }
 
         foreach ($this->getRepository()->createBulk($arrays) as $i => $array) {
@@ -590,17 +555,6 @@ class DocumentService implements DocumentServiceInterface
         return $this->getRepository()->decrementProperty($id, $property, $value, $options);
     }
     /**
-     * Build the full event name.
-     *
-     * @param string $event
-     *
-     * @return string
-     */
-    protected function buildEventName($event)
-    {
-        return sprintf('%s.%s', $this->getType(), $event);
-    }
-    /**
      * Trigger the specified document event if listener are registered.
      *
      * @param string $event
@@ -615,17 +569,6 @@ class DocumentService implements DocumentServiceInterface
         }
 
         return $this->dispatch($this->buildEventName($event), $data);
-    }
-    /**
-     * Test if specified document event has registered event listeners.
-     *
-     * @param string $event
-     *
-     * @return bool
-     */
-    protected function observed($event)
-    {
-        return $this->hasListeners($this->buildEventName($event));
     }
     /**
      * Execute the registered callback and return the updated subject.
@@ -653,7 +596,7 @@ class DocumentService implements DocumentServiceInterface
     protected function prepareCreate($data, $options = [])
     {
         $data  = $this->callback('create.validate.before', $data, $options);
-        $doc   = $this->getFormService()->validate($this->getType(), 'create', $data, [], true, $options);
+        $doc   = $this->getFormService()->validate($this->getFullType(), 'create', $data, [], true, $options);
         $doc   = $this->callback('create.validate.after', $doc, $options);
         $doc   = $this->getMetaDataService()->refresh($doc, $options);
         $doc   = $this->callback('save.before', $doc, $options);
@@ -685,28 +628,6 @@ class DocumentService implements DocumentServiceInterface
         return $doc;
     }
     /**
-     * @param mixed $bulkData
-     * @param array $options
-     *
-     * @return $this
-     *
-     * @throws Exception
-     */
-    protected function checkBulkData($bulkData, $options = [])
-    {
-        if (!is_array($bulkData)) {
-            throw $this->createException(412, "Missing bulk data");
-        }
-
-        if (!count($bulkData)) {
-            throw $this->createException(412, "No data to process");
-        }
-
-        unset($options);
-
-        return $this;
-    }
-    /**
      * @param mixed $id
      * @param array $data
      * @param array $options
@@ -721,7 +642,7 @@ class DocumentService implements DocumentServiceInterface
             ? $this->get($id) : null;
 
         $data  = $this->callback('update.validate.before', $data, $options);
-        $doc   = $this->getFormService()->validate($this->getType(), 'update', $data, [], false, $options);
+        $doc   = $this->getFormService()->validate($this->getFullType(), 'update', $data, [], false, $options);
         $doc   = $this->callback('update.validate.after', $doc, $options);
         $doc   = $this->getMetaDataService()->refresh($doc, $options);
         $array = $this->getMetaDataService()->convertObjectToArray($doc, $options + ['removeNulls' => true]);
@@ -821,62 +742,5 @@ class DocumentService implements DocumentServiceInterface
         }
 
         return ['id' => $id];
-    }
-    /**
-     * Return the underlying model class.
-     *
-     * @param string $alias
-     *
-     * @return string
-     */
-    protected function getModelClass($alias = null)
-    {
-        $class = null;
-
-        if (null !== $alias) {
-            if ('.' === substr($alias, 0, 1)) {
-                return $this->getModelClass().'\\'.substr($alias, 1);
-            }
-
-            return $alias;
-        }
-
-        return sprintf('AppBundle\\Model\\%s', ucfirst($this->getType()));
-    }
-    /**
-     * Return a new instance of the model.
-     *
-     * @param array $options
-     *
-     * @return mixed
-     */
-    protected function createModelInstance($options = [])
-    {
-        if (isset($options['model']) && !is_bool($options['model'])) {
-            if (is_object($options['model'])) {
-                return $options['model'];
-            }
-            $class = $this->getModelClass($options['model']);
-        } else {
-            $class = $this->getModelClass();
-        }
-
-        return new $class();
-    }
-    /**
-     * Convert provided data (array) to a model.
-     *
-     * @param mixed $data
-     * @param array $options
-     *
-     * @return mixed
-     */
-    protected function convertArrayToObject($data, $options = [])
-    {
-        return $this->getMetaDataService()->populateObject(
-            $this->createModelInstance($options),
-            $data,
-            $options
-        );
     }
 }
