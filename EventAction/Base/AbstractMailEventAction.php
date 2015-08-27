@@ -89,7 +89,7 @@ abstract class AbstractMailEventAction
     {
         list($subject, $arguments) = $this->extractEventData($event);
 
-        $data = $this->arrayize($subject) + $arguments + $params;
+        $data = $this->arrayize($subject, 1) + $arguments + $params;
 
         return [
             'template'    => str_replace('.', '/', $eventName),

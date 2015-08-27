@@ -19,15 +19,24 @@ namespace Velocity\Bundle\ApiBundle\Traits;
 trait ArrayizerTrait
 {
     /**
-     * @param mixed $raw
+     * @param mixed    $raw
+     * @param null|int $depth
      *
      * @return array
      */
-    protected function arrayize($raw)
+    protected function arrayize($raw, $depth = null)
     {
+        if (0 === $depth) {
+            return $raw;
+        }
+
+        if (null !== $depth) {
+            $depth--;
+        }
+
         if (!is_array($raw)) {
             if (is_object($raw)) {
-                return $this->arrayize(get_object_vars($raw));
+                return $this->arrayize(get_object_vars($raw), $depth);
             }
 
             return [];
@@ -35,9 +44,9 @@ trait ArrayizerTrait
 
         foreach ($raw as $k => $v) {
             if (is_array($v)) {
-                $v = $this->arrayize($v);
+                $v = $this->arrayize($v, $depth);
             } elseif (is_object($v)) {
-                $v = $this->arrayize(get_object_vars($v));
+                $v = $this->arrayize(get_object_vars($v), $depth);
             }
             $raw[$k] = $v;
         }
