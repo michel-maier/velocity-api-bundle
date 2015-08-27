@@ -20,7 +20,7 @@ use Velocity\Bundle\ApiBundle\Service\SubSubDocumentServiceInterface;
  *
  * @author Olivier Hoareau <olivier@phppro.fr>
  */
-abstract class SubSubDocumentController extends RestController
+abstract class AbstractSubSubDocumentController extends AbstractRestController
 {
     /**
      * Returns the implicit document service (based on class name)
@@ -102,6 +102,7 @@ abstract class SubSubDocumentController extends RestController
             $this->getRequestService()->fetchRouteParameter($request, 'id'),
             $options
         );
+
         return $this->returnResponse(null, 204);
     }
     /**
@@ -119,6 +120,7 @@ abstract class SubSubDocumentController extends RestController
             $this->getRequestService()->fetchRouteParameter($request, 'parentId'),
             $options
         );
+
         return $this->returnResponse(null, 204);
     }
     /**

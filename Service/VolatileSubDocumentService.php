@@ -11,6 +11,7 @@
 
 namespace Velocity\Bundle\ApiBundle\Service;
 
+use Velocity\Bundle\ApiBundle\Event;
 use Velocity\Bundle\ApiBundle\Traits\VolatileModelServiceTrait;
 
 /**
@@ -94,7 +95,7 @@ class VolatileSubDocumentService
     {
         return $this->dispatch(
             $this->buildEventName($event),
-            $this->buildTypeVars([$parentId]) + (is_array($data) ? $data : [])
+            new Event\DocumentEvent($data, $this->buildTypeVars([$parentId]))
         );
     }
     /**

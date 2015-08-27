@@ -12,6 +12,7 @@
 namespace Velocity\Bundle\ApiBundle\Service;
 
 use Exception;
+use Velocity\Bundle\ApiBundle\Event;
 use Velocity\Bundle\ApiBundle\Traits\ModelServiceTrait;
 
 /**
@@ -666,7 +667,7 @@ class SubSubDocumentService implements SubSubDocumentServiceInterface
     {
         return $this->dispatch(
             $this->buildEventName($event),
-            $this->buildTypeVars([$pParentId, $parentId]) + (is_array($data) ? $data : [])
+            new Event\DocumentEvent($data, $this->buildTypeVars([$pParentId, $parentId]))
         );
     }
     /**

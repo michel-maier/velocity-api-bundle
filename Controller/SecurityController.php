@@ -13,7 +13,7 @@ namespace Velocity\Bundle\ApiBundle\Controller;
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Velocity\Bundle\ApiBundle\Controller\Base\RestController;
+use Velocity\Bundle\ApiBundle\Controller\Base\AbstractRestController;
 use /** @noinspection PhpUnusedAliasInspection */ Nelmio\ApiDocBundle\Annotation\ApiDoc;
 use /** @noinspection PhpUnusedAliasInspection */ Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use /** @noinspection PhpUnusedAliasInspection */ Sensio\Bundle\FrameworkExtraBundle\Configuration\Method;
@@ -23,7 +23,7 @@ use /** @noinspection PhpUnusedAliasInspection */ Sensio\Bundle\FrameworkExtraBu
  *
  * @author Olivier Hoareau <olivier@phppro.fr>
  */
-class SecurityController extends RestController
+class SecurityController extends AbstractRestController
 {
     /**
      * @Route("/client-tokens", name="api_client_token_create")

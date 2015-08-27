@@ -18,6 +18,6 @@ use Symfony\Bundle\FrameworkBundle\Controller\Controller;
  *
  * @author Olivier Hoareau <olivier@phppro.fr>
  */
-abstract class BaseController extends Controller
+abstract class AbstractController extends Controller
 {
 }

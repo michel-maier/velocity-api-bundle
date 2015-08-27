@@ -20,7 +20,7 @@ use Velocity\Bundle\ApiBundle\Traits\ServiceAwareController;
  *
  * @author Olivier Hoareau <olivier@phppro.fr>
  */
-class RestController extends BaseController
+abstract class AbstractRestController extends AbstractController
 {
     use ServiceAwareController\SerializerAwareControllerTrait;
     use ServiceAwareController\RequestServiceAwareControllerTrait;

@@ -13,35 +13,31 @@ namespace Velocity\Bundle\ApiBundle\Controller\Base;
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Velocity\Bundle\ApiBundle\Service\SubDocumentServiceInterface;
+use Velocity\Bundle\ApiBundle\Service\DocumentServiceInterface;
 
 /**
- * Sub Document Controller
+ * Document Controller
  *
  * @author Olivier Hoareau <olivier@phppro.fr>
  */
-abstract class SubDocumentController extends RestController
+abstract class AbstractDocumentController extends AbstractRestController
 {
     /**
      * Returns the implicit document service (based on class name)
      *
-     * @return SubDocumentServiceInterface
+     * @return DocumentServiceInterface
      */
     protected function getService()
     {
         return $this->get(
-            'app.'.preg_replace(
-                '/controller$/',
-                '',
-                strtolower(str_replace('\\', '.', substr(get_class($this), strrpos(get_class($this), '\\', 1) + 1)))
-            )
+            'app.'.preg_replace('/Controller$/', '', basename(str_replace('\\', '/', get_class($this))))
         );
     }
     /**
      * Retrieve the documents matching the specified criteria.
      *
      * @param Request $request
-     * @param array   $options
+     * @param array    $options
      *
      * @return Response
      */
@@ -49,7 +45,6 @@ abstract class SubDocumentController extends RestController
     {
         return $this->returnResponse(
             $this->getService()->find(
-                $this->getRequestService()->fetchRouteParameter($request, 'parentId'),
                 $this->getRequestService()->fetchQueryCriteria($request),
                 $this->getRequestService()->fetchQueryFields($request),
                 $this->getRequestService()->fetchQueryLimit($request),
@@ -74,7 +69,6 @@ abstract class SubDocumentController extends RestController
     {
         return $this->returnResponse(
             $this->getService()->get(
-                $this->getRequestService()->fetchRouteParameter($request, 'parentId'),
                 $this->getRequestService()->fetchRouteParameter($request, 'id'),
                 $this->getRequestService()->fetchQueryFields($request),
                 $options
@@ -95,10 +89,10 @@ abstract class SubDocumentController extends RestController
     protected function handleDelete(Request $request, $options = [])
     {
         $this->getService()->delete(
-            $this->getRequestService()->fetchRouteParameter($request, 'parentId'),
             $this->getRequestService()->fetchRouteParameter($request, 'id'),
             $options
         );
+
         return $this->returnResponse(null, 204);
     }
     /**
@@ -111,10 +105,11 @@ abstract class SubDocumentController extends RestController
      */
     protected function handlePurge(Request $request, $options = [])
     {
+        unset($request);
         $this->getService()->purge(
-            $this->getRequestService()->fetchRouteParameter($request, 'parentId'),
             $options
         );
+
         return $this->returnResponse(null, 204);
     }
     /**
@@ -129,7 +124,6 @@ abstract class SubDocumentController extends RestController
     {
         return $this->returnResponse(
             $this->getService()->update(
-                $this->getRequestService()->fetchRouteParameter($request, 'parentId'),
                 $this->getRequestService()->fetchRouteParameter($request, 'id'),
                 $this->getRequestService()->fetchRequestData($request),
                 $options
@@ -151,7 +145,6 @@ abstract class SubDocumentController extends RestController
     {
         return $this->returnResponse(
             $this->getService()->create(
-                $this->getRequestService()->fetchRouteParameter($request, 'parentId'),
                 $this->getRequestService()->fetchRequestData($request),
                 $options
             ),

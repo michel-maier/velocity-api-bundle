@@ -12,6 +12,7 @@
 namespace Velocity\Bundle\ApiBundle\Service;
 
 use Exception;
+use Velocity\Bundle\ApiBundle\Event;
 use Velocity\Bundle\ApiBundle\Traits\ModelServiceTrait;
 
 /**
@@ -623,7 +624,7 @@ class DocumentService implements DocumentServiceInterface
      */
     protected function event($event, $data = null)
     {
-        return $this->dispatch($this->buildEventName($event), is_array($data) ? $data : null);
+        return $this->dispatch($this->buildEventName($event), new Event\DocumentEvent($data));
     }
     /**
      * Execute the registered callback and return the updated subject.
