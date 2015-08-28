@@ -6,12 +6,14 @@
  * (c) PHPPRO <opensource@phppro.fr>
  *
  * For the full copyright and license information, please view the LICENSE
- * file that was distributed with this source code.
+ * file that was distributed with this source id.
  */
 
 namespace Velocity\Bundle\ApiBundle\Service;
 
 use Exception;
+use Velocity\Bundle\ApiBundle\Exception\BusinessRuleException;
+use Velocity\Bundle\ApiBundle\Exception\NamedBusinessRuleException;
 use Velocity\Bundle\ApiBundle\Traits\ServiceAware;
 use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
 
@@ -28,7 +30,7 @@ class BusinessRuleService
      *
      * @var callable[]
      */
-    protected $businessRules = ['models' => [], 'codes'];
+    protected $businessRules = ['models' => [], 'ids'];
     /**
      * Return the list of registered business rules.
      *
@@ -58,33 +60,34 @@ class BusinessRuleService
         return isset($this->businessRules['models'][$modelName][$operation]) ? $this->businessRules['models'][$modelName][$operation]  :[];
     }
     /**
-     * @param string $code
+     * @param string $id
      *
      * @return array
      *
      * @throws Exception
      */
-    public function getBusinessRuleByCode($code)
+    public function getBusinessRuleById($id)
     {
-        if (!isset($this->businessRules['codes'][$code])) {
-            throw $this->createException(404, "Unknown business rule '%s'", $code);
+        if (!isset($this->businessRules['ids'][$id])) {
+            throw $this->createException(404, "Unknown business rule '%s'", $id);
         }
 
-        return $this->businessRules['codes'][$code];
+        return $this->businessRules['ids'][$id];
     }
     /**
      * Register an event action for the specified name (replace if exist).
      *
-     * @param string   $code
+     * @param string   $id
+     * @param string   $name
      * @param callable $callable
      * @param array    $params
      *
      * @return $this
      */
-    public function addBusinessRule($code, $callable, array $params = [])
+    public function addBusinessRule($id, $name, $callable, array $params = [])
     {
         if (!is_callable($callable)) {
-            throw $this->createException(500, "Registered business rule must be a callable for '%s'", $code);
+            throw $this->createException(500, "Registered business rule must be a callable for '%s'", $id);
         }
 
         if (isset($params['model'])) {
@@ -99,14 +102,14 @@ class BusinessRuleService
             if (!isset($this->businessRules['models'][$model][$operation])) {
                 $this->businessRules['models'][$model][$operation] = [];
             }
-            $this->businessRules['models'][$model][$operation][$code] = ['callable' => $callable, 'params' => $params, 'code' => $code];
+            $this->businessRules['models'][$model][$operation][$id] = ['callable' => $callable, 'params' => $params, 'id' => $id, 'name' => $name];
 
-            $this->businessRules['codes'][$code] = &$this->businessRules['models'][$model][$operation][$code];
+            $this->businessRules['ids'][$id] = &$this->businessRules['models'][$model][$operation][$id];
 
             return $this;
         }
 
-        throw $this->createException(500, "Unsupported business rule type for code '%s'", $code);
+        throw $this->createException(500, "Unsupported business rule type for id '%s'", $id);
     }
     /**
      * @param string $modelName
@@ -147,7 +150,11 @@ class BusinessRuleService
      */
     protected function executeBusinessRuleForModelOperation($modelName, $operation, array $businessRule, $model, array $options = [])
     {
-        call_user_func_array($businessRule['callable'], [$model, $operation, $modelName, $businessRule['params'], $options]);
+        try {
+            call_user_func_array($businessRule['callable'], [$model, $operation, $modelName, $businessRule['params'], $options]);
+        } catch (BusinessRuleException $e) {
+            throw new NamedBusinessRuleException($businessRule['id'], $businessRule['name'], $e);
+        }
 
         return $this;
     }

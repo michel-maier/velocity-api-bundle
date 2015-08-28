@@ -669,12 +669,13 @@ class VelocityService
                         $method = $rMethod->getName();
                         switch (true) {
                             case $a instanceof Velocity\BusinessRule:
-                                if (!isset($vars['code'])) {
-                                    $vars['code'] = isset($vars['value']) ? $vars['value'] : null;
+                                if (!isset($vars['id'])) {
+                                    $vars['id'] = isset($vars['value']) ? $vars['value'] : null;
                                 }
-                                $code = $vars['code'];
-                                unset($vars['value'], $vars['code']);
-                                $businessRuleDefinition->addMethodCall('addBusinessRule', [$code, [$this->ref($id), $method], $vars]);
+                                $brId = strtoupper($vars['id']);
+                                $brName = strtolower(isset($vars['name']) ? $vars['name'] : join(' ', preg_split('/((?:^|[A-Z])[a-z]+)/', $brId)));
+                                unset($vars['value'], $vars['id']);
+                                $businessRuleDefinition->addMethodCall('addBusinessRule', [$brId, $brName, [$this->ref($id), $method], $vars]);
                                 break;
                         }
                     }

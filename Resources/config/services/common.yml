@@ -65,6 +65,7 @@ services:
     class: Velocity\Bundle\ApiBundle\Service\EventActionService
   velocity.businessRule:
     class: Velocity\Bundle\ApiBundle\Service\BusinessRuleService
+    lazy: true
   velocity.generator:
     class: Velocity\Bundle\ApiBundle\Service\GeneratorService
   velocity.attachment:
