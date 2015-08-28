@@ -711,6 +711,7 @@ class SubSubDocumentService implements SubSubDocumentServiceInterface
 
         $this->checkBusinessRules($pParentId, $parentId, 'create', $doc, $options);
 
+        $doc   = $this->callback($pParentId, $parentId, 'create.pre_save_checked', $doc, $options);
         $array = $this->convertToArray($doc, $options);
         $array = $this->callback($pParentId, $parentId, 'create.pre_save_array', $array, $options);
 
@@ -764,6 +765,7 @@ class SubSubDocumentService implements SubSubDocumentServiceInterface
 
         $this->checkBusinessRules($pParentId, $parentId, 'update', $doc, $options);
 
+        $doc   = $this->callback($pParentId, $parentId, 'update.pre_save_checked', $doc, $options);
         $array = $this->convertToArray($doc, $options);
         $array = $this->callback($pParentId, $parentId, 'update.pre_save_array', $array, $options);
 
@@ -814,9 +816,11 @@ class SubSubDocumentService implements SubSubDocumentServiceInterface
     {
         $old = $this->get($pParentId, $parentId, $id, [], $options);
 
-        $this->callback($pParentId, $parentId, 'delete.pre_save', ['id' => $id, 'old' => $old], $options);
+        $this->callback($pParentId, $parentId, 'delete.pre_save', $old, $options);
 
         $this->checkBusinessRules($pParentId, $parentId, 'delete', $old, $options);
+
+        $this->callback($pParentId, $parentId, 'delete.pre_save_checked', $old, $options);
 
         return [$old];
     }

@@ -659,6 +659,7 @@ class DocumentService implements DocumentServiceInterface
 
         $this->checkBusinessRules('create', $doc, $options);
 
+        $doc   = $this->callback('create.pre_save_checked', $doc, $options);
         $array = $this->convertToArray($doc, $options);
         $array = $this->callback('create.pre_save_array', $array, $options);
 
@@ -708,6 +709,7 @@ class DocumentService implements DocumentServiceInterface
 
         $this->checkBusinessRules('update', $doc, $options);
 
+        $doc   = $this->callback('update.pre_save_checked', $doc, $options);
         $array = $this->convertToArray($doc, $options);
         $array = $this->callback('update.pre_save_array', $array, $options);
 
@@ -754,9 +756,11 @@ class DocumentService implements DocumentServiceInterface
     {
         $old = $this->get($id, [], $options);
 
-        $this->callback('delete.pre_save', ['id' => $id, 'old' => $old], $options);
+        $this->callback('delete.pre_save', $old, $options);
 
         $this->checkBusinessRules('delete', $old, $options);
+
+        $this->callback('delete.pre_save_checked', $old, $options);
 
         return [$old];
     }
@@ -769,8 +773,8 @@ class DocumentService implements DocumentServiceInterface
      */
     protected function completeDelete($id, $old, $options = [])
     {
-        $this->callback('delete.saved', ['id' => $id, 'old' => $old], $options);
-        $this->callback('deleted', ['id' => $id, 'old' => $old], $options);
+        $this->callback('delete.saved', $old, $options);
+        $this->callback('deleted', $old, $options);
 
         $this->event('deleted', $id);
         $this->event('deleted_old', $old);

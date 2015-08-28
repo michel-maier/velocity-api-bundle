@@ -682,6 +682,7 @@ class SubDocumentService implements SubDocumentServiceInterface
 
         $this->checkBusinessRules($parentId, 'create', $doc, $options);
 
+        $doc   = $this->callback($parentId, 'create.pre_save_checked', $doc, $options);
         $array = $this->convertToArray($doc, $options);
         $array = $this->callback($parentId, 'create.pre_save_array', $array, $options);
 
@@ -733,6 +734,7 @@ class SubDocumentService implements SubDocumentServiceInterface
 
         $this->checkBusinessRules($parentId, 'update', $doc, $options);
 
+        $doc   = $this->callback($parentId, 'update.pre_save_checked', $doc, $options);
         $array = $this->convertToArray($doc, $options);
         $array = $this->callback($parentId, 'update.pre_save_array', $array, $options);
 
@@ -781,9 +783,11 @@ class SubDocumentService implements SubDocumentServiceInterface
     {
         $old = $this->get($parentId, $id, [], $options);
 
-        $this->callback($parentId, 'delete.pre_save', ['id' => $id, 'old' => $old], $options);
+        $this->callback($parentId, 'delete.pre_save', $old, $options);
 
         $this->checkBusinessRules($parentId, 'delete', $old, $options);
+
+        $this->callback($parentId, 'delete.pre_save_checked', $old, $options);
 
         return [$old];
     }
@@ -797,8 +801,8 @@ class SubDocumentService implements SubDocumentServiceInterface
      */
     protected function completeDelete($parentId, $id, $old, $options = [])
     {
-        $this->callback($parentId, 'delete.saved', ['id' => $id, 'old' => $old], $options);
-        $this->callback($parentId, 'deleted', ['id' => $id, 'old' => $old], $options);
+        $this->callback($parentId, 'delete.saved', $old, $options);
+        $this->callback($parentId, 'deleted', $old, $options);
 
         $this->event($parentId, 'deleted', $id);
         $this->event($parentId, 'deleted_old', $old);

@@ -63,8 +63,12 @@ services:
     class: Velocity\Bundle\ApiBundle\Service\PasswordService
   velocity.eventAction:
     class: Velocity\Bundle\ApiBundle\Service\EventActionService
+    lazy: true
   velocity.businessRule:
     class: Velocity\Bundle\ApiBundle\Service\BusinessRuleService
+    lazy: true
+  velocity.invitationEvent:
+    class: Velocity\Bundle\ApiBundle\Service\InvitationEventService
     lazy: true
   velocity.generator:
     class: Velocity\Bundle\ApiBundle\Service\GeneratorService

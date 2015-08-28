@@ -117,6 +117,7 @@ class VolatileDocumentService
 
         $this->checkBusinessRules('create', $doc, $options);
 
+        $doc   = $this->callback('create.pre_save_checked', $doc, $options);
         $array = $this->convertToArray($doc, $options);
         $array = $this->callback('create.pre_save_array', $array, $options);
 

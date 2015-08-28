@@ -46,6 +46,7 @@ class VelocityService
             'metaData.key'                        => 'velocity.metaData',
             'eventAction.key'                     => 'velocity.eventAction',
             'businessRule.key'                    => 'velocity.businessRule',
+            'invitationEvent.key'                 => 'velocity.invitationEvent',
             'generator.key'                       => 'velocity.generator',
             'db.key'                              => 'velocity.database',
             'form.key'                            => 'velocity.form',
@@ -100,6 +101,7 @@ class VelocityService
             'migrator.tag'            => 'velocity.migrator',
             'event_action.tag'        => 'velocity.event_action',
             'business_rule.tag'       => 'velocity.business_rule',
+            'invitation_event.tag'    => 'velocity.invitation_event',
             'generator.tag'           => 'velocity.generator',
 
         ];
@@ -307,6 +309,7 @@ class VelocityService
         $this->processMigratorTag($container);
         $this->processEventActionTag($container);
         $this->processBusinessRuleTag($container);
+        $this->processInvitationEventTag($container);
         $this->processGeneratorTag($container);
 
         return $this;
@@ -673,9 +676,43 @@ class VelocityService
                                     $vars['id'] = isset($vars['value']) ? $vars['value'] : null;
                                 }
                                 $brId = strtoupper($vars['id']);
-                                $brName = strtolower(isset($vars['name']) ? $vars['name'] : join(' ', preg_split('/(?=\\p{Lu})/', ucfirst($method))));
-                                unset($vars['value'], $vars['id']);
+                                $brName = strtolower(isset($vars['name']) ? $vars['name'] : trim(join(' ', preg_split('/(?=\\p{Lu})/', ucfirst($method)))));
+                                unset($vars['value'], $vars['id'], $vars['name']);
                                 $businessRuleDefinition->addMethodCall('addBusinessRule', [$brId, $brName, [$this->ref($id), $method], $vars]);
+                                break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    /**
+     * Process invitation event tags.
+     *
+     * @param ContainerBuilder $container
+     */
+    protected function processInvitationEventTag(ContainerBuilder $container)
+    {
+        $invitationEventDefinition = $container->getDefinition($this->getDefault('invitationEvent.key'));
+
+        foreach ($this->findVelocityTaggedServiceIds($container, 'invitation_event') as $id => $attributes) {
+            $d = $container->getDefinition($id);
+            foreach ($attributes as $params) {
+                unset($params);
+                $rClass = new \ReflectionClass($d->getClass());
+                foreach ($rClass->getMethods(\ReflectionProperty::IS_PUBLIC) as $rMethod) {
+                    foreach ($this->getAnnotationReader()->getMethodAnnotations($rMethod) as $a) {
+                        $vars   = get_object_vars($a);
+                        $method = $rMethod->getName();
+                        switch (true) {
+                            case $a instanceof Velocity\InvitationEvent:
+                                if (!isset($vars['type'])) {
+                                    $vars['type'] = isset($vars['value']) ? $vars['value'] : null;
+                                }
+                                $ieType = $vars['type'];
+                                $ieTransition = $vars['transition'];
+                                unset($vars['value'], $vars['type'], $vars['transition']);
+                                $invitationEventDefinition->addMethodCall('addInvitationEvent', [$ieType, $ieTransition, [$this->ref($id), $method], $vars]);
                                 break;
                         }
                     }
