@@ -29,6 +29,10 @@ class NamedBusinessRuleException extends RuntimeException
      */
     protected $name;
     /**
+     * @var BusinessRuleException
+     */
+    protected $exception;
+    /**
      * @param string                $id
      * @param string                $name
      * @param BusinessRuleException $previous
@@ -37,9 +41,11 @@ class NamedBusinessRuleException extends RuntimeException
     {
         parent::__construct(
             sprintf("Business rule #%s '%s' error: %s", $id, $name, $previous->getMessage()),
-            $previous->getCode(),
-            $previous
+            $previous->getCode()
         );
+
+        // do not set a "previous exception" because Symfony 2 Console is not behaving the right way
+        $this->setBusinessRuleException($previous);
     }
     /**
      * @return BusinessRuleException
@@ -80,6 +86,17 @@ class NamedBusinessRuleException extends RuntimeException
     protected function setName($name)
     {
         $this->name = $name;
+
+        return $this;
+    }
+    /**
+     * @param BusinessRuleException $e
+     *
+     * @return $this
+     */
+    protected function setBusinessRuleException(BusinessRuleException $e)
+    {
+        $this->exception = $e;
 
         return $this;
     }
