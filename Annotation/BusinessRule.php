@@ -26,7 +26,11 @@ final class BusinessRule extends Annotation
     /**
      * @var string
      */
-    public $code = null;
+    public $id = null;
+    /**
+     * @var string
+     */
+    public $name = null;
     /**
      * @var string
      */
