@@ -48,10 +48,10 @@ class BusinessRuleListCommand extends ApiCommand
      */
     protected function execute(InputInterface $input, OutputInterface $output)
     {
-        foreach ($this->getBusinessRuleService()->getBusinessRules()['types'] as $type => $operations) {
+        foreach ($this->getBusinessRuleService()->getBusinessRules()['models'] as $model => $operations) {
             foreach ($operations as $operation => $businessRules) {
                 foreach ($businessRules as $businessRule) {
-                    $output->writeln(sprintf(" [%s] on %s %s %s", $businessRule['id'], str_replace('.', ' ', $type), $operation, $businessRule['name']));
+                    $output->writeln(sprintf(" <info>%s</info> on %s %s <comment>%s</comment>", $businessRule['id'], str_replace('.', ' ', $model), $operation, $businessRule['name']));
                 }
             }
         }
