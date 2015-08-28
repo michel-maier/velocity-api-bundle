@@ -673,7 +673,7 @@ class VelocityService
                                     $vars['id'] = isset($vars['value']) ? $vars['value'] : null;
                                 }
                                 $brId = strtoupper($vars['id']);
-                                $brName = strtolower(isset($vars['name']) ? $vars['name'] : join(' ', preg_split('/((?:^|[A-Z])[a-z]+)/', $method)));
+                                $brName = strtolower(isset($vars['name']) ? $vars['name'] : join(' ', preg_split('/(?=\\p{Lu})/', ucfirst($method))));
                                 unset($vars['value'], $vars['id']);
                                 $businessRuleDefinition->addMethodCall('addBusinessRule', [$brId, $brName, [$this->ref($id), $method], $vars]);
                                 break;
