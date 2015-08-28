@@ -1,6 +1,7 @@
 services:
   velocity.metadata:
     class: Velocity\Bundle\ApiBundle\Service\MetaDataService
+    lazy: true
   velocity.exception:
     class: Velocity\Bundle\ApiBundle\Service\ExceptionService
     arguments:
