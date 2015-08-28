@@ -699,15 +699,18 @@ class SubSubDocumentService implements SubSubDocumentServiceInterface
      */
     protected function prepareCreate($pParentId, $parentId, $data, $options = [])
     {
-        $data  = $this->callback($pParentId, $parentId, 'create.pre_validate', $data, $options);
-        $doc   = $this->validateData($data, 'create', $options);
+        $data = $this->callback($pParentId, $parentId, 'create.pre_validate', $data, $options);
+        $doc  = $this->validateData($data, 'create', $options);
 
         unset($data);
 
-        $doc   = $this->callback($pParentId, $parentId, 'create.validated', $doc, $options);
-        $doc   = $this->refreshModel($doc, $options);
-        $doc   = $this->callback($pParentId, $parentId, 'pre_save', $doc, $options);
-        $doc   = $this->callback($pParentId, $parentId, 'create.pre_save', $doc, $options);
+        $doc = $this->callback($pParentId, $parentId, 'create.validated', $doc, $options);
+        $doc = $this->refreshModel($doc, $options);
+        $doc = $this->callback($pParentId, $parentId, 'pre_save', $doc, $options);
+        $doc = $this->callback($pParentId, $parentId, 'create.pre_save', $doc, $options);
+
+        $this->checkBusinessRules($pParentId, $parentId, 'create', $doc, $options);
+
         $array = $this->convertToArray($doc, $options);
         $array = $this->callback($pParentId, $parentId, 'create.pre_save_array', $array, $options);
 
@@ -749,15 +752,18 @@ class SubSubDocumentService implements SubSubDocumentServiceInterface
     {
         $old = $this->get($pParentId, $parentId, $id, array_keys($data), $options);
 
-        $data  = $this->callback($pParentId, $parentId, 'update.pre_validate', $data, $options);
-        $doc   = $this->validateData($data, 'update', ['clearMissing' => false] + $options);
+        $data = $this->callback($pParentId, $parentId, 'update.pre_validate', $data, $options);
+        $doc  = $this->validateData($data, 'update', ['clearMissing' => false] + $options);
 
         unset($data);
 
-        $doc   = $this->callback($pParentId, $parentId, 'update.validated', $doc, $options);
-        $doc   = $this->refreshModel($doc, $options);
-        $doc   = $this->callback($pParentId, $parentId, 'pre_save', $doc, $options);
-        $doc   = $this->callback($pParentId, $parentId, 'update.pre_save', $doc, $options);
+        $doc = $this->callback($pParentId, $parentId, 'update.validated', $doc, $options);
+        $doc = $this->refreshModel($doc, $options);
+        $doc = $this->callback($pParentId, $parentId, 'pre_save', $doc, $options);
+        $doc = $this->callback($pParentId, $parentId, 'update.pre_save', $doc, $options);
+
+        $this->checkBusinessRules($pParentId, $parentId, 'update', $doc, $options);
+
         $array = $this->convertToArray($doc, $options);
         $array = $this->callback($pParentId, $parentId, 'update.pre_save_array', $array, $options);
 
@@ -810,6 +816,8 @@ class SubSubDocumentService implements SubSubDocumentServiceInterface
 
         $this->callback($pParentId, $parentId, 'delete.pre_save', ['id' => $id, 'old' => $old], $options);
 
+        $this->checkBusinessRules($pParentId, $parentId, 'delete', $old, $options);
+
         return [$old];
     }
     /**
@@ -830,5 +838,25 @@ class SubSubDocumentService implements SubSubDocumentServiceInterface
         $this->event($pParentId, $parentId, 'deleted_old', $old);
 
         return $old;
+    }
+    /**
+     * @param string $pParentId
+     * @param string $parentId
+     * @param string $operation
+     * @param mixed  $model
+     * @param array  $options
+     *
+     * @return $this
+     */
+    protected function checkBusinessRules($pParentId, $parentId, $operation, $model, array $options = [])
+    {
+        $this->getBusinessRuleService()->executeBusinessRulesForModelOperation(
+            $this->getModelName(),
+            $operation,
+            $model,
+            $this->buildTypeVars([$pParentId, $parentId]) + $options
+        );
+
+        return $this;
     }
 }

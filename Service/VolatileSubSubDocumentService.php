@@ -130,15 +130,18 @@ class VolatileSubSubDocumentService
      */
     protected function prepareCreate($pParentId, $parentId, $data, $options = [])
     {
-        $data  = $this->callback($pParentId, $parentId, 'create.pre_validate', $data, $options);
-        $doc   = $this->validateData($data, 'create', $options);
+        $data = $this->callback($pParentId, $parentId, 'create.pre_validate', $data, $options);
+        $doc  = $this->validateData($data, 'create', $options);
 
         unset($data);
 
-        $doc   = $this->callback($pParentId, $parentId, 'create.validated', $doc, $options);
-        $doc   = $this->refreshModel($doc, $options);
-        $doc   = $this->callback($pParentId, $parentId, 'pre_save', $doc, $options);
-        $doc   = $this->callback($pParentId, $parentId, 'create.pre_save', $doc, $options);
+        $doc = $this->callback($pParentId, $parentId, 'create.validated', $doc, $options);
+        $doc = $this->refreshModel($doc, $options);
+        $doc = $this->callback($pParentId, $parentId, 'pre_save', $doc, $options);
+        $doc = $this->callback($pParentId, $parentId, 'create.pre_save', $doc, $options);
+
+        $this->checkBusinessRules($pParentId, $parentId, 'create', $doc, $options);
+
         $array = $this->convertToArray($doc, $options);
         $array = $this->callback($pParentId, $parentId, 'create.pre_save_array', $array, $options);
 
@@ -166,5 +169,25 @@ class VolatileSubSubDocumentService
         $this->event($pParentId, $parentId, 'created', $doc);
 
         return $doc;
+    }
+    /**
+     * @param string $pParentId
+     * @param string $parentId
+     * @param string $operation
+     * @param mixed  $model
+     * @param array  $options
+     *
+     * @return $this
+     */
+    protected function checkBusinessRules($pParentId, $parentId, $operation, $model, array $options = [])
+    {
+        $this->getBusinessRuleService()->executeBusinessRulesForModelOperation(
+            $this->getModelName(),
+            $operation,
+            $model,
+            $this->buildTypeVars([$pParentId, $parentId]) + $options
+        );
+
+        return $this;
     }
 }

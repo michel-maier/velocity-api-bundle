@@ -45,6 +45,7 @@ class VelocityService
             // container keys
             'metaData.key'                        => 'velocity.metaData',
             'eventAction.key'                     => 'velocity.eventAction',
+            'businessRule.key'                    => 'velocity.businessRule',
             'generator.key'                       => 'velocity.generator',
             'db.key'                              => 'velocity.database',
             'form.key'                            => 'velocity.form',
@@ -98,6 +99,7 @@ class VelocityService
             'client_provider.tag'     => 'velocity.provider.client',
             'migrator.tag'            => 'velocity.migrator',
             'event_action.tag'        => 'velocity.event_action',
+            'business_rule.tag'       => 'velocity.business_rule',
             'generator.tag'           => 'velocity.generator',
 
         ];
@@ -304,6 +306,7 @@ class VelocityService
         $this->processProviderAccountTag($container);
         $this->processMigratorTag($container);
         $this->processEventActionTag($container);
+        $this->processBusinessRuleTag($container);
         $this->processGeneratorTag($container);
 
         return $this;
@@ -373,6 +376,7 @@ class VelocityService
             $this->addRepositorySetterCall($d, $repositoryId);
             $this->addFormSetterCall($d);
             $this->addMetaDataSetterCall($d);
+            $this->addBusinessRuleSetterCall($d);
             $this->addLoggerSetterCall($d);
             $this->addEventDispatcherSetterCall($d);
 
@@ -422,6 +426,7 @@ class VelocityService
             $this->addRepositorySetterCall($d, $this->buildRepoId(array_shift($attrs), $type));
             $this->addFormSetterCall($d);
             $this->addMetaDataSetterCall($d);
+            $this->addBusinessRuleSetterCall($d);
             $this->addLoggerSetterCall($d);
             $this->addEventDispatcherSetterCall($d);
         }
@@ -441,6 +446,7 @@ class VelocityService
             $this->addRepositorySetterCall($d, $this->buildRepoId(array_shift($attrs), $type));
             $this->addFormSetterCall($d);
             $this->addMetaDataSetterCall($d);
+            $this->addBusinessRuleSetterCall($d);
             $this->addLoggerSetterCall($d);
             $this->addEventDispatcherSetterCall($d);
         }
@@ -461,6 +467,7 @@ class VelocityService
             $d->addMethodCall('setTypes', [[$type]]);
             $this->addFormSetterCall($d);
             $this->addMetaDataSetterCall($d);
+            $this->addBusinessRuleSetterCall($d);
             $this->addLoggerSetterCall($d);
             $this->addEventDispatcherSetterCall($d);
 
@@ -494,6 +501,7 @@ class VelocityService
             $d->addMethodCall('setTypes', [[$type, $subType]]);
             $this->addFormSetterCall($d);
             $this->addMetaDataSetterCall($d);
+            $this->addBusinessRuleSetterCall($d);
             $this->addLoggerSetterCall($d);
             $this->addEventDispatcherSetterCall($d);
 
@@ -527,6 +535,7 @@ class VelocityService
             $d->addMethodCall('setTypes', [[$type, $subType, $subSubType]]);
             $this->addFormSetterCall($d);
             $this->addMetaDataSetterCall($d);
+            $this->addBusinessRuleSetterCall($d);
             $this->addLoggerSetterCall($d);
             $this->addEventDispatcherSetterCall($d);
 
@@ -641,6 +650,39 @@ class VelocityService
         }
     }
     /**
+     * Process event action tags.
+     *
+     * @param ContainerBuilder $container
+     */
+    protected function processBusinessRuleTag(ContainerBuilder $container)
+    {
+        $businessRuleDefinition = $container->getDefinition($this->getDefault('businessRule.key'));
+
+        foreach ($this->findVelocityTaggedServiceIds($container, 'business_rule') as $id => $attributes) {
+            $d = $container->getDefinition($id);
+            foreach ($attributes as $params) {
+                unset($params);
+                $rClass = new \ReflectionClass($d->getClass());
+                foreach ($rClass->getMethods(\ReflectionProperty::IS_PUBLIC) as $rMethod) {
+                    foreach ($this->getAnnotationReader()->getMethodAnnotations($rMethod) as $a) {
+                        $vars   = get_object_vars($a);
+                        $method = $rMethod->getName();
+                        switch (true) {
+                            case $a instanceof Velocity\BusinessRule:
+                                if (!isset($vars['code'])) {
+                                    $vars['code'] = isset($vars['value']) ? $vars['value'] : null;
+                                }
+                                $code = $vars['code'];
+                                unset($vars['value'], $vars['code']);
+                                $businessRuleDefinition->addMethodCall('addBusinessRule', [$code, [$this->ref($id), $method], $vars]);
+                                break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    /**
      * Process generator tags.
      *
      * @param ContainerBuilder $container
@@ -681,6 +723,10 @@ class VelocityService
     protected function addMetaDataSetterCall(Definition $definition)
     {
         $definition->addMethodCall('setMetaDataService', [$this->ref('metaData')]);
+    }
+    protected function addBusinessRuleSetterCall(Definition $definition)
+    {
+        $definition->addMethodCall('setBusinessRuleService', [$this->ref('businessRule')]);
     }
     protected function addLoggerSetterCall(Definition $definition)
     {

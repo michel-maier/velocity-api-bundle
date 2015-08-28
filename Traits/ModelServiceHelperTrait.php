@@ -12,6 +12,7 @@
 namespace Velocity\Bundle\ApiBundle\Traits;
 
 use Exception;
+use Velocity\Bundle\ApiBundle\Traits\ServiceAware;
 
 /**
  * VolatileModelService trait.
@@ -24,6 +25,7 @@ trait ModelServiceHelperTrait
     use LoggerAwareTrait;
     use FormServiceAwareTrait;
     use MetaDataServiceAwareTrait;
+    use ServiceAware\BusinessRuleServiceAwareTrait;
     /**
      * @return int|null
      */
@@ -219,5 +221,12 @@ trait ModelServiceHelperTrait
     protected function convertToModel(array $data, $options = [])
     {
         return $this->getMetaDataService()->populateObject($this->createModelInstance($options), $data, $options);
+    }
+    /**
+     * @return string
+     */
+    protected function getModelName()
+    {
+        return join('.', $this->getTypes());
     }
 }

@@ -105,15 +105,18 @@ class VolatileDocumentService
      */
     protected function prepareCreate($data, $options = [])
     {
-        $data  = $this->callback('create.pre_validate', $data, $options);
-        $doc   = $this->validateData($data, 'create', $options);
+        $data = $this->callback('create.pre_validate', $data, $options);
+        $doc  = $this->validateData($data, 'create', $options);
 
         unset($data);
 
-        $doc   = $this->callback('create.validated', $doc, $options);
-        $doc   = $this->refreshModel($doc, $options);
-        $doc   = $this->callback('pre_save', $doc, $options);
-        $doc   = $this->callback('create.pre_save', $doc, $options);
+        $doc = $this->callback('create.validated', $doc, $options);
+        $doc = $this->refreshModel($doc, $options);
+        $doc = $this->callback('pre_save', $doc, $options);
+        $doc = $this->callback('create.pre_save', $doc, $options);
+
+        $this->checkBusinessRules('create', $doc, $options);
+
         $array = $this->convertToArray($doc, $options);
         $array = $this->callback('create.pre_save_array', $array, $options);
 
@@ -139,5 +142,23 @@ class VolatileDocumentService
         $this->event('created', $doc);
 
         return $doc;
+    }
+    /**
+     * @param string $operation
+     * @param mixed  $model
+     * @param array  $options
+     *
+     * @return $this
+     */
+    protected function checkBusinessRules($operation, $model, array $options = [])
+    {
+        $this->getBusinessRuleService()->executeBusinessRulesForModelOperation(
+            $this->getModelName(),
+            $operation,
+            $model,
+            $options
+        );
+
+        return $this;
     }
 }

@@ -647,15 +647,18 @@ class DocumentService implements DocumentServiceInterface
      */
     protected function prepareCreate($data, $options = [])
     {
-        $data  = $this->callback('create.pre_validate', $data, $options);
-        $doc   = $this->validateData($data, 'create', $options);
+        $data = $this->callback('create.pre_validate', $data, $options);
+        $doc  = $this->validateData($data, 'create', $options);
 
         unset($data);
 
-        $doc   = $this->callback('create.validated', $doc, $options);
-        $doc   = $this->refreshModel($doc, $options);
-        $doc   = $this->callback('pre_save', $doc, $options);
-        $doc   = $this->callback('create.pre_save', $doc, $options);
+        $doc = $this->callback('create.validated', $doc, $options);
+        $doc = $this->refreshModel($doc, $options);
+        $doc = $this->callback('pre_save', $doc, $options);
+        $doc = $this->callback('create.pre_save', $doc, $options);
+
+        $this->checkBusinessRules('create', $doc, $options);
+
         $array = $this->convertToArray($doc, $options);
         $array = $this->callback('create.pre_save_array', $array, $options);
 
@@ -693,15 +696,18 @@ class DocumentService implements DocumentServiceInterface
     {
         $old = $this->get($id, array_keys($data), $options);
 
-        $data  = $this->callback('update.pre_validate', $data, $options);
-        $doc   = $this->validateData($data, 'update', ['clearMissing' => false] + $options);
+        $data = $this->callback('update.pre_validate', $data, $options);
+        $doc  = $this->validateData($data, 'update', ['clearMissing' => false] + $options);
 
         unset($data);
 
-        $doc   = $this->callback('update.validated', $doc, $options);
-        $doc   = $this->refreshModel($doc, $options);
-        $doc   = $this->callback('pre_save', $doc, $options);
-        $doc   = $this->callback('update.pre_save', $doc, $options);
+        $doc = $this->callback('update.validated', $doc, $options);
+        $doc = $this->refreshModel($doc, $options);
+        $doc = $this->callback('pre_save', $doc, $options);
+        $doc = $this->callback('update.pre_save', $doc, $options);
+
+        $this->checkBusinessRules('update', $doc, $options);
+
         $array = $this->convertToArray($doc, $options);
         $array = $this->callback('update.pre_save_array', $array, $options);
 
@@ -750,6 +756,8 @@ class DocumentService implements DocumentServiceInterface
 
         $this->callback('delete.pre_save', ['id' => $id, 'old' => $old], $options);
 
+        $this->checkBusinessRules('delete', $old, $options);
+
         return [$old];
     }
     /**
@@ -768,5 +776,23 @@ class DocumentService implements DocumentServiceInterface
         $this->event('deleted_old', $old);
 
         return $old;
+    }
+    /**
+     * @param string $operation
+     * @param mixed  $model
+     * @param array  $options
+     *
+     * @return $this
+     */
+    protected function checkBusinessRules($operation, $model, array $options = [])
+    {
+        $this->getBusinessRuleService()->executeBusinessRulesForModelOperation(
+            $this->getModelName(),
+            $operation,
+            $model,
+            $options
+        );
+
+        return $this;
     }
 }
