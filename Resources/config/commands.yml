@@ -13,3 +13,9 @@ services:
       - [setDatabaseService, [@velocity.database]]
     tags:
       - { name: console.command }
+  api.command.businessRuleList:
+    class: Velocity\Bundle\ApiBundle\Command\BusinessRuleListCommand
+    calls:
+      - [setBusinessRuleService, [@velocity.businessRule]]
+    tags:
+      - { name: console.command }
