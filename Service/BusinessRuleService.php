@@ -140,6 +140,25 @@ class BusinessRuleService
         return $this;
     }
     /**
+     * @param string $id
+     * @param array  $params
+     * @param array  $options
+     *
+     * @return $this
+     */
+    public function executeBusinessRuleById($id, array $params = [], array $options = [])
+    {
+        $businessRule = $this->getBusinessRuleById($id);
+
+        try {
+            call_user_func_array($businessRule['callable'], array_merge($params, [$businessRule['params'], $options]));
+        } catch (BusinessRuleException $e) {
+            throw new NamedBusinessRuleException($businessRule['id'], $businessRule['name'], $e);
+        }
+
+        return $this;
+    }
+    /**
      * @param string $modelName
      * @param string $operation
      * @param array  $businessRule

@@ -57,6 +57,7 @@ class MangoPayService
     {
         $user = new UserNatural();
 
+        // @codingStandardsIgnoreStart
         $user->FirstName          = $data['firstName'];
         $user->LastName           = $data['lastName'];
         $user->Email              = $data['email'];
@@ -65,6 +66,7 @@ class MangoPayService
         $user->Nationality        = $data['nationality'];
 
         return $this->prepareResult($this->getMangoPayApi()->Users->Create($user));
+        // @codingStandardsIgnoreEnd
     }
     /**
      * Create a new MangoPay wallet.
@@ -79,11 +81,13 @@ class MangoPayService
     {
         $wallet = new Wallet();
 
+        // @codingStandardsIgnoreStart
         $wallet->Currency    = $data['currency'];
         $wallet->Description = $data['description'];
         $wallet->Owners      = $data['owners'];
 
         return $this->prepareResult($this->getMangoPayApi()->Wallets->Create($wallet));
+        // @codingStandardsIgnoreEnd
     }
     /**
      * Create a new MangoPay pay-in.
@@ -98,6 +102,7 @@ class MangoPayService
     {
         $payIn = new PayIn();
 
+        // @codingStandardsIgnoreStart
         $payIn->AuthorId         = $data['authorId'];
         $payIn->CreditedUserId   = $data['creditedUserId'];
         $payIn->CreditedWalletId = $data['creditedWalletId'];
@@ -119,6 +124,7 @@ class MangoPayService
         $payIn->ExecutionDetails->SecureMode = $data['secureMode'];
 
         return $this->prepareResult($this->getMangoPayApi()->PayIns->Create($payIn));
+        // @codingStandardsIgnoreEnd
     }
     /**
      * Create a new MangoPay transfer.
@@ -133,6 +139,7 @@ class MangoPayService
     {
         $transfer = new Transfer();
 
+        // @codingStandardsIgnoreStart
         $transfer->AuthorId         = $data['authorId'];
         $transfer->CreditedUserId   = $data['creditedUserId'];
         $transfer->CreditedWalletId = $data['creditedWalletId'];
@@ -147,6 +154,7 @@ class MangoPayService
         $transfer->Fees->Amount   = round($data['fees'] * 100, 0); // cents
 
         return $this->prepareResult($this->getMangoPayApi()->Transfers->Create($transfer));
+        // @codingStandardsIgnoreEnd
     }
     /**
      * Create a MangoPay bank account.
@@ -161,6 +169,7 @@ class MangoPayService
     {
         $bankAccount = new BankAccount();
 
+        // @codingStandardsIgnoreStart
         $bankAccount->OwnerName    = $data['ownerName'];
         $bankAccount->OwnerAddress = $data['ownerAddress'];
         $bankAccount->UserId       = $data['userId'];
@@ -195,6 +204,7 @@ class MangoPayService
         return $this->prepareResult(
             $this->getMangoPayApi()->Users->CreateBankAccount($data['userId'], $bankAccount)
         );
+        // @codingStandardsIgnoreEnd
     }
     /**
      * Convert the specified raw MangoPay result to array.

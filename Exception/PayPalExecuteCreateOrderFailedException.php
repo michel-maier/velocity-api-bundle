@@ -66,7 +66,7 @@ class PayPalExecuteCreateOrderFailedException extends PayPalException
                 'LongMessage'     => $e->getMessage(),
                 'SeverityCode'    => 'error',
                 'ErrorParameters' => [],
-            ]
+            ],
         ];
     }
 }

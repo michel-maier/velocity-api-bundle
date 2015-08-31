@@ -29,7 +29,7 @@ class PayPalPrepareCreateOrderFailedException extends PayPalException
      * @param array      $options
      * @param \Exception $previous
      */
-    public function __construct($data, $options = [], \Exception $previous)
+    public function __construct($data, $options, \Exception $previous)
     {
         parent::__construct(
             sprintf("PayPal create order preparation failed: %s", $previous->getMessage()),
@@ -76,7 +76,7 @@ class PayPalPrepareCreateOrderFailedException extends PayPalException
                 'LongMessage'     => $e->getMessage(),
                 'SeverityCode'    => 'error',
                 'ErrorParameters' => [],
-            ]
+            ],
         ];
     }
 }

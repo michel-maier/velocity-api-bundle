@@ -33,10 +33,12 @@ class PayPalCreateOrderFailedException extends PayPalException
      */
     public function __construct(SetExpressCheckoutReq $request, SetExpressCheckoutResponseType $response)
     {
+        // @codingStandardsIgnoreStart
         parent::__construct(
             sprintf("PayPal create order failed with status : %s", $response->Ack),
             $this->buildErrors($response)
         );
+        // @codingStandardsIgnoreEnd
 
         $this->expressCheckoutRequest = $request;
         $this->expressCheckoutResponse = $response;
@@ -46,6 +48,7 @@ class PayPalCreateOrderFailedException extends PayPalException
      */
     public function getResponseStatus()
     {
+        // @codingStandardsIgnoreLine
         return $this->getExpressCheckoutResponse()->Ack;
     }
     /**
@@ -71,6 +74,7 @@ class PayPalCreateOrderFailedException extends PayPalException
     {
         $errors = [];
 
+        // @codingStandardsIgnoreLine
         foreach ($response->Errors as $error) {
             $errors[] = (array) $error;
         }

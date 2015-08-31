@@ -154,15 +154,6 @@ class PayPalService
         return $this->setService('payPal', $payPal);
     }
     /**
-     * @param string $token
-     *
-     * @return string
-     */
-    protected function getPaymentUrl($token)
-    {
-        return str_replace('{token}', $token, $this->getPaymentUrlPattern());
-    }
-    /**
      * @param array $data
      * @param array $options
      *
@@ -201,6 +192,7 @@ class PayPalService
             if (isset($data['items']) && is_array($data['items']) && count($data['items'])) {
                 foreach ($data['items'] as $i => $item) {
                     $itemDetails = new PaymentDetailsItemType($item);
+                    // @codingStandardsIgnoreStart
                     $itemDetails->Name = (string) $item['name'] ?: sprintf('Item %s', is_numeric($i) ? ($i + 1) : $i);
                     $itemDetails->Number = (string) $item['number'] ?: null;
                     $itemDetails->Amount = (string) $item['amount'] ?: '0.0';
@@ -208,23 +200,29 @@ class PayPalService
                     $itemDetails->Description = (string) $item['description'] ?: null;
                     $itemDetails->PromoCode = (string) $item['code'] ?: null;
                     $itemDetails->ProductCategory = (string) $item['category'] ?: null;
+                    // @codingStandardsIgnoreEnd
                     if (isset($item['tax']) && $item['tax']) {
                         $itemDetailsTax = new BasicAmountType();
+                        // @codingStandardsIgnoreStart
                         $itemDetailsTax->currencyID = $currency;
                         $itemDetailsTax->value = (string) $item['tax'];
 
                         $itemDetails->Tax = $itemDetailsTax;
+                        // @codingStandardsIgnoreEnd
 
                         $total += (double) $itemDetailsTax->value;
                         $taxTotal += (double) $itemDetailsTax->value;
                     }
+                    // @codingStandardsIgnoreStart
                     $paymentDetails->PaymentDetailsItem[] = $itemDetails;
 
                     $total += (double) $itemDetails->Amount;
                     $itemTotal += (double) $itemDetails->Amount;
+                    // @codingStandardsIgnoreEnd
                 }
             }
 
+            // @codingStandardsIgnoreStart
             $orderTotal = new BasicAmountType();
             $orderTotal->currencyID = $currency;
             $orderTotal->value = $total;
@@ -265,6 +263,7 @@ class PayPalService
 
             $setECReq = new SetExpressCheckoutReq();
             $setECReq->SetExpressCheckoutRequest = $setECReqType;
+            // @codingStandardsIgnoreEnd
         } catch (\Exception $e) {
             throw new PayPalPrepareCreateOrderFailedException($data, $options, $e);
         }
@@ -276,12 +275,14 @@ class PayPalService
             throw new PayPalExecuteCreateOrderFailedException($setECReq, $e);
         }
 
+        // @codingStandardsIgnoreLine
         if ('Success' !== $payPalResponse->Ack) {
             throw new PayPalCreateOrderFailedException($setECReq, $payPalResponse);
         }
 
         unset($options);
 
+        // @codingStandardsIgnoreStart
         return [
             'token'         => (string) $payPalResponse->Token,
             'timestamp'     => (string) $payPalResponse->Timestamp,
@@ -290,6 +291,7 @@ class PayPalService
             'build'         => (string) $payPalResponse->Build,
             'paymentUrl'    => $this->getPaymentUrl((string) $payPalResponse->Token),
         ];
+        // @codingStandardsIgnoreEnd
     }
     /**
      * @param string $token
@@ -304,11 +306,13 @@ class PayPalService
         try {
             $version = $this->getVersion();
 
+            // @codingStandardsIgnoreStart
             $getExpressCheckoutDetailsRequest = new GetExpressCheckoutDetailsRequestType($token);
             $getExpressCheckoutDetailsRequest->Version = $version;
 
             $getExpressCheckoutReq = new GetExpressCheckoutDetailsReq();
             $getExpressCheckoutReq->GetExpressCheckoutDetailsRequest = $getExpressCheckoutDetailsRequest;
+            // @codingStandardsIgnoreEnd
         } catch (\Exception $e) {
             throw new PayPalPrepareGetOrderFailedException($token, $options, $e);
         }
@@ -321,6 +325,7 @@ class PayPalService
 
         }
 
+        // @codingStandardsIgnoreLine
         if ('Success' !== $payPalResponse->Ack) {
             throw new PayPalGetOrderFailedException($getExpressCheckoutReq, $payPalResponse);
         }
@@ -328,6 +333,7 @@ class PayPalService
         unset($options);
 
         /** @noinspection PhpUndefinedFieldInspection */
+        // @codingStandardsIgnoreStart
         return [
             'token'               => $token,
             'status'              => $payPalResponse->GetExpressCheckoutDetailsResponseDetails->CheckoutStatus,
@@ -340,6 +346,7 @@ class PayPalService
             'giftMessage'         => $payPalResponse->GetExpressCheckoutDetailsResponseDetails->GiftMessage,
             'buyerMarketingEmail' => $payPalResponse->GetExpressCheckoutDetailsResponseDetails->BuyerMarketingEmail,
         ];
+        // @codingStandardsIgnoreEnd
     }
     /**
      * @param string $token
@@ -360,6 +367,7 @@ class PayPalService
 
             $version = $this->getVersion();
 
+            // @codingStandardsIgnoreStart
             $paymentDetails = new PaymentDetailsType();
             $paymentDetails->PaymentAction = $action;
             $paymentDetails->NotifyURL = $notifyUrl;
@@ -381,25 +389,30 @@ class PayPalService
 
             $DoECReq = new DoExpressCheckoutPaymentReq();
             $DoECReq->DoExpressCheckoutPaymentRequest = $DoECRequest;
+            // @codingStandardsIgnoreEnd
         } catch (\Exception $e) {
             throw new PayPalPrepareConfirmOrderFailedException($token, $data, $options, $e);
         }
 
         /** @var DoExpressCheckoutPaymentResponseType $payPalResponse */
+        // @codingStandardsIgnoreStart
         try {
             $payPalResponse = $this->getPayPal()->DoExpressCheckoutPayment($DoECReq);
         } catch (\Exception $e) {
             throw new PayPalExecuteConfirmOrderFailedException($DoECReq, $e);
-
         }
+        // @codingStandardsIgnoreEnd
 
+        // @codingStandardsIgnoreStart
         if ('Success' !== $payPalResponse->Ack) {
             throw new PayPalConfirmOrderFailedException($DoECReq, $payPalResponse);
         }
+        // @codingStandardsIgnoreEnd
 
         unset($options);
 
         /** @noinspection PhpUndefinedFieldInspection */
+        // @codingStandardsIgnoreStart
         return [
             'token' => $token,
             'billingAgreementId' => $payPalResponse->DoExpressCheckoutPaymentResponseDetails->BillingAgreementID,
@@ -421,5 +434,15 @@ class PayPalService
             'terminalId'         => $payPalResponse->PaymentInfo->TerminalID,
             'amount'             => $payPalResponse->Amount,
         ];
+        // @codingStandardsIgnoreEnd
+    }
+    /**
+     * @param string $token
+     *
+     * @return string
+     */
+    protected function getPaymentUrl($token)
+    {
+        return str_replace('{token}', $token, $this->getPaymentUrlPattern());
     }
 }

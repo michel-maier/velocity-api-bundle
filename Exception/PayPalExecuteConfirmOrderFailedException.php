@@ -29,6 +29,7 @@ class PayPalExecuteConfirmOrderFailedException extends PayPalException
      */
     public function __construct(DoExpressCheckoutPaymentReq $request, \Exception $previous)
     {
+        // @codingStandardsIgnoreStart
         /** @noinspection PhpUndefinedFieldInspection */
         parent::__construct(
             sprintf(
@@ -40,6 +41,7 @@ class PayPalExecuteConfirmOrderFailedException extends PayPalException
             500,
             $previous
         );
+        // @codingStandardsIgnoreEnd
 
         $this->expressCheckoutRequest = $request;
     }
@@ -56,6 +58,7 @@ class PayPalExecuteConfirmOrderFailedException extends PayPalException
     public function getToken()
     {
         /** @noinspection PhpUndefinedFieldInspection */
+        // @codingStandardsIgnoreLine
         return $this->getExpressCheckoutRequest()->DoExpressCheckoutPaymentRequest->Token;
     }
     /**
@@ -79,7 +82,7 @@ class PayPalExecuteConfirmOrderFailedException extends PayPalException
                 'LongMessage'     => $e->getMessage(),
                 'SeverityCode'    => 'error',
                 'ErrorParameters' => [],
-            ]
+            ],
         ];
     }
 }

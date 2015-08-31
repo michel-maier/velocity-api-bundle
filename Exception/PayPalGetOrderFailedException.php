@@ -33,6 +33,7 @@ class PayPalGetOrderFailedException extends PayPalException
      */
     public function __construct(GetExpressCheckoutDetailsReq $request, GetExpressCheckoutDetailsResponseType $response)
     {
+        // @codingStandardsIgnoreStart
         /** @noinspection PhpUndefinedFieldInspection */
         parent::__construct(
             sprintf(
@@ -42,6 +43,7 @@ class PayPalGetOrderFailedException extends PayPalException
             ),
             $this->buildErrors($response)
         );
+        // @codingStandardsIgnoreEnd
 
         $this->expressCheckoutRequest = $request;
         $this->expressCheckoutResponse = $response;
@@ -51,6 +53,7 @@ class PayPalGetOrderFailedException extends PayPalException
      */
     public function getResponseStatus()
     {
+        // @codingStandardsIgnoreLine
         return $this->getExpressCheckoutResponse()->Ack;
     }
     /**
@@ -76,6 +79,7 @@ class PayPalGetOrderFailedException extends PayPalException
     {
         $errors = [];
 
+        // @codingStandardsIgnoreLine
         foreach ($response->Errors as $error) {
             $errors[] = (array) $error;
         }

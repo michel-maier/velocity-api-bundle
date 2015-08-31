@@ -35,7 +35,7 @@ class BusinessRuleListCommand extends ApiCommand
     {
         $this
             ->setName('velocity:business-rule:list')
-            ->setDescription('Liste business rules')
+            ->setDescription('List business rules')
         ;
     }
     /**

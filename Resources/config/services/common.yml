@@ -82,4 +82,5 @@ services:
       - %app_variables%
     tags:
       - {name: twig.extension}
-
+  velocity.eventActionContext:
+    class: Velocity\Bundle\ApiBundle\EventAction\Context

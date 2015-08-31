@@ -11,10 +11,9 @@
 
 namespace Velocity\Bundle\ApiBundle\EventAction\Base;
 
-use Symfony\Component\EventDispatcher\Event;
+use Velocity\Bundle\ApiBundle\EventAction\Context;
 use Velocity\Bundle\ApiBundle\Traits\ServiceAware;
 use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
-use Symfony\Component\EventDispatcher\GenericEvent;
 use Velocity\Bundle\ApiBundle\Traits\ArrayizerTrait;
 use Velocity\Bundle\ApiBundle\Event as VelocityEvent;
 use Velocity\Bundle\ApiBundle\Traits\TemplatingAwareTrait;
@@ -77,42 +76,21 @@ abstract class AbstractSmsEventAction
         return $sms;
     }
     /**
-     * @param Event  $event
-     * @param string $eventName
-     * @param array  $params
+     * @param Context $context
      *
      * @return array
      */
-    protected function buildFromEvent(Event $event, $eventName, array $params)
+    protected function buildFromContext(Context $context)
     {
-        list($subject, $arguments) = $this->extractEventData($event);
-
-        $data = $this->arrayize($subject) + $arguments + $params;
-
         return [
-            'template'    => str_replace('.', '/', $eventName),
-            'data'        => $this->buildData($data),
-            'recipients'  => $this->buildRecipients($data),
-            'sender'      => $this->buildSender($data),
-            'options'     => $this->buildOptions($data),
+            'template'    => $context->getVariable('template'),
+            'data'        => $this->buildData($context->getVariables()),
+            'recipients'  => $this->buildRecipients(
+                $context->hasVariable('recipient') ? $context->getVariable('recipient') : $context->getVariable('recipients', [])
+            ),
+            'sender'      => $this->buildSender($context->getVariable('sender', null)),
+            'options'     => $this->buildOptions($context->getVariable('options', [])),
         ];
-    }
-    /**
-     * @param Event $event
-     *
-     * @return array
-     */
-    protected function extractEventData(Event $event)
-    {
-        if ($event instanceof VelocityEvent\DocumentEvent) {
-            return [$event->getData(), $event->getContext()];
-        }
-
-        if ($event instanceof GenericEvent) {
-            return [$event->getSubject(), $event->getArguments()];
-        }
-
-        return [null, []];
     }
     /**
      * @param array $data

@@ -45,6 +45,7 @@ class VelocityService
             // container keys
             'metaData.key'                        => 'velocity.metaData',
             'eventAction.key'                     => 'velocity.eventAction',
+            'eventActionContext.key'              => 'velocity.eventActionContext',
             'businessRule.key'                    => 'velocity.businessRule',
             'invitationEvent.key'                 => 'velocity.invitationEvent',
             'generator.key'                       => 'velocity.generator',
@@ -630,12 +631,14 @@ class VelocityService
     protected function processEventActionTag(ContainerBuilder $container)
     {
         $eventActionDefinition = $container->getDefinition($this->getDefault('eventAction.key'));
+        $contextRef            = $this->ref('eventActionContext');
 
         foreach ($this->findVelocityTaggedServiceIds($container, 'event_action') as $id => $attributes) {
             $d = $container->getDefinition($id);
             foreach ($attributes as $params) {
                 unset($params);
                 $rClass = new \ReflectionClass($d->getClass());
+                $d->addMethodCall('setContext', [$contextRef]);
                 foreach ($rClass->getMethods(\ReflectionProperty::IS_PUBLIC) as $rMethod) {
                     foreach ($this->getAnnotationReader()->getMethodAnnotations($rMethod) as $a) {
                         $vars   = get_object_vars($a);

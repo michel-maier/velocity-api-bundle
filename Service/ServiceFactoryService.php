@@ -34,23 +34,29 @@ class ServiceFactoryService
     {
         $api = new MangoPayApi();
 
+        // @codingStandardsIgnoreStart
         $api->Config->ClientId        = $clientId;
         $api->Config->ClientPassword  = $clientPassword;
         $api->Config->TemporaryFolder = sys_get_temp_dir();
+        // @codingStandardsIgnoreEnd
 
         switch ($environment) {
             case 'live':
-                $api->Config->BaseUrl = 'https://api.mangopay.com';
+                $url = 'https://api.mangopay.com';
                 break;
             case 'sandbox':
-                $api->Config->BaseUrl = 'https://api.sandbox.mangopay.com';
+                $url = 'https://api.sandbox.mangopay.com';
                 break;
             default:
-                $api->Config->BaseUrl = $environment;
+                $url = $environment;
                 break;
         }
 
+        // @codingStandardsIgnoreLine
+        $api->Config->BaseUrl = $url;
+
         foreach ($options as $key => $value) {
+            // @codingStandardsIgnoreLine
             $api->Config->$key = $value;
         }
 

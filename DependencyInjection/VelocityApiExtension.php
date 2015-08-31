@@ -56,5 +56,6 @@ class VelocityApiExtension extends Extension
         $loader->load('validators.yml');
         $loader->load('migrators.yml');
         $loader->load('listeners.yml');
+        $loader->load('eventActions.yml');
     }
 }
