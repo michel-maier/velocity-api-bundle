@@ -17,6 +17,9 @@
     <file>./Traits</file>
     <file>./Twig</file>
     <file>./Validator</file>
+    <file>./ClientProviderInterface.php</file>
+    <file>./MigratorInterface.php</file>
+    <file>./VelocityApiBundle.php</file>
 
     <rule ref="Symfony2"/>
 
