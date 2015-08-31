@@ -163,6 +163,8 @@ class Configuration implements ConfigurationInterface
      */
     protected function addEventsSection(ArrayNodeDefinition $rootNode)
     {
+        $that = $this;
+
         $rootNode
             ->beforeNormalization()
                 ->always(function ($v) {
@@ -176,22 +178,17 @@ class Configuration implements ConfigurationInterface
                             ->arrayNode('actions')
                                 ->prototype('array')
                                     ->beforeNormalization()
-                                        ->always(function ($v) {
-                                            if (null === $v) {
-                                                $v = [];
-                                            }
-                                            if (is_string($v)) {
-                                                if (preg_match('/^([^\(]+)\(([^\)]*)\)$/', $v, $matches)) {
-                                                    $v = ['action' => $matches[1], 'params' => ['value' => $matches[2]]];
-                                                } else {
-                                                    $v = ['action' => $v];
-                                                }
-                                            }
+                                        ->always(function ($v) use ($that) {
                                             if (!is_array($v)) {
-                                                $v = [];
+                                                return [];
                                             }
+                                            if (!isset($v['action'])) {
+                                                return ['params' => $v];
+                                            }
+                                            $action = $v['action'];
+                                            unset($v['action']);
 
-                                            return $v;
+                                            return ['action' => $action, 'params' => $v];
                                         })
                                     ->end()
                                     ->children()

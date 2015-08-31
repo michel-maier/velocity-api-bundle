@@ -80,7 +80,7 @@ interface RepositoryInterface
      * Test if specified document exist.
      *
      * @param string $id
-     * @param array $options
+     * @param array  $options
      *
      * @return bool
      */
@@ -99,7 +99,7 @@ interface RepositoryInterface
      * Test if specified document not exist.
      *
      * @param string $id
-     * @param array $options
+     * @param array  $options
      *
      * @return bool
      */
@@ -108,7 +108,7 @@ interface RepositoryInterface
      * Check if specified document exist.
      *
      * @param string $id
-     * @param array $options
+     * @param array  $options
      *
      * @return $this
      */
@@ -117,7 +117,7 @@ interface RepositoryInterface
      * Check if specified document not exist.
      *
      * @param string $id
-     * @param array $options
+     * @param array  $options
      *
      * @return $this
      */
@@ -143,15 +143,12 @@ interface RepositoryInterface
      *
      * @return MongoCursor
      */
-    public function find(
-        $criteria = [], $fields = [], $limit = null, $offset = 0, $sorts = [],
-        $options = []
-    );
+    public function find($criteria = [], $fields = [], $limit = null, $offset = 0, $sorts = [], $options = []);
     /**
      * Delete the specified document.
      *
      * @param string $id
-     * @param array $options
+     * @param array  $options
      *
      * @return array
      */
@@ -180,7 +177,7 @@ interface RepositoryInterface
      * @param string $id
      * @param string $property
      * @param mixed  $value
-     * @param array $options
+     * @param array  $options
      *
      * @return $this
      */
@@ -190,7 +187,7 @@ interface RepositoryInterface
      *
      * @param string $id
      * @param array  $values
-     * @param array $options
+     * @param array  $options
      *
      * @return $this
      */
@@ -201,7 +198,7 @@ interface RepositoryInterface
      * @param string $id
      * @param string $property
      * @param mixed  $value
-     * @param array $options
+     * @param array  $options
      *
      * @return $this
      */
@@ -211,7 +208,7 @@ interface RepositoryInterface
      *
      * @param string $id
      * @param array  $values
-     * @param array $options
+     * @param array  $options
      *
      * @return $this
      */
@@ -222,7 +219,7 @@ interface RepositoryInterface
      * @param string $id
      * @param string $property
      * @param mixed  $value
-     * @param array $options
+     * @param array  $options
      *
      * @return $this
      */
@@ -232,7 +229,7 @@ interface RepositoryInterface
      *
      * @param string $id
      * @param array  $values
-     * @param array $options
+     * @param array  $options
      *
      * @return $this
      */
@@ -252,7 +249,7 @@ interface RepositoryInterface
      *
      * @param string $id
      * @param array  $data
-     * @param array $options
+     * @param array  $options
      *
      * @return $this
      */
@@ -292,7 +289,7 @@ interface RepositoryInterface
      *
      * @param string $id
      * @param string $property
-     * @param array $options
+     * @param array  $options
      *
      * @return mixed
      *
@@ -329,7 +326,7 @@ interface RepositoryInterface
      *
      * @param string $id
      * @param string $property
-     * @param array $options
+     * @param array  $options
      *
      * @return bool
      */
@@ -339,7 +336,7 @@ interface RepositoryInterface
      *
      * @param string $id
      * @param string $property
-     * @param array $options
+     * @param array  $options
      *
      * @return $this
      */

@@ -11,25 +11,22 @@
 
 namespace Velocity\Bundle\ApiBundle\EventAction;
 
-use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
 use Velocity\Bundle\ApiBundle\Annotation as Velocity;
+use Velocity\Bundle\ApiBundle\EventAction\Base\AbstractEventAction;
 
 /**
  * @author Olivier Hoareau <olivier@tomboladirecte.com>
  */
-class ExceptionEventAction
+class ExceptionEventAction extends AbstractEventAction
 {
-    use ServiceTrait;
     /**
-     * @param Context $context
-     *
      * @Velocity\EventAction("exception", defaults={"code": 500, "message": "Unexpected exception"})
      */
-    public function execute(Context $context)
+    public function execute()
     {
         throw $this->createException(
-            $context->getVariable('message'),
-            (int) $context->getVariable('code')
+            $this->getContext()->getVariable('message'),
+            (int) $this->getContext()->getVariable('code')
         );
     }
 }

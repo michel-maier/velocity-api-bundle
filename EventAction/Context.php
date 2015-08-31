@@ -11,6 +11,7 @@
 
 namespace Velocity\Bundle\ApiBundle\EventAction;
 
+use Exception;
 use Symfony\Component\EventDispatcher\Event;
 use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
 use Velocity\Bundle\ApiBundle\Traits\ServiceAware;
@@ -28,84 +29,58 @@ class Context
     use ServiceTrait;
     use ArrayizerTrait;
     /**
-     * @var Event
-     */
-    protected $event;
-    /**
-     * @var string
-     */
-    protected $eventName;
-    /**
-     * @var array
-     */
-    protected $params;
-    /**
      * @var array
      */
     protected $variables;
     /**
-     * @param Event  $event
-     * @param string $eventName
-     * @param array  $params
-     * @param array  $variables
+     * @param array $variables
      */
-    public function __construct(Event $event, $eventName, array $params = [], array $variables = [])
+    public function __construct(array $variables = [])
     {
-        $this->setEvent($event);
-        $this->setEventName($eventName);
-        $this->setParams($params);
+        $this->variables = [];
         $this->setVariables($variables);
-
-        $this->setVariablesFromEvent($event);
-
-        $this->setVariable('eventName', $eventName);
-
-        foreach ($params as $k => $v) {
-            $this->setVariable($k, $v);
-        }
     }
     /**
      * @return Event
+     *
+     * @throws Exception
      */
-    public function getEvent()
+    public function getCurrentEvent()
     {
-        return $this->event;
+        if (!$this->hasVariable('event')) {
+            throw $this->createException(500, 'No active event yet');
+        }
+
+        $event = $this->getRequiredVariable('event');
+
+        if (!($event instanceof Event)) {
+            throw $this->createException(500, "Context event should be a valid event (found: %s)", get_class($event));
+        }
+
+        return $event;
     }
     /**
      * @return string
      */
-    public function getEventName()
+    public function getCurrentEventName()
     {
-        return $this->eventName;
+        return $this->getRequiredVariable('eventName');
     }
     /**
+     * @param Event  $event
      * @param string $eventName
+     * @param array  $params
      *
      * @return $this
      */
-    public function setEventName($eventName)
+    public function setCurrentEventVariables(Event $event, $eventName, array $params = [])
     {
-        $this->eventName = $eventName;
-
-        return $this;
-    }
-    /**
-     * @return array
-     */
-    public function getParams()
-    {
-        return $this->params;
-    }
-    /**
-     * @param array $params
-     *
-     * @return $this
-     */
-    public function setParams($params)
-    {
-        $this->params = $params;
-
-        return $this;
+        return $this
+            ->setVariable('eventName', $eventName)
+            ->setVariable('event', $event)
+            ->setVariables($params)
+            ->setVariablesFromEvent($event)
+        ;
     }
     /**
      * @return array
@@ -119,9 +94,18 @@ class Context
      *
      * @return $this
      */
-    public function setVariables($variables)
+    public function setVariables(array $variables)
     {
-        $this->variables = $variables;
+        $this->variables = $variables + $this->variables;
+
+        return $this;
+    }
+    /**
+     * @return $this
+     */
+    public function resetVariables()
+    {
+        $this->variables = [];
 
         return $this;
     }
@@ -188,17 +172,6 @@ class Context
         foreach ($data as $k => $v) {
             $this->setVariable($k, $v);
         }
-
-        return $this;
-    }
-    /**
-     * @param Event $event
-     *
-     * @return $this
-     */
-    protected function setEvent($event)
-    {
-        $this->event = $event;
 
         return $this;
     }

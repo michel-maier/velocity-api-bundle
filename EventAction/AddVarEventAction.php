@@ -11,17 +11,16 @@
 
 namespace Velocity\Bundle\ApiBundle\EventAction;
 
-use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
 use Velocity\Bundle\ApiBundle\Annotation as Velocity;
 use Velocity\Bundle\ApiBundle\Traits\ContainerAwareTrait;
 use Symfony\Component\DependencyInjection\ContainerInterface;
+use Velocity\Bundle\ApiBundle\EventAction\Base\AbstractEventAction;
 
 /**
  * @author Olivier Hoareau <olivier@tomboladirecte.com>
  */
-class AddVarEventAction
+class AddVarEventAction extends AbstractEventAction
 {
-    use ServiceTrait;
     use ContainerAwareTrait;
     /**
      * @param ContainerInterface $container
@@ -31,20 +30,18 @@ class AddVarEventAction
         $this->setContainer($container);
     }
     /**
-     * @param Context $context
-     *
-     * @Velocity\EventAction("add_var", defaults={"name": "v", "params": {}})
+     * @Velocity\EventAction("add_var")
      */
-    public function execute(Context $context)
+    public function execute()
     {
-        $context->setVariable(
-            $context->getRequiredVariable('name'),
+        $this->getContext()->setVariable(
+            $this->getContext()->getRequiredVariable('name'),
             call_user_func_array(
                 [
-                    $this->getContainer()->get($context->getRequiredVariable('service')),
-                    $context->getRequiredVariable('method'),
+                    $this->getContainer()->get($this->getContext()->getRequiredVariable('service')),
+                    $this->getContext()->getRequiredVariable('method'),
                 ],
-                $context->getVariable('params', [])
+                $this->getContext()->getVariable('params', [])
             )
         );
     }

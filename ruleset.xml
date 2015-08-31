@@ -20,6 +20,8 @@
     <file>./ClientProviderInterface.php</file>
     <file>./MigratorInterface.php</file>
     <file>./VelocityApiBundle.php</file>
+    <file>./EventActionInterface.php</file>
+    <file>./RepositoryInterface.php</file>
 
     <rule ref="Symfony2"/>
 

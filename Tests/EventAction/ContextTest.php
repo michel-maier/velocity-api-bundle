@@ -28,26 +28,25 @@ class ContextTest extends PHPUnit_Framework_TestCase
     {
         $event     = new GenericEvent((object) ['a' => 'b', 'c' => 'd', 'method' => 'm1', 'service' => 's1', 'name' => 'v1']);
         $eventName = 'e1';
-        $params    = ['e' => 'f'];
 
-        $c = new Context($event, $eventName, $params, ['g' => 'h']);
+        $c = new Context(['g' => 'h']);
+        $c->setCurrentEventVariables($event, $eventName);
 
         $this->assertEquals(
             [
                 'eventName' => 'e1',
                 'a'         => 'b',
                 'c'         => 'd',
-                'e'         => 'f',
                 'g'         => 'h',
                 'method'    => 'm1',
                 'service'   => 's1',
                 'name'      => 'v1',
+                'event'     => $event,
             ],
             $c->getVariables()
         );
 
-        $this->assertEquals($event, $c->getEvent());
-        $this->assertEquals($eventName, $c->getEventName());
-        $this->assertEquals($params, $c->getParams());
+        $this->assertEquals($event, $c->getCurrentEvent());
+        $this->assertEquals($eventName, $c->getCurrentEventName());
     }
 }

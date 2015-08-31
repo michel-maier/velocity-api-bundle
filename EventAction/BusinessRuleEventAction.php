@@ -11,17 +11,16 @@
 
 namespace Velocity\Bundle\ApiBundle\EventAction;
 
-use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
 use Velocity\Bundle\ApiBundle\Traits\ServiceAware;
 use Velocity\Bundle\ApiBundle\Annotation as Velocity;
 use Velocity\Bundle\ApiBundle\Service\BusinessRuleService;
+use Velocity\Bundle\ApiBundle\EventAction\Base\AbstractEventAction;
 
 /**
  * @author Olivier Hoareau <olivier@tomboladirecte.com>
  */
-class BusinessRuleEventAction
+class BusinessRuleEventAction extends AbstractEventAction
 {
-    use ServiceTrait;
     use ServiceAware\BusinessRuleServiceAwareTrait;
     /**
      * @param BusinessRuleService $businessRuleService
@@ -31,18 +30,16 @@ class BusinessRuleEventAction
         $this->setBusinessRuleService($businessRuleService);
     }
     /**
-     * @param Context $context
-     *
-     * @Velocity\EventAction("business_rule", defaults={})
+     * @Velocity\EventAction("business_rule")
      */
-    public function execute(Context $context)
+    public function execute()
     {
-        if ($context->hasVariable('id')) {
-            $this->getBusinessRuleService()->executeBusinessruleById($context->getVariable('id'), [null, null, null]);
+        if ($this->getContext()->hasVariable('id')) {
+            $this->getBusinessRuleService()->executeBusinessruleById($this->getContext()->getRequiredVariable('id'), [null, null, null]);
         } else {
             $this->getBusinessRuleService()->executeBusinessRulesForModelOperation(
-                $context->getVariable('model'),
-                $context->getVariable('operation'),
+                $this->getContext()->getRequiredVariable('model'),
+                $this->getContext()->getRequiredVariable('operation'),
                 null
             );
         }

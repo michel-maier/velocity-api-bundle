@@ -92,10 +92,10 @@ class VelocityApiExtensionTest extends PHPUnit_Framework_TestCase
             'events' => [
                 'user_created' => [
                     'actions' => [
-                      'inc_kpi(users)',
-                      'mail_user',
-                      'mail_admin',
-                      'fire',
+                      ['action' => 'inc_kpi', 'value' => 'users'],
+                      ['action' => 'mail_user'],
+                      ['action' => 'mail_admin'],
+                      ['action' => 'fire'],
                     ],
                 ],
             ],

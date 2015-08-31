@@ -15,6 +15,7 @@ use Exception;
 use Symfony\Component\EventDispatcher\Event;
 use Velocity\Bundle\ApiBundle\Traits\ServiceAware;
 use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
+use Velocity\Bundle\ApiBundle\Traits\EventAction\ContextAwareTrait;
 
 /**
  * Event Action Service.
@@ -24,6 +25,7 @@ use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
 class EventActionService
 {
     use ServiceTrait;
+    use ContextAwareTrait;
     /**
      * List of event actions.
      *
@@ -106,7 +108,9 @@ class EventActionService
     {
         $eventAction = $this->getEventActionByName($name);
 
-        call_user_func_array($eventAction['callable'], [$event, $eventName, $params, $eventAction['options']]);
+        $this->getContext()->setCurrentEventVariables($event, $eventName, $params);
+
+        call_user_func_array($eventAction['callable'], [$eventAction['options']]);
 
         return $this;
     }

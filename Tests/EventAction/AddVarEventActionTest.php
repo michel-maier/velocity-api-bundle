@@ -49,7 +49,9 @@ class AddVarEventActionTest extends PHPUnit_Framework_TestCase
         $c = new AddVarEventActionTestExecuteTestClass();
 
         $this->container->expects($this->once())->method('get')->with('s1')->will($this->returnValue($c));
-        $this->ea->execute(new Context(new GenericEvent(), 'event1', ['method' => 'm1', 'service' => 's1', 'name' => 'v1']));
+        $this->ea->setContext(new Context(['method' => 'm1', 'service' => 's1', 'name' => 'v1']));
+        $this->ea->getContext()->setCurrentEventVariables(new GenericEvent(), 'e1');
+        $this->ea->execute();
 
         $this->assertTrue($c->called);
     }

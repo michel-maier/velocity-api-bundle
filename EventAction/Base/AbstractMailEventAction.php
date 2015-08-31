@@ -13,8 +13,6 @@ namespace Velocity\Bundle\ApiBundle\EventAction\Base;
 
 use Velocity\Bundle\ApiBundle\EventAction\Context;
 use Velocity\Bundle\ApiBundle\Traits\ServiceAware;
-use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
-use Velocity\Bundle\ApiBundle\Traits\ArrayizerTrait;
 use Velocity\Bundle\ApiBundle\Event as VelocityEvent;
 use Velocity\Bundle\ApiBundle\Traits\TemplatingAwareTrait;
 use Velocity\Bundle\ApiBundle\Traits\TranslatorAwareTrait;
@@ -24,10 +22,8 @@ use Velocity\Bundle\ApiBundle\Traits\TranslatorAwareTrait;
  *
  * @author Olivier Hoareau <olivier@phppro.fr>
  */
-abstract class AbstractMailEventAction
+abstract class AbstractMailEventAction extends AbstractEventAction
 {
-    use ServiceTrait;
-    use ArrayizerTrait;
     use TemplatingAwareTrait;
     use TranslatorAwareTrait;
     use ServiceAware\AttachmentServiceAwareTrait;
