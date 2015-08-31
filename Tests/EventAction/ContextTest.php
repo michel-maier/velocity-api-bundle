@@ -26,7 +26,7 @@ class ContextTest extends PHPUnit_Framework_TestCase
      */
     public function testGetVariables()
     {
-        $event     = new GenericEvent((object) ['a' => 'b', 'c' => 'd']);
+        $event     = new GenericEvent((object) ['a' => 'b', 'c' => 'd', 'method' => 'm1', 'service' => 's1', 'name' => 'v1']);
         $eventName = 'e1';
         $params    = ['e' => 'f'];
 
@@ -39,6 +39,9 @@ class ContextTest extends PHPUnit_Framework_TestCase
                 'c'         => 'd',
                 'e'         => 'f',
                 'g'         => 'h',
+                'method'    => 'm1',
+                'service'   => 's1',
+                'name'      => 'v1',
             ],
             $c->getVariables()
         );

@@ -12,6 +12,7 @@
 namespace Velocity\Bundle\ApiBundle\EventAction;
 
 use Symfony\Component\EventDispatcher\Event;
+use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
 use Velocity\Bundle\ApiBundle\Traits\ServiceAware;
 use Symfony\Component\EventDispatcher\GenericEvent;
 use Velocity\Bundle\ApiBundle\Traits\ArrayizerTrait;
@@ -24,6 +25,7 @@ use Velocity\Bundle\ApiBundle\Event as VelocityEvent;
  */
 class Context
 {
+    use ServiceTrait;
     use ArrayizerTrait;
     /**
      * @var Event
@@ -154,6 +156,19 @@ class Context
     {
 
         return isset($this->variables[$key]) ? $this->variables[$key] : $defaultValue;
+    }
+    /**
+     * @param string $key
+     *
+     * @return mixed
+     */
+    public function getRequiredVariable($key)
+    {
+        if (!$this->hasVariable($key)) {
+            throw $this->createException(412, "Context variable '%s' does not exist", $key);
+        }
+
+        return $this->getVariable($key);
     }
     /**
      * @param Event $event

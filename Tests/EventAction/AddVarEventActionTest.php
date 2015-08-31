@@ -13,10 +13,10 @@ namespace Velocity\Bundle\ApiBundle\Tests\EventAction;
 
 use PHPUnit_Framework_TestCase;
 use PHPUnit_Framework_MockObject_MockObject;
+use Velocity\Bundle\ApiBundle\EventAction\Context;
 use Symfony\Component\EventDispatcher\GenericEvent;
 use Velocity\Bundle\ApiBundle\EventAction\AddVarEventAction;
 use Symfony\Component\DependencyInjection\ContainerInterface;
-use Velocity\Bundle\ApiBundle\EventAction\Context;
 
 /**
  * @author Olivier Hoareau <olivier@phppro.fr>
@@ -46,6 +46,11 @@ class AddVarEventActionTest extends PHPUnit_Framework_TestCase
      */
     public function testExecute()
     {
-        $this->ea->execute(new Context(new GenericEvent(), 'event1'));
+        $c = new AddVarEventActionTestExecuteTestClass();
+
+        $this->container->expects($this->once())->method('get')->with('s1')->will($this->returnValue($c));
+        $this->ea->execute(new Context(new GenericEvent(), 'event1', ['method' => 'm1', 'service' => 's1', 'name' => 'v1']));
+
+        $this->assertTrue($c->called);
     }
 }

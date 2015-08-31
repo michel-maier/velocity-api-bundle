@@ -38,13 +38,13 @@ class AddVarEventAction
     public function execute(Context $context)
     {
         $context->setVariable(
-            $context->getVariable('name'),
+            $context->getRequiredVariable('name'),
             call_user_func_array(
                 [
-                    $this->getContainer()->get($context->getVariable('service')),
-                    $context->getVariable('method'),
+                    $this->getContainer()->get($context->getRequiredVariable('service')),
+                    $context->getRequiredVariable('method'),
                 ],
-                $context->getVariable('params')
+                $context->getVariable('params', [])
             )
         );
     }
