@@ -119,8 +119,6 @@ trait ModelServiceHelperTrait
      */
     protected function getModelClass($alias = null)
     {
-        $class = null;
-
         if (null !== $alias) {
             if ('.' === substr($alias, 0, 1)) {
                 return $this->getModelClass().'\\'.substr($alias, 1);

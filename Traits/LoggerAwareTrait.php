@@ -57,7 +57,7 @@ trait LoggerAwareTrait
      */
     protected function log($msg, $level = 'debug')
     {
-        $this->getLogger()->log($level, call_user_func_array('sprintf', func_get_args()));
+        $this->getLogger()->log($level, $msg);
 
         return $this;
     }

@@ -11,8 +11,6 @@
 
 namespace Velocity\Bundle\ApiBundle\Traits\Document;
 
-use Exception;
-
 /**
  * Delete service trait.
  *
@@ -28,7 +26,7 @@ trait DeleteServiceTrait
      *
      * @return mixed
      *
-     * @throws Exception
+     * @throws \Exception
      */
     public function delete($id, $options = [])
     {
@@ -99,7 +97,7 @@ trait DeleteServiceTrait
      *
      * @return $this
      *
-     * @throws Exception
+     * @throws \Exception
      */
     protected abstract function checkBulkData($bulkData, $options = []);
     /**

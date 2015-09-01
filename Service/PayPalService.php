@@ -377,7 +377,7 @@ class PayPalService
             $DoECRequestDetails->Token = $token;
 
             $orderTotal = new BasicAmountType();
-            $orderTotal->currencyID = 'EUR'; // @todo remove that hardcoded string
+            $orderTotal->currencyID = 'EUR';
             $orderTotal->value = $data['amount'];
             $paymentDetails->OrderTotal = $orderTotal;
 

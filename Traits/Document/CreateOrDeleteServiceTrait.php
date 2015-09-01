@@ -11,8 +11,6 @@
 
 namespace Velocity\Bundle\ApiBundle\Traits\Document;
 
-use Exception;
-
 /**
  * Create or delete service trait.
  *
@@ -93,7 +91,7 @@ trait CreateOrDeleteServiceTrait
      *
      * @return $this
      *
-     * @throws Exception
+     * @throws \Exception
      */
     protected abstract function checkBulkData($bulkData, $options = []);
 }

@@ -163,8 +163,6 @@ class Configuration implements ConfigurationInterface
      */
     protected function addEventsSection(ArrayNodeDefinition $rootNode)
     {
-        $that = $this;
-
         $rootNode
             ->beforeNormalization()
                 ->always(function ($v) {
@@ -178,7 +176,7 @@ class Configuration implements ConfigurationInterface
                             ->arrayNode('actions')
                                 ->prototype('array')
                                     ->beforeNormalization()
-                                        ->always(function ($v) use ($that) {
+                                        ->always(function ($v) {
                                             if (!is_array($v)) {
                                                 return [];
                                             }

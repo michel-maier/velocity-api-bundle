@@ -12,7 +12,6 @@
 namespace Velocity\Bundle\ApiBundle\DependencyInjection\Compiler;
 
 use Symfony\Component\HttpKernel\KernelInterface;
-use Velocity\Bundle\ApiBundle\Annotation\Refresh;
 use Velocity\Bundle\ApiBundle\Service\VelocityService;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Compiler\CompilerPassInterface;
