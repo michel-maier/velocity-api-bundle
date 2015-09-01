@@ -11,8 +11,6 @@
 
 namespace Velocity\Bundle\ApiBundle\Traits\SubSubDocument;
 
-use Exception;
-
 /**
  * Update service trait.
  *
@@ -283,7 +281,7 @@ trait UpdateServiceTrait
      *
      * @return $this
      *
-     * @throws Exception
+     * @throws \Exception
      */
     protected abstract function checkBulkData($bulkData, $options = []);
     /**
@@ -321,7 +319,11 @@ trait UpdateServiceTrait
      */
     protected function prepareUpdate($pParentId, $parentId, $id, $data = [], $options = [])
     {
-        $old = $this->get($pParentId, $parentId, $id, array_keys($data), $options);
+        $old = null;
+
+        if ($this->observed('updated_old') || $this->observed('updated_full_old')) {
+            $old = $this->get($pParentId, $parentId, $id, array_keys($data), $options);
+        }
 
         $data = $this->callback($pParentId, $parentId, 'update.pre_validate', $data, $options);
         $doc  = $this->validateData($data, 'update', ['clearMissing' => false] + $options);
@@ -363,14 +365,23 @@ trait UpdateServiceTrait
         $doc = $this->callback($pParentId, $parentId, 'updated', $doc, $options);
 
         $this->event($pParentId, $parentId, 'updated', $doc);
-        $this->event($pParentId, $parentId, 'updated_old', ['new' => $doc, 'old' => $old]);
+
+        if ($this->observed('updated_old')) {
+            $this->event($pParentId, $parentId, 'updated_old', ['new' => $doc, 'old' => $old]);
+        }
 
         if ($this->observed('updated_full') || $this->observed('updated_full_old')) {
             $full = $this->get($pParentId, $parentId, $id, [], $options);
-            $this->event($pParentId, $parentId, 'updated_full', $doc);
-            $this->event($pParentId, $parentId, 'updated_full_old', ['new' => $full, 'old' => $old]);
+            if ($this->observed('updated_full')) {
+                $this->event($pParentId, $parentId, 'updated_full', $doc);
+            }
+            if ($this->observed('updated_full_old')) {
+                $this->event($pParentId, $parentId, 'updated_full_old', ['new' => $full, 'old' => $old]);
+            }
             unset($full);
         }
+
+        unset($old);
 
         return $doc;
     }
@@ -379,7 +390,7 @@ trait UpdateServiceTrait
      * @param string $msg
      * @param array  $params
      *
-     * @throws Exception
+     * @throws \Exception
      *
      * @return mixed
      */

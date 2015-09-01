@@ -11,8 +11,6 @@
 
 namespace Velocity\Bundle\ApiBundle\Traits\SubDocument;
 
-use Exception;
-
 /**
  * Delete service trait.
  *
@@ -29,7 +27,7 @@ trait DeleteServiceTrait
      *
      * @return mixed
      *
-     * @throws Exception
+     * @throws \Exception
      */
     public function delete($parentId, $id, $options = [])
     {
@@ -113,7 +111,7 @@ trait DeleteServiceTrait
      *
      * @return $this
      *
-     * @throws Exception
+     * @throws \Exception
      */
     protected abstract function checkBulkData($bulkData, $options = []);
     /**
@@ -148,10 +146,11 @@ trait DeleteServiceTrait
         $this->callback($parentId, 'delete.saved', $old, $options);
         $this->callback($parentId, 'deleted', $old, $options);
 
-        $this->event($parentId, 'deleted', $id);
-        $this->event($parentId, 'deleted_old', $old);
+        $this->event($parentId, 'deleted', $old);
 
-        return $old;
+        unset($old);
+
+        return ['id' => $id, 'status' => 'deleted'];
     }
     /**
      * Execute the registered callback and return the updated subject.
@@ -183,4 +182,12 @@ trait DeleteServiceTrait
      * @return $this
      */
     protected abstract function event($parentId, $event, $data = null);
+    /**
+     * Test if specified document event has registered event listeners.
+     *
+     * @param string $event
+     *
+     * @return bool
+     */
+    protected abstract function observed($event);
 }

@@ -11,7 +11,6 @@
 
 namespace Velocity\Bundle\ApiBundle\Traits;
 
-use Exception;
 use Velocity\Bundle\ApiBundle\Traits\ServiceAware;
 
 /**
@@ -94,7 +93,7 @@ trait ModelServiceHelperTrait
      *
      * @return $this
      *
-     * @throws Exception
+     * @throws \Exception
      */
     protected function checkBulkData($bulkData, $options = [])
     {

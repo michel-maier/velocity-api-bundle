@@ -11,7 +11,6 @@
 
 namespace Velocity\Bundle\ApiBundle\Traits\SubSubDocument;
 
-use Exception;
 use Velocity\Bundle\ApiBundle\RepositoryInterface;
 
 /**
@@ -112,7 +111,7 @@ trait GetServiceTrait
      *
      * @return $this
      *
-     * @throws Exception
+     * @throws \Exception
      */
     public function checkExist($pParentId, $parentId, $id, $options = [])
     {
@@ -130,7 +129,7 @@ trait GetServiceTrait
      *
      * @return $this
      *
-     * @throws Exception
+     * @throws \Exception
      */
     public function checkNotExist($pParentId, $parentId, $id, $options = [])
     {

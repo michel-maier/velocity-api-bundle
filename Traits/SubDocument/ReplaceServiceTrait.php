@@ -11,8 +11,6 @@
 
 namespace Velocity\Bundle\ApiBundle\Traits\SubDocument;
 
-use Exception;
-
 /**
  * Update service trait.
  *
@@ -131,7 +129,7 @@ trait ReplaceServiceTrait
      *
      * @return $this
      *
-     * @throws Exception
+     * @throws \Exception
      */
     protected abstract function checkBulkData($bulkData, $options = []);
     /**
@@ -139,7 +137,7 @@ trait ReplaceServiceTrait
      * @param string $msg
      * @param array  $params
      *
-     * @throws Exception
+     * @throws \Exception
      *
      * @return mixed
      */

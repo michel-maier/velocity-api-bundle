@@ -11,8 +11,6 @@
 
 namespace Velocity\Bundle\ApiBundle\Traits\SubSubDocument;
 
-use Exception;
-
 /**
  * Purge service trait.
  *
@@ -85,7 +83,7 @@ trait PurgeServiceTrait
      * @param string $msg
      * @param array  $params
      *
-     * @throws Exception
+     * @throws \Exception
      *
      * @return mixed
      */

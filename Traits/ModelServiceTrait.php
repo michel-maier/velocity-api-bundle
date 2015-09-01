@@ -11,7 +11,6 @@
 
 namespace Velocity\Bundle\ApiBundle\Traits;
 
-use Exception;
 use Velocity\Bundle\ApiBundle\RepositoryInterface;
 
 /**
@@ -88,54 +87,6 @@ trait ModelServiceTrait
         }
 
         return $key;
-    }
-    /**
-     * @param mixed $object
-     * @param array $fields
-     * @param array $options
-     *
-     * @throws Exception
-     */
-    protected function hydrate($object, $fields = [], $options = [])
-    {
-        if ($this->getModelClass() !== get_class($object)) {
-            throw $this->createException(500, "Model is not handled by this service (found: %s)", get_class($object));
-        }
-
-        $m = $this->get($object->id, $fields, $options);
-
-        foreach ($fields as $field) {
-            if (isset($object->$field)) {
-                continue;
-            }
-            $object->$field = $m->$field;
-        }
-    }
-    /**
-     * @param mixed $object
-     * @param array $fields
-     * @param array $options
-     *
-     * @return mixed
-     *
-     * @throws Exception
-     */
-    protected function hydrateAsNew($object, $fields = [], $options = [])
-    {
-        if ($this->getModelClass() !== get_class($object)) {
-            throw $this->createException(500, "Model is not handled by this service (found: %s)", get_class($object));
-        }
-
-        $m = $this->get($object->id, $fields, $options);
-
-        foreach ($fields as $field) {
-            if (!isset($object->$field)) {
-                continue;
-            }
-            $m->$field = $object->$field;
-        }
-
-        return $m;
     }
     /**
      * @param array    $items

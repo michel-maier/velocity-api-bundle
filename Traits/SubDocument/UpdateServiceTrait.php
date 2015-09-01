@@ -11,8 +11,6 @@
 
 namespace Velocity\Bundle\ApiBundle\Traits\SubDocument;
 
-use Exception;
-
 /**
  * Update service trait.
  *
@@ -267,7 +265,7 @@ trait UpdateServiceTrait
      *
      * @return $this
      *
-     * @throws Exception
+     * @throws \Exception
      */
     protected abstract function checkBulkData($bulkData, $options = []);
     /**
@@ -304,7 +302,11 @@ trait UpdateServiceTrait
      */
     protected function prepareUpdate($parentId, $id, $data = [], $options = [])
     {
-        $old = $this->get($parentId, $id, array_keys($data), $options);
+        $old = null;
+
+        if ($this->observed('updated_old') || $this->observed('updated_full_old')) {
+            $old = $this->get($parentId, $id, array_keys($data), $options);
+        }
 
         $data = $this->callback($parentId, 'update.pre_validate', $data, $options);
         $doc  = $this->validateData($data, 'update', ['clearMissing' => false] + $options);
@@ -345,14 +347,23 @@ trait UpdateServiceTrait
         $doc = $this->callback($parentId, 'updated', $doc, $options);
 
         $this->event($parentId, 'updated', $doc);
-        $this->event($parentId, 'updated_old', ['new' => $doc, 'old' => $old]);
+
+        if ($this->observed('updated_old')) {
+            $this->event($parentId, 'updated_old', ['new' => $doc, 'old' => $old]);
+        }
 
         if ($this->observed('updated_full') || $this->observed('updated_full_old')) {
             $full = $this->get($parentId, $id, [], $options);
-            $this->event($parentId, 'updated_full', $doc);
-            $this->event($parentId, 'updated_full_old', ['new' => $full, 'old' => $old]);
+            if ($this->observed('updated_full')) {
+                $this->event($parentId, 'updated_full', $doc);
+            }
+            if ($this->observed('updated_full_old')) {
+                $this->event($parentId, 'updated_full_old', ['new' => $full, 'old' => $old]);
+            }
             unset($full);
         }
+
+        unset($old);
 
         return $doc;
     }
@@ -361,7 +372,7 @@ trait UpdateServiceTrait
      * @param string $msg
      * @param array  $params
      *
-     * @throws Exception
+     * @throws \Exception
      *
      * @return mixed
      */

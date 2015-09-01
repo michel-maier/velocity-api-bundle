@@ -130,10 +130,11 @@ trait DeleteServiceTrait
         $this->callback('delete.saved', $old, $options);
         $this->callback('deleted', $old, $options);
 
-        $this->event('deleted', $id);
-        $this->event('deleted_old', $old);
+        $this->event('deleted', $old);
 
-        return $old;
+        unset($old);
+
+        return ['id' => $id, 'status' => 'deleted'];
     }
     /**
      * Execute the registered callback and return the updated subject.
@@ -162,4 +163,12 @@ trait DeleteServiceTrait
      * @return $this
      */
     protected abstract function event($event, $data = null);
+    /**
+     * Test if specified document event has registered event listeners.
+     *
+     * @param string $event
+     *
+     * @return bool
+     */
+    protected abstract function observed($event);
 }
