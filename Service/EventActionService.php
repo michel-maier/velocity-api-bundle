@@ -13,6 +13,7 @@ namespace Velocity\Bundle\ApiBundle\Service;
 
 use Exception;
 use Symfony\Component\EventDispatcher\Event;
+use Velocity\Bundle\ApiBundle\EventAction\Context;
 use Velocity\Bundle\ApiBundle\Traits\ServiceAware;
 use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
 use Velocity\Bundle\ApiBundle\Traits\EventAction\ContextAwareTrait;
@@ -36,6 +37,13 @@ class EventActionService
      * @var array
      */
     protected $sequences = [];
+    /**
+     * @param Context $context
+     */
+    public function __construct(Context $context)
+    {
+        $this->setContext($context);
+    }
     /**
      * Return the list of registered event actions.
      *

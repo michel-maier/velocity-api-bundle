@@ -12,6 +12,7 @@
 namespace Velocity\Bundle\ApiBundle\Tests\Service;
 
 use PHPUnit_Framework_TestCase;
+use Velocity\Bundle\ApiBundle\EventAction\Context;
 use Velocity\Bundle\ApiBundle\Service\EventActionService;
 
 /**
@@ -24,11 +25,16 @@ class EventActionServiceTest extends PHPUnit_Framework_TestCase
      */
     protected $s;
     /**
+     * @var Context
+     */
+    protected $c;
+    /**
      *
      */
     public function setUp()
     {
-        $this->s = new EventActionService();
+        $this->c = new Context();
+        $this->s = new EventActionService($this->c);
     }
     /**
      * @group unit

@@ -29,10 +29,7 @@ trait ModelServiceHelperTrait
     /**
      * @return int|null
      */
-    public function getExpectedTypeCount()
-    {
-        return null;
-    }
+    public abstract function getExpectedTypeCount();
     /**
      * @param array $types
      *

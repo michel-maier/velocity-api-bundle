@@ -64,6 +64,8 @@ services:
   velocity.eventAction:
     class: Velocity\Bundle\ApiBundle\Service\EventActionService
     lazy: true
+    arguments:
+      - @velocity.eventActionContext
   velocity.businessRule:
     class: Velocity\Bundle\ApiBundle\Service\BusinessRuleService
     lazy: true

@@ -92,7 +92,7 @@ abstract class AbstractMailEventAction extends AbstractEventAction
             'images'      => $this->buildRecipients(
                 $context->hasVariable('attachment') ? $context->getVariable('attachment') : $context->getVariable('images', [])
             ),
-            'sender'      => $this->buildSender($context->getVariable('sender', null)),
+            'sender'      => $this->buildSender($context->getVariable('sender', [])),
             'options'     => $this->buildOptions($context->getVariable('options', [])),
         ];
     }

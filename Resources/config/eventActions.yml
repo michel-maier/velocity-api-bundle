@@ -1,23 +1,23 @@
 services:
-  api.eventAction.addVar:
+  velocity.eventAction.addVar:
     class: Velocity\Bundle\ApiBundle\EventAction\AddVarEventAction
     arguments:
       - @service_container
     tags:
       - { name: "velocity.event_action" }
-  api.eventAction.call:
+  velocity.eventAction.call:
     class: Velocity\Bundle\ApiBundle\EventAction\CallEventAction
     arguments:
       - @service_container
     tags:
       - { name: "velocity.event_action" }
-  api.eventAction.businessRule:
+  velocity.eventAction.businessRule:
     class: Velocity\Bundle\ApiBundle\EventAction\BusinessRuleEventAction
     arguments:
-      - @api.businessRule
+      - @velocity.businessRule
     tags:
       - { name: "velocity.event_action" }
-  api.eventAction.exception:
+  velocity.eventAction.exception:
     class: Velocity\Bundle\ApiBundle\EventAction\ExceptionEventAction
     tags:
       - { name: "velocity.event_action" }

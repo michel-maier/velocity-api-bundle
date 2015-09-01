@@ -12,6 +12,7 @@
 namespace Velocity\Bundle\ApiBundle\Service;
 
 use Velocity\Bundle\ApiBundle\Event;
+use Velocity\Bundle\ApiBundle\Traits\Document;
 use Velocity\Bundle\ApiBundle\Traits\VolatileModelServiceTrait;
 
 /**
@@ -21,145 +22,26 @@ use Velocity\Bundle\ApiBundle\Traits\VolatileModelServiceTrait;
  */
 class VolatileDocumentService
 {
+    use Document\HelperTrait;
     use VolatileModelServiceTrait;
+    use Document\CreateServiceTrait;
     /**
-     * @return int
-     */
-    public function getExpectedTypeCount()
-    {
-        return 1;
-    }
-    /**
-     * Create a new document.
-     *
-     * @param mixed $data
+     * @param array $array
      * @param array $options
-     *
-     * @return mixed
      */
-    public function create($data, $options = [])
+    protected function saveCreate(array $array, array $options = [])
     {
-        list($doc, $array) = $this->prepareCreate($data, $options);
-
-        unset($data);
-
-        return $this->completeCreate($doc, $array, $options);
     }
     /**
-     * Create a list of documents.
-     *
-     * @param mixed $bulkData
-     * @param array $options
-     *
-     * @return mixed
-     */
-    public function createBulk($bulkData, $options = [])
-    {
-        $this->checkBulkData($bulkData, $options);
-
-        $docs   = [];
-        $arrays = [];
-
-        foreach ($bulkData as $i => $data) {
-            list($docs[$i], $arrays[$i]) = $this->prepareCreate($data, $options);
-            unset($bulkData[$i]);
-        }
-
-        foreach ($arrays as $i => $array) {
-            unset($arrays[$i]);
-            $this->completeCreate($docs[$i], $array, $options);
-        }
-
-        return $docs;
-    }
-    /**
-     * Trigger the specified document event if listener are registered.
-     *
-     * @param string $event
-     * @param mixed  $data
-     *
-     * @return $this
-     */
-    protected function event($event, $data = null)
-    {
-        return $this->dispatch($this->buildEventName($event), new Event\DocumentEvent($data));
-    }
-    /**
-     * Execute the registered callback and return the updated subject.
-     *
-     * @param string $key
-     * @param mixed  $subject
-     * @param array  $options
-     *
-     * @return mixed
-     */
-    protected function callback($key, $subject = null, $options = [])
-    {
-        return $this->getMetaDataService()->callback($this->buildEventName($key), $subject, $options);
-    }
-    /**
-     * @param array $data
+     * @param array $arrays
      * @param array $options
      *
      * @return array
      */
-    protected function prepareCreate($data, $options = [])
+    protected function saveCreateBulk(array $arrays, array $options = [])
     {
-        $data = $this->callback('create.pre_validate', $data, $options);
-        $doc  = $this->validateData($data, 'create', $options);
+        unset($options);
 
-        unset($data);
-
-        $doc = $this->callback('create.validated', $doc, $options);
-        $doc = $this->refreshModel($doc, $options);
-        $doc = $this->callback('pre_save', $doc, $options);
-        $doc = $this->callback('create.pre_save', $doc, $options);
-
-        $this->checkBusinessRules('create', $doc, $options);
-
-        $doc   = $this->callback('create.pre_save_checked', $doc, $options);
-        $array = $this->convertToArray($doc, $options);
-        $array = $this->callback('create.pre_save_array', $array, $options);
-
-        return [$doc, $array];
-    }
-    /**
-     * @param $doc
-     * @param $array
-     * @param array $options
-     *
-     * @return mixed
-     */
-    protected function completeCreate($doc, $array, $options = [])
-    {
-        $array = $this->callback('create.saved_array', $array, $options);
-
-        $doc->id = (string) $array['_id'];
-
-        $doc = $this->callback('create.saved', $doc, $options);
-        $doc = $this->callback('saved', $doc, $options);
-        $doc = $this->callback('created', $doc, $options);
-
-        $this->event('created', $doc);
-
-        return $doc;
-    }
-    /**
-     * @param string $operation
-     * @param mixed  $model
-     * @param array  $options
-     *
-     * @return $this
-     */
-    protected function checkBusinessRules($operation, $model, array $options = [])
-    {
-        $this->getBusinessRuleService()->executeBusinessRulesForModelOperation(
-            $this->getModelName(),
-            $operation,
-            $model,
-            $options
-        );
-
-        return $this;
+        return $arrays;
     }
 }
