@@ -91,10 +91,10 @@ trait TransitionAwareTrait
         $transitionName        = true === $options['fullEventName'] ? ($field.'.'.$transition) : $transition;
         $transitionGenericName = true === $options['fullEventName'] ? ($field.'.transitioned') : 'transitioned';
 
-        $doc = $this->callback($pParentId, $parentId, $transitionName, $doc, $options);
+        $doc = $this->callback($pParentId, $parentId, $transitionName, $doc, ['transition' => $transition] + $options);
         $this->event($pParentId, $parentId, $transitionName, $doc);
 
-        $doc = $this->callback($pParentId, $parentId, $transitionGenericName, $doc, $options);
+        $doc = $this->callback($pParentId, $parentId, $transitionGenericName, $doc, ['transition' => $transition] + $options);
         $this->event($pParentId, $parentId, $transitionGenericName, $doc);
 
         return $doc;
