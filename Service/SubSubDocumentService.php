@@ -31,6 +31,7 @@ class SubSubDocumentService implements SubSubDocumentServiceInterface
     use SubSubDocument\UpdateServiceTrait;
     use SubSubDocument\DeleteServiceTrait;
     use SubSubDocument\ReplaceServiceTrait;
+    use SubSubDocument\TransitionAwareTrait;
     use SubSubDocument\CreateOrUpdateServiceTrait;
     use SubSubDocument\CreateOrDeleteServiceTrait;
     /**

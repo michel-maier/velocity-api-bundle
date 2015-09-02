@@ -31,6 +31,7 @@ class DocumentService implements DocumentServiceInterface
     use Document\UpdateServiceTrait;
     use Document\DeleteServiceTrait;
     use Document\ReplaceServiceTrait;
+    use Document\TransitionAwareTrait;
     use Document\CreateOrUpdateServiceTrait;
     use Document\CreateOrDeleteServiceTrait;
     /**
