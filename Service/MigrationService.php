@@ -99,8 +99,7 @@ class MigrationService implements ContainerAwareInterface
     public function getMigratorByExtension($extension)
     {
         if (!isset($this->migrators[$extension])) {
-            throw $this->createException(
-                412,
+            throw $this->createRequiredException(
                 "No migrator registered for extension '%s'",
                 $extension
             );

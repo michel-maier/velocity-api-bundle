@@ -34,7 +34,7 @@ trait CreateServiceTrait
         unset($data);
 
         if (!isset($doc->id)) {
-            throw $this->createException(412, 'Empty id for sub document model');
+            throw $this->createRequiredException('Empty id for sub document model');
         }
 
         $this->saveCreate($parentId, $array, $options);
@@ -60,7 +60,7 @@ trait CreateServiceTrait
         foreach ($bulkData as $i => $data) {
             list($docs[$i], $array) = $this->prepareCreate($parentId, $data, $options);
             if (!isset($docs[$i]->id)) {
-                throw $this->createException(412, 'Empty id for sub document model');
+                throw $this->createRequiredException('Empty id for sub document model');
             }
             $this->pushCreateInBulk($arrays, $array);
             unset($bulkData[$i]);
@@ -218,7 +218,6 @@ trait CreateServiceTrait
         return $doc;
     }
     /**
-     * @param int    $code
      * @param string $msg
      * @param array  $params
      *
@@ -226,5 +225,5 @@ trait CreateServiceTrait
      *
      * @return mixed
      */
-    protected abstract function createException($code, $msg, ...$params);
+    protected abstract function createRequiredException($msg, ...$params);
 }

@@ -50,7 +50,7 @@ trait UpdateServiceTrait
         $docs = $this->find($parentId, [$fieldName => $fieldValue], ['id'], 1, 0, $options);
 
         if (!count($docs)) {
-            throw $this->createException(404, "Unknown %s with %s '%s' (%s)", join(' ', $this->getTypes()), $fieldName, $fieldValue, $parentId);
+            throw $this->createNotFoundException("Unknown %s with %s '%s' (%s)", join(' ', $this->getTypes()), $fieldName, $fieldValue, $parentId);
         }
 
         return $this->update($parentId, array_shift($docs)->id, $data, $options);
@@ -368,7 +368,6 @@ trait UpdateServiceTrait
         return $doc;
     }
     /**
-     * @param int    $code
      * @param string $msg
      * @param array  $params
      *
@@ -376,5 +375,5 @@ trait UpdateServiceTrait
      *
      * @return mixed
      */
-    protected abstract function createException($code, $msg, ...$params);
+    protected abstract function createNotFoundException($msg, ...$params);
 }

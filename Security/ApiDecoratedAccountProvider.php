@@ -31,8 +31,7 @@ class ApiDecoratedAccountProvider
     public function __construct($accountProvider, $method = 'get')
     {
         if (!method_exists($accountProvider, $method)) {
-            throw $this->createException(
-                500,
+            throw $this->createUnexpectedException(
                 "Missing method %s::%s()",
                 get_class($accountProvider),
                 $method

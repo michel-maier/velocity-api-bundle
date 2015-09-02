@@ -46,7 +46,7 @@ class PhpMigrator implements MigratorInterface, ContainerAwareInterface, LoggerA
         $dispatcher = $this->getEventDispatcher();
 
         if (!is_file($path)) {
-            throw $this->createException(404, "Unknown PHP Diff file '%s'", $path);
+            throw $this->createNotFoundException("Unknown PHP Diff file '%s'", $path);
         }
 
         include $path;

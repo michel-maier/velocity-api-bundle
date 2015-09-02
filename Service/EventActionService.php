@@ -61,11 +61,13 @@ class EventActionService
      * @param array    $options
      *
      * @return $this
+     *
+     * @throws \Exception
      */
     public function register($name, $callable, $options = [])
     {
         if (!is_callable($callable)) {
-            throw $this->createException(500, "Registered event action must be a callable for '%s'", $name);
+            throw $this->createUnexpectedException("Registered event action must be a callable for '%s'", $name);
         }
 
         $this->eventActions[$name] = ['callable' => $callable, 'options' => $options];
@@ -76,12 +78,13 @@ class EventActionService
      * @param string $name
      *
      * @return $this
+     *
+     * @throws \Exception
      */
     public function checkEventActionExist($name)
     {
         if (!isset($this->eventActions[$name])) {
-            throw $this->createException(
-                412,
+            throw $this->createRequiredException(
                 "No event action registered for '%s'",
                 $name
             );
@@ -128,6 +131,8 @@ class EventActionService
      * @param array  $sequence
      *
      * @return $this
+     *
+     * @throws \Exception
      */
     public function executeEventActionSequence(Event $event, $eventName, array $sequence)
     {
@@ -139,7 +144,7 @@ class EventActionService
             }
 
             if (!isset($step['name'])) {
-                throw $this->createException(500, 'Missing event action sequence step name (step #%d)', $i);
+                throw $this->createRequiredException('Missing event action sequence step name (step #%d)', $i);
             }
 
             if (!isset($step['params']) || !is_array($step['params'])) {

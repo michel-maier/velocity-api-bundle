@@ -41,8 +41,7 @@ class DatabaseService
         }
 
         if (64 <= strlen($databaseName)) {
-            throw $this->createException(
-                500,
+            throw $this->createMalformedException(
                 "Database name is too long, maximum is 64 characters (found: %d)",
                 strlen($databaseName)
             );
@@ -283,7 +282,7 @@ class DatabaseService
         }
 
         if (!preg_match('/^[a-f0-9]{24}$/', $id)) {
-            throw $this->createException(412, 'Malformed id');
+            throw $this->createMalformedException('Malformed id');
         }
 
         return new MongoId($id);

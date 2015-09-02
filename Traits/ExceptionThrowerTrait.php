@@ -19,16 +19,105 @@ namespace Velocity\Bundle\ApiBundle\Traits;
 trait ExceptionThrowerTrait
 {
     /**
+     * @param string $msg
+     * @param array  $params
+     *
+     * @return \Exception
+     */
+    protected function createDeniedException($msg, ...$params)
+    {
+        return $this->createExceptionArray(403, $msg, $params);
+    }
+    /**
+     * @param string $msg
+     * @param array  $params
+     *
+     * @return \Exception
+     */
+    protected function createNotFoundException($msg, ...$params)
+    {
+        return $this->createExceptionArray(404, $msg, $params);
+    }
+    /**
+     * @param string $msg
+     * @param array  $params
+     *
+     * @return \Exception
+     */
+    protected function createMalformedException($msg, ...$params)
+    {
+        return $this->createExceptionArray(412, $msg, $params);
+    }
+    /**
+     * @param string $msg
+     * @param array  $params
+     *
+     * @return \Exception
+     */
+    protected function createFailedException($msg, ...$params)
+    {
+        return $this->createExceptionArray(500, $msg, $params);
+    }
+    /**
+     * @param string $msg
+     * @param array  $params
+     *
+     * @return \Exception
+     */
+    protected function createRequiredException($msg, ...$params)
+    {
+        return $this->createExceptionArray(412, $msg, $params);
+    }
+    /**
+     * @param string $msg
+     * @param array  $params
+     *
+     * @return \Exception
+     */
+    protected function createAuthorizationRequiredException($msg, ...$params)
+    {
+        return $this->createExceptionArray(401, $msg, $params);
+    }
+    /**
+     * @param string $msg
+     * @param array  $params
+     *
+     * @return \Exception
+     */
+    protected function createUnexpectedException($msg, ...$params)
+    {
+        return $this->createExceptionArray(500, $msg, $params);
+    }
+    /**
+     * @param string $msg
+     * @param array  $params
+     *
+     * @return \Exception
+     */
+    protected function createDuplicatedException($msg, ...$params)
+    {
+        return $this->createExceptionArray(412, $msg, $params);
+    }
+    /**
      * @param int    $code
      * @param string $msg
      * @param array  $params
      *
-     * @throws \Exception
+     * @return \Exception
+     */
+    protected function createExceptionArray($code, $msg, array $params)
+    {
+        return new \RuntimeException(call_user_func_array('sprintf', array_merge([$msg], $params)), $code);
+    }
+    /**
+     * @param int    $code
+     * @param string $msg
+     * @param array  $params
      *
-     * @return mixed
+     * @return \Exception
      */
     protected function createException($code, $msg, ...$params)
     {
-        throw new \RuntimeException(call_user_func_array('sprintf', array_merge([$msg], $params)), $code);
+        return $this->createExceptionArray($code, $msg, $params);
     }
 }

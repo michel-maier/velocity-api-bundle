@@ -119,6 +119,8 @@ class FormService
      * @param array  $cleanData
      *
      * @return FormBuilderInterface
+     *
+     * @throws \Exception
      */
     public function createBuilder($type, $mode = 'create', $cleanData = [])
     {
@@ -148,7 +150,7 @@ class FormService
         }
 
         if (null === $builder) {
-            throw $this->createException(500, "Missing form type '%s' (mode: %s)", $type, $mode);
+            throw $this->createRequiredException("Missing form type '%s' (mode: %s)", $type, $mode);
         }
 
         return $builder;

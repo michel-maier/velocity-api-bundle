@@ -68,11 +68,7 @@ class RepositoryService implements RepositoryInterface
             return $this->getDatabaseService()
                 ->insert($this->getCollectionName(), $data, $options + ['new' => true]);
         } catch (MongoDuplicateKeyException $e) {
-            throw $this->createException(
-                412,
-                "{type} already exist",
-                ['{type}' => $this->translate($this->getCollectionName())]
-            );
+            throw $this->createDuplicatedException('%s already exist', ucfirst($this->getCollectionName()));
         }
     }
     /**
@@ -94,11 +90,7 @@ class RepositoryService implements RepositoryInterface
                 $options + ['new' => true]
             );
         } catch (MongoDuplicateKeyException $e) {
-            throw $this->createException(
-                412,
-                "{type} already exist",
-                ['{type}' => $this->translate($this->getCollectionName())]
-            );
+            throw $this->createDuplicatedException('%s already exist', ucfirst($this->getCollectionName()));
         }
     }
     /**
@@ -128,22 +120,16 @@ class RepositoryService implements RepositoryInterface
         if (null === $doc) {
             switch (count($id)) {
                 case 0:
-                    throw $this->createException(
-                        404,
-                        "No %s",
-                        $this->getCollectionName()
-                    );
+                    throw $this->createNotFoundException("No %s", $this->getCollectionName());
                 case 1:
-                    throw $this->createException(
-                        404,
+                    throw $this->createNotFoundException(
                         "Unknown %s with %s '%s'",
                         $this->getCollectionName(),
                         array_keys($id)[0],
                         array_values($id)[0]
                     );
                 default:
-                    throw $this->createException(
-                        404,
+                    throw $this->createNotFoundException(
                         "Unknown %s with %s",
                         $this->getCollectionName(),
                         json_encode($id)
@@ -262,22 +248,16 @@ class RepositoryService implements RepositoryInterface
         if (!$this->has($id)) {
             switch (count($id)) {
                 case 0:
-                    throw $this->createException(
-                        404,
-                        "No %s",
-                        $this->getCollectionName()
-                    );
+                    throw $this->createNotFoundException("No %s", $this->getCollectionName());
                 case 1:
-                    throw $this->createException(
-                        404,
+                    throw $this->createNotFoundException(
                         "Unknown %s with %s '%s'",
                         $this->getCollectionName(),
                         array_keys($id)[0],
                         array_values($id)[0]
                     );
                 default:
-                    throw $this->createException(
-                        404,
+                    throw $this->createNotFoundException(
                         "Unknown %s with %s",
                         $this->getCollectionName(),
                         json_encode($id)
@@ -302,22 +282,16 @@ class RepositoryService implements RepositoryInterface
         if ($this->has($id, $options)) {
             switch (count($id)) {
                 case 0:
-                    throw $this->createException(
-                        412,
-                        "Existing %s",
-                        $this->getCollectionName()
-                    );
+                    throw $this->createNotFoundException("Existing %s", $this->getCollectionName());
                 case 1:
-                    throw $this->createException(
-                        412,
+                    throw $this->createNotFoundException(
                         "%s with %s '%s' already exist",
                         $this->getCollectionName(),
                         array_keys($id)[0],
                         array_values($id)[0]
                     );
                 default:
-                    throw $this->createException(
-                        412,
+                    throw $this->createNotFoundException(
                         "%s with %s already exist",
                         $this->getCollectionName(),
                         json_encode($id)
@@ -636,8 +610,7 @@ class RepositoryService implements RepositoryInterface
 
         foreach (explode('.', $property) as $key) {
             if (!isset($value[$key])) {
-                throw $this->createException(
-                    412,
+                throw $this->createRequiredException(
                     "Unknown %s in %s '%s'",
                     str_replace('.', ' ', $property),
                     $this->getCollectionName(),
@@ -730,8 +703,7 @@ class RepositoryService implements RepositoryInterface
     public function checkPropertyExist($id, $property, $options = [])
     {
         if (!$this->hasProperty($id, $property, $options)) {
-            throw $this->createException(
-                412,
+            throw $this->createRequiredException(
                 "Unknown %s in %s '%s'",
                 str_replace('.', ' ', $property),
                 $this->getCollectionName(),
@@ -755,8 +727,7 @@ class RepositoryService implements RepositoryInterface
     public function checkPropertyNotExist($id, $property, $options = [])
     {
         if ($this->hasProperty($id, $property, $options)) {
-            throw $this->createException(
-                412,
+            throw $this->createDuplicatedException(
                 "%s in %s '%s' already exist",
                 str_replace('.', ' ', $property),
                 $this->getCollectionName(),
@@ -795,7 +766,7 @@ class RepositoryService implements RepositoryInterface
                 $index = ['field' => $index];
             }
             if (!is_array($index)) {
-                throw $this->createException(412, "Malformed index definition");
+                throw $this->createMalformedException('Malformed index definition');
             }
             $fields = $index['field'];
             unset($index['field']);

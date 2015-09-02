@@ -47,7 +47,7 @@ trait TransitionAwareTrait
         $newValue = property_exists($doc, $field) ? $doc->$field : null;
 
         if (false === in_array($newValue, $allowedStates)) {
-            throw $this->createException(412, "Transition of %s to '%s' is not allowed", $field, $newValue);
+            throw $this->createMalformedException("Transition of %s to '%s' is not allowed", $field, $newValue);
         }
 
         return $this->triggerTransition($parentId, $doc, $newValue, $field, $options);
@@ -106,7 +106,6 @@ trait TransitionAwareTrait
      */
     protected abstract function event($parentId, $event, $data = null);
     /**
-     * @param int    $code
      * @param string $msg
      * @param array  $params
      *
@@ -114,7 +113,7 @@ trait TransitionAwareTrait
      *
      * @return mixed
      */
-    protected abstract function createException($code, $msg, ...$params);
+    protected abstract function createMalformedException($msg, ...$params);
     /**
      * Execute the registered callback and return the updated subject.
      *

@@ -483,11 +483,11 @@ class RequestService
         $headers = $request->headers->all();
 
         if (!isset($headers[strtolower($this->getClientHeaderKey())])) {
-            throw $this->createException(401, "Client authentication required");
+            throw $this->createAuthorizationRequiredException('Client authentication required');
         }
 
         if (!isset($headers[strtolower($this->getUserHeaderKey())])) {
-            throw $this->createException(401, "User identity required");
+            throw $this->createAuthorizationRequiredException('User identity required');
         }
 
         $function = $this->getUserHeaderParsingFunction();
@@ -497,10 +497,10 @@ class RequestService
         $expire = $now->add(new \DateInterval('P1D'));
 
         if (!isset($parts['id'])) {
-            throw $this->createException(401, "User identity required");
+            throw $this->createAuthorizationRequiredException('User identity required');
         }
         if (!isset($parts['password'])) {
-            throw $this->createException(401, "User identity required");
+            throw $this->createAuthorizationRequiredException('User identity required');
         }
 
         $account = $this->getUserProvider()->getAccount($parts['id']);
@@ -515,7 +515,7 @@ class RequestService
         $actualEncodedPassword   = $parts['password'];
 
         if ($expectedEncodedPassword !== $actualEncodedPassword) {
-            throw $this->createException(403, "Bad credentials for user '%s'", $parts['id']);
+            throw $this->createDeniedException("Bad credentials for user '%s'", $parts['id']);
         }
 
         return $this->buildGenericTokenExpirableHeaders(

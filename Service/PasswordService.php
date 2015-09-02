@@ -62,8 +62,7 @@ class PasswordService
                 return $this->encryptWithDefault($raw, $options);
         }
 
-        throw $this->createException(
-            412,
+        throw $this->createUnexpectedException(
             "Unsupported algorithm '%s'",
             $options['algorithm']
         );
@@ -96,8 +95,7 @@ class PasswordService
                 return $this->generateWithSpecial($data, $options);
         }
 
-        throw $this->createException(
-            412,
+        throw $this->createUnexpectedException(
             "Unsupported generator '%s'",
             $options['generator']
         );

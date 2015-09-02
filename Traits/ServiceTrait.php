@@ -22,8 +22,8 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
  */
 trait ServiceTrait
 {
-    use MissingMethodCatcherTrait;
     use ExceptionThrowerTrait;
+    use MissingMethodCatcherTrait;
     /**
      * @var array
      */
@@ -57,11 +57,13 @@ trait ServiceTrait
      * @param string $key
      *
      * @return mixed
+     *
+     * @throws \Exception
      */
     protected function getService($key)
     {
         if (!$this->hasService($key)) {
-            throw new \RuntimeException(sprintf("Service %s not set", $key), 500);
+            throw $this->createRequiredException("Service %s not set", $key);
         }
 
         return $this->services[$key];
@@ -83,13 +85,15 @@ trait ServiceTrait
      * @param mixed  $default
      *
      * @return mixed
+     *
+     * @throws \Exception
      */
     protected function getParameter($key, $default = null)
     {
         $value = $this->getParameterIfExists($key, $default);
 
         if (null === $value) {
-            throw new \RuntimeException(sprintf("Parameter %s not set", $key), 500);
+            throw $this->createRequiredException("Parameter %s not set", $key);
         }
 
         return $value;

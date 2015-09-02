@@ -48,13 +48,13 @@ class Context
     public function getCurrentEvent()
     {
         if (!$this->hasVariable('event')) {
-            throw $this->createException(500, 'No active event yet');
+            throw $this->createUnexpectedException('No active event yet');
         }
 
         $event = $this->getRequiredVariable('event');
 
         if (!($event instanceof Event)) {
-            throw $this->createException(500, "Context event should be a valid event (found: %s)", get_class($event));
+            throw $this->createUnexpectedException("Context event should be a valid event (found: %s)", get_class($event));
         }
 
         return $event;
@@ -145,11 +145,13 @@ class Context
      * @param string $key
      *
      * @return mixed
+     *
+     * @throws \Exception
      */
     public function getRequiredVariable($key)
     {
         if (!$this->hasVariable($key)) {
-            throw $this->createException(412, "Context variable '%s' does not exist", $key);
+            throw $this->createRequiredException("Context variable '%s' does not exist", $key);
         }
 
         return $this->getVariable($key);

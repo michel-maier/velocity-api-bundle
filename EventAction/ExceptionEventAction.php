@@ -25,8 +25,8 @@ class ExceptionEventAction extends AbstractEventAction
     public function execute()
     {
         throw $this->createException(
-            $this->getContext()->getVariable('message'),
-            (int) $this->getContext()->getVariable('code')
+            (int) $this->getContext()->getVariable('code'),
+            $this->getContext()->getVariable('message')
         );
     }
 }

@@ -36,6 +36,8 @@ class AttachmentService
      * @param array $options
      *
      * @return array
+     *
+     * @throws \Exception
      */
     public function build(array $definition, array $params = [], array $options = [])
     {
@@ -47,7 +49,7 @@ class AttachmentService
             return $this->buildFromGenerator($definition, $params, $options);
         }
 
-        throw $this->createException(412, "Missing source for attachment");
+        throw $this->createRequiredException('Missing source for attachment');
     }
     /**
      * @param array $definition
@@ -55,6 +57,8 @@ class AttachmentService
      * @param array $options
      *
      * @return array
+     *
+     * @throws \Exception
      */
     protected function buildFromPath(array $definition, array $params = [], array $options = [])
     {
@@ -62,7 +66,7 @@ class AttachmentService
         unset($options);
 
         if (!is_file($definition['path'])) {
-            throw $this->createException(404, "File '%s' not found", $definition['path']);
+            throw $this->createNotFoundException("File '%s' not found", $definition['path']);
         }
 
         return $this->package(

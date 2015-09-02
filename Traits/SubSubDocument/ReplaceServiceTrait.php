@@ -57,7 +57,7 @@ trait ReplaceServiceTrait
 
         foreach ($bulkData as $k => $v) {
             if (!isset($v['id'])) {
-                throw $this->createException(412, 'Missing id for item #%s', $k);
+                throw $this->createRequiredException('Missing id for item #%s', $k);
             }
             $ids[] = $v['id'];
         }
@@ -141,7 +141,6 @@ trait ReplaceServiceTrait
      */
     protected abstract function checkBulkData($bulkData, $options = []);
     /**
-     * @param int    $code
      * @param string $msg
      * @param array  $params
      *
@@ -149,5 +148,5 @@ trait ReplaceServiceTrait
      *
      * @return mixed
      */
-    protected abstract function createException($code, $msg, ...$params);
+    protected abstract function createRequiredException($msg, ...$params);
 }

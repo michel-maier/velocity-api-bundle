@@ -119,6 +119,8 @@ class PayPalService
     }
     /**
      * @return string
+     *
+     * @throws \Exception
      */
     public function getPaymentUrlPattern()
     {
@@ -131,7 +133,7 @@ class PayPalService
                 case 'live':
                     return static::DEFAULT_LIVE_PAYMENT_URL_PATTERN;
                 default:
-                    throw $this->createException(500, "Unsupported PayPal environment '%s'", $this->getEnvironment());
+                    throw $this->createUnexpectedException("Unsupported PayPal environment '%s'", $this->getEnvironment());
             }
         }
 
@@ -173,13 +175,13 @@ class PayPalService
 
             if (!isset($data['successUrl'])) {
                 if (!isset($data['returnUrl'])) {
-                    throw $this->createException(412, "Missing success or return url");
+                    throw $this->createRequiredException("Missing success or return url");
                 }
                 $data['successUrl'] = $data['returnUrl'];
             }
             if (!isset($data['cancelUrl'])) {
                 if (!isset($data['returnUrl'])) {
-                    throw $this->createException(412, "Missing cancel or return url");
+                    throw $this->createRequiredException("Missing cancel or return url");
                 }
                 $data['cancelUrl'] = $data['returnUrl'];
             }

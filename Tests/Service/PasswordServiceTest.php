@@ -73,7 +73,7 @@ class PasswordServiceTest extends PHPUnit_Framework_TestCase
      */
     public function testGenerateForUnknownGeneratorThrowException()
     {
-        $this->setExpectedException('RuntimeException', "Unsupported generator 'unknown'", 412);
+        $this->setExpectedException('RuntimeException', "Unsupported generator 'unknown'", 500);
         $this->s->generate([], ['generator' => 'unknown']);
     }
     /**
@@ -81,7 +81,7 @@ class PasswordServiceTest extends PHPUnit_Framework_TestCase
      */
     public function testEncryptForUnknownAlgorithmThrowException()
     {
-        $this->setExpectedException('RuntimeException', "Unsupported algorithm 'unknown'", 412);
+        $this->setExpectedException('RuntimeException', "Unsupported algorithm 'unknown'", 500);
         $this->s->encrypt('test', ['algorithm' => 'unknown']);
     }
 }

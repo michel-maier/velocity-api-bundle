@@ -33,11 +33,13 @@ class MetaDataService
      * @param string $class
      *
      * @return $this
+     *
+     * @throws \Exception
      */
     public function checkModel($class)
     {
         if (!$this->isModel($class)) {
-            throw $this->createException(500, "Class '%s' is not registered as a model", $class);
+            throw $this->createUnexpectedException("Class '%s' is not registered as a model", $class);
         }
 
         return $this;
@@ -380,13 +382,15 @@ class MetaDataService
      * @param array $options
      *
      * @return mixed
+     *
+     * @throws \Exception
      */
     public function convertObjectToArray($doc, $options = [])
     {
         $options += ['removeNulls' => true];
 
         if (!is_object($doc)) {
-            throw $this->createException(412, "Not a valid object");
+            throw $this->createMalformedException('Not a valid object');
         }
 
         $removeNulls = true === $options['removeNulls'];
@@ -514,6 +518,8 @@ class MetaDataService
      * @param array $options
      *
      * @return mixed
+     *
+     * @throws \Exception
      */
     protected function triggerRefreshes($doc, $options = [])
     {
@@ -530,7 +536,7 @@ class MetaDataService
                     $doc->$property = new \DateTime();
                     break;
                 default:
-                    throw $this->createException(500, sprintf("Unable to refresh model property '%s': unsupported type '%s'", $property, $type));
+                    throw $this->createUnexpectedException("Unable to refresh model property '%s': unsupported type '%s'", $property, $type);
             }
         }
 
@@ -572,6 +578,8 @@ class MetaDataService
      * @param mixed $entireDoc
      *
      * @return string
+     *
+     * @throws \Exception
      */
     protected function generateValue($definition, $entireDoc)
     {
@@ -581,7 +589,7 @@ class MetaDataService
             case 'sha1':
                 return sha1(md5(rand(0, 1000).microtime(true).rand(rand(0, 100), 10000)));
             default:
-                throw $this->createException(500, "Unsupported generate type '%s'", $definition['type']);
+                throw $this->createUnexpectedException("Unsupported generate type '%s'", $definition['type']);
         }
     }
     /**
@@ -647,15 +655,17 @@ class MetaDataService
      * @param string $fieldName
      *
      * @return array
+     *
+     * @throws \Exception
      */
     protected function convertDataDateTimeFieldToMongoDateWithTimeZone($data, $fieldName)
     {
         if (!isset($data[$fieldName])) {
-            throw $this->createException(412, "Missing date time field '%s'", $fieldName);
+            throw $this->createRequiredException("Missing date time field '%s'", $fieldName);
         }
 
         if (null !== $data[$fieldName] && !$data[$fieldName] instanceof \DateTime) {
-            throw $this->createException(412, "Field '%s' must be a valid DateTime", $fieldName);
+            throw $this->createRequiredException("Field '%s' must be a valid DateTime", $fieldName);
         }
 
         /** @var \DateTime $date */
@@ -671,11 +681,13 @@ class MetaDataService
      * @param string $fieldName
      *
      * @return array
+     *
+     * @throws \Exception
      */
     protected function revertDocumentMongoDateWithTimeZoneFieldToDateTime($doc, $fieldName)
     {
         if (!isset($doc[$fieldName])) {
-            throw $this->createException(412, "Missing mongo date field '%s'", $fieldName);
+            throw $this->createRequiredException("Missing mongo date field '%s'", $fieldName);
         }
 
         if (!isset($doc[sprintf('%s_tz', $fieldName)])) {
@@ -683,7 +695,7 @@ class MetaDataService
         }
 
         if (!$doc[$fieldName] instanceof \MongoDate) {
-            throw $this->createException(412, "Field '%s' must be a valid MongoDate", $fieldName);
+            throw $this->createMalformedException("Field '%s' must be a valid MongoDate", $fieldName);
         }
 
         /** @var \MongoDate $mongoDate */

@@ -31,7 +31,7 @@ trait PurgeServiceTrait
     public function purge($pParentId, $parentId, $criteria = [], $options = [])
     {
         if ([] !== $criteria) {
-            throw $this->createException(500, 'Purging sub documents with criteria not supported');
+            throw $this->createUnexpectedException('Purging sub documents with criteria not supported');
         }
 
         $this->callback($pParentId, $parentId, 'pre_purge', [], $options);
@@ -79,7 +79,6 @@ trait PurgeServiceTrait
      */
     protected abstract function event($pParentId, $parentId, $event, $data = null);
     /**
-     * @param int    $code
      * @param string $msg
      * @param array  $params
      *
@@ -87,5 +86,5 @@ trait PurgeServiceTrait
      *
      * @return mixed
      */
-    protected abstract function createException($code, $msg, ...$params);
+    protected abstract function createUnexpectedException($msg, ...$params);
 }

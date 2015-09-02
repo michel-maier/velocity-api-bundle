@@ -69,7 +69,7 @@ class BusinessRuleService
     public function getBusinessRuleById($id)
     {
         if (!isset($this->businessRules['ids'][$id])) {
-            throw $this->createException(404, "Unknown business rule '%s'", $id);
+            throw $this->createNotFoundException("Unknown business rule '%s'", $id);
         }
 
         return $this->businessRules['ids'][$id];
@@ -83,11 +83,13 @@ class BusinessRuleService
      * @param array    $params
      *
      * @return $this
+     *
+     * @throws \Exception
      */
     public function addBusinessRule($id, $name, $callable, array $params = [])
     {
         if (!is_callable($callable)) {
-            throw $this->createException(500, "Registered business rule must be a callable for '%s'", $id);
+            throw $this->createUnexpectedException("Registered business rule must be a callable for '%s'", $id);
         }
 
         if (isset($params['model'])) {
@@ -109,7 +111,7 @@ class BusinessRuleService
             return $this;
         }
 
-        throw $this->createException(500, "Unsupported business rule type for id '%s'", $id);
+        throw $this->createUnexpectedException("Unsupported business rule type for id '%s'", $id);
     }
     /**
      * @param string $modelName

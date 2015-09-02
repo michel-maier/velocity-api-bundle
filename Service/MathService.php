@@ -114,6 +114,8 @@ class MathService
      * @param null  $field
      *
      * @return number
+     *
+     * @throws \Exception
      */
     public function percentile($rank, $population, $field = null)
     {
@@ -122,7 +124,7 @@ class MathService
         } elseif (1 < $rank && $rank <= 100) {
             $p = $rank * .01;
         } else {
-            throw $this->createException('math.percentile.malformed', $rank);
+            throw $this->createMalformedException('Percentile must be 0 < p < 1 or 1 < p <= 100 (found: %f)', $rank);
         }
 
         if (0 === count($population)) {
@@ -135,10 +137,9 @@ class MathService
             $data = array();
             foreach ($population as $item) {
                 if (false === isset($item[$field])) {
-                    throw $this->createException(
-                        'math.population.field.unknown',
-                        $field,
-                        $item
+                    throw $this->createRequiredException(
+                        "Field '%s' is not available in population",
+                        $field
                     );
                 }
                 $data[] = $item[$field];

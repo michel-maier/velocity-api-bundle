@@ -65,11 +65,13 @@ class InvitationEventService
      * @param array    $params
      *
      * @return $this
+     *
+     * @throws \Exception
      */
     public function addInvitationEvent($type = '*', $transition = '*', $callable = null, array $params = [])
     {
         if (!is_callable($callable)) {
-            throw $this->createException(500, 'Registered invitation event must be a callable for');
+            throw $this->createUnexpectedException('Registered invitation event must be a callable for');
         }
 
         if (!isset($this->invitationEvents['types'][$type])) {

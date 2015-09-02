@@ -11,6 +11,7 @@
 
 namespace Velocity\Bundle\ApiBundle\Security;
 
+use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
 use Symfony\Component\Security\Core\User\UserInterface;
 use Symfony\Component\Security\Core\User\UserProviderInterface;
 use Symfony\Component\Security\Core\Exception\UnsupportedUserException;
@@ -24,6 +25,7 @@ use Symfony\Component\Security\Core\Exception\UsernameNotFoundException;
  */
 class ApiUserProvider implements UserProviderInterface
 {
+    use ServiceTrait;
     /**
      * @var array
      */
@@ -62,7 +64,7 @@ class ApiUserProvider implements UserProviderInterface
             throw $e;
         }
 
-        return new ApiUser(is_object($account) ? get_object_vars($account) : $account);
+        return new ApiUser($account);
     }
     /**
      * @param string $username
@@ -86,9 +88,10 @@ class ApiUserProvider implements UserProviderInterface
         $format          = $accountProviderDescription['format'];
 
         if (!method_exists($accountProvider, $method)) {
-            throw new \RuntimeException(
-                sprintf("Unable to retrieve account from account provider '%s' (method: %s)", get_class($accountProvider), $method),
-                404
+            throw $this->createNotFoundException(
+                "Unable to retrieve account from account provider '%s' (method: %s)",
+                get_class($accountProvider),
+                $method
             );
         }
 

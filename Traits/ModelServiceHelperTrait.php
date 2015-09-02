@@ -33,14 +33,15 @@ trait ModelServiceHelperTrait
      * @param array $types
      *
      * @return $this
+     *
+     * @throws \Exception
      */
     public function setTypes(array $types)
     {
         $expectedTypeCount = $this->getExpectedTypeCount();
 
         if (null !== $expectedTypeCount && $expectedTypeCount !== count($types)) {
-            throw $this->createException(
-                500,
+            throw $this->createUnexpectedException(
                 "Model service must have exactly %d types (found: %d)",
                 $expectedTypeCount,
                 count($types)
@@ -98,11 +99,11 @@ trait ModelServiceHelperTrait
     protected function checkBulkData($bulkData, $options = [])
     {
         if (!is_array($bulkData)) {
-            throw $this->createException(412, "Missing bulk data");
+            throw $this->createRequiredException('Missing bulk data');
         }
 
         if (!count($bulkData)) {
-            throw $this->createException(412, "No data to process");
+            throw $this->createRequiredException('No data to process');
         }
 
         unset($options);

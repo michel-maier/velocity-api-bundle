@@ -319,15 +319,17 @@ trait ModelServiceTrait
      * @param string $sep
      *
      * @return $this
+     *
+     * @throws \Exception
      */
     protected function checkRepoKeyTokenIsValid($token, $sep)
     {
         if (false !== strpos($token, $sep)) {
-            throw $this->createException(412, "Key token '%s' is invalid (found: %s)", $token, $sep);
+            throw $this->createMalformedException("Key token '%s' is invalid (found: %s)", $token, $sep);
         }
 
         if (0 === strlen($token)) {
-            throw $this->createException(412, 'Key token is empty', $token, $sep);
+            throw $this->createMalformedException('Key token is empty', $token, $sep);
         }
 
         return $this;

@@ -45,12 +45,14 @@ class GeneratorService
      * @param callable $callable
      * @param array    $options
      *
+     * @throws \Exception
+     *
      * @return $this
      */
     public function register($name, $callable, $options = [])
     {
         if (!is_callable($callable)) {
-            throw $this->createException(500, "Registered generator must be a callable for '%s'", $name);
+            throw $this->createUnexpectedException("Registered generator must be a callable for '%s'", $name);
         }
 
         $this->generators[$name] = ['callable' => $callable, 'options' => $options];
@@ -61,12 +63,13 @@ class GeneratorService
      * @param string $name
      *
      * @return $this
+     *
+     * @throws \Exception
      */
     public function checkGeneratorExist($name)
     {
         if (!isset($this->generators[$name])) {
-            throw $this->createException(
-                412,
+            throw $this->createRequiredException(
                 "No generator registered for '%s'",
                 $name
             );
