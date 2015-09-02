@@ -33,7 +33,7 @@ trait TransitionAwareTrait
     /**
      * @param mixed  $pParentId
      * @param mixed  $parentId
-     * @param mixed  $doc
+     * @param object $doc
      * @param string $field
      * @param array  $allowedStates
      * @param array  $options
@@ -57,7 +57,7 @@ trait TransitionAwareTrait
     /**
      * @param mixed  $pParentId
      * @param mixed  $parentId
-     * @param mixed  $doc
+     * @param object $doc
      * @param string $field
      * @param array  $options
      *
@@ -77,20 +77,27 @@ trait TransitionAwareTrait
     /**
      * @param mixed  $pParentId
      * @param mixed  $parentId
-     * @param mixed  $doc
+     * @param object $doc
      * @param string $transition
      * @param string $field
      * @param array  $options
      *
-     * @return $this
+     * @return mixed
      */
     protected function triggerTransition($pParentId, $parentId, $doc, $transition, $field = 'status', $options = [])
     {
         $options += ['fullEventName' => false];
 
-        $this->event($pParentId, $parentId, true === $options['fullEventName'] ? ($field.'.'.$transition) : $transition, $doc);
+        $transitionName        = true === $options['fullEventName'] ? ($field.'.'.$transition) : $transition;
+        $transitionGenericName = true === $options['fullEventName'] ? ($field.'.transitioned') : 'transitioned';
 
-        return $this;
+        $doc = $this->callback($pParentId, $parentId, $transitionName, $doc, $options);
+        $this->event($pParentId, $parentId, $transitionName, $doc);
+
+        $doc = $this->callback($pParentId, $parentId, $transitionGenericName, $doc, $options);
+        $this->event($pParentId, $parentId, $transitionGenericName, $doc);
+
+        return $doc;
     }
     /**
      * Trigger the specified document event if listener are registered.
@@ -113,4 +120,16 @@ trait TransitionAwareTrait
      * @return mixed
      */
     protected abstract function createException($code, $msg, ...$params);
+    /**
+     * Execute the registered callback and return the updated subject.
+     *
+     * @param mixed  $pParentId
+     * @param mixed  $parentId
+     * @param string $key
+     * @param mixed  $subject
+     * @param array  $options
+     *
+     * @return mixed
+     */
+    protected abstract function callback($pParentId, $parentId, $key, $subject = null, $options = []);
 }

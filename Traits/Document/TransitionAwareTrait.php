@@ -29,7 +29,7 @@ trait TransitionAwareTrait
      */
     public abstract function get($id, $fields = [], $options = []);
     /**
-     * @param mixed  $doc
+     * @param object $doc
      * @param string $field
      * @param array  $allowedStates
      * @param array  $options
@@ -51,7 +51,7 @@ trait TransitionAwareTrait
         return $this->triggerTransition($doc, $newValue, $field, $options);
     }
     /**
-     * @param mixed  $doc
+     * @param object $doc
      * @param string $field
      * @param array  $options
      *
@@ -69,20 +69,27 @@ trait TransitionAwareTrait
         return null !== $newValue && $newValue === $oldValue;
     }
     /**
-     * @param mixed  $doc
+     * @param object $doc
      * @param string $transition
      * @param string $field
      * @param array  $options
      *
-     * @return $this
+     * @return mixed
      */
     protected function triggerTransition($doc, $transition, $field = 'status', $options = [])
     {
         $options += ['fullEventName' => false];
 
-        $this->event(true === $options['fullEventName'] ? ($field.'.'.$transition) : $transition, $doc);
+        $transitionName        = true === $options['fullEventName'] ? ($field.'.'.$transition) : $transition;
+        $transitionGenericName = true === $options['fullEventName'] ? ($field.'.transitioned') : 'transitioned';
 
-        return $this;
+        $doc = $this->callback($transitionName, $doc, $options);
+        $this->event($transitionName, $doc);
+
+        $doc = $this->callback($transitionGenericName, $doc, $options);
+        $this->event($transitionGenericName, $doc);
+
+        return $doc;
     }
     /**
      * Trigger the specified document event if listener are registered.
@@ -103,4 +110,14 @@ trait TransitionAwareTrait
      * @return mixed
      */
     protected abstract function createException($code, $msg, ...$params);
+    /**
+     * Execute the registered callback and return the updated subject.
+     *
+     * @param string $key
+     * @param mixed  $subject
+     * @param array  $options
+     *
+     * @return mixed
+     */
+    protected abstract function callback($key, $subject = null, $options = []);
 }
