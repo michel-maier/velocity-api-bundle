@@ -116,13 +116,23 @@ trait ServiceTrait
      * @param string $name
      * @param string $key
      *
+     * @return bool
+     */
+    protected function hasArrayParameterKey($name, $key)
+    {
+        return isset($this->parameters[$name]) && array_key_exists($key, $this->parameters[$name]);
+    }
+    /**
+     * @param string $name
+     * @param string $key
+     *
      * @return mixed
      *
      * @throws \Exception
      */
     protected function getArrayParameterKey($name, $key)
     {
-        if (!isset($this->parameters[$name][$key])) {
+        if (!$this->hasArrayParameterKey($name, $key)) {
             throw $this->createRequiredException("Unknown '%s' in %s", $key, $name);
         }
 

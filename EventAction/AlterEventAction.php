@@ -54,7 +54,7 @@ class AlterEventAction extends AbstractEventAction
     public function alter()
     {
         $context = $this->getContext();
-        $repo    = $context->getRequiredVariable('repo');
+        $repo    = strtolower($context->getRequiredVariable('repo'));
         $id      = $context->getRequiredVariable('id');
         $set     = $context->getVariable('set', []);
         $inc     = $context->getVariable('inc', []);

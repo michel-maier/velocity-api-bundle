@@ -14,7 +14,7 @@ namespace Velocity\Bundle\ApiBundle\Event;
 use Symfony\Component\EventDispatcher\Event;
 
 /**
- * Request Listener.
+ * Document Event.
  *
  * @author Olivier Hoareau <olivier@phppro.fr>
  */

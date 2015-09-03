@@ -61,7 +61,6 @@ class VelocityService
             'service_container.key'               => 'service_container',
 
             // container keys patterns
-            'repo.key.pattern'             => 'app.repository.%s',
             'generated_client.key.pattern' => 'app.client_%s',
 
             // parameters keys
@@ -302,10 +301,10 @@ class VelocityService
      */
     public function analyzeTags(ContainerBuilder $container)
     {
+        $this->processRepositoryTag($container);
         $this->processCrudTag($container);
         $this->processSubCrudTag($container);
         $this->processSubSubCrudTag($container);
-        $this->processRepositoryTag($container);
         $this->processVolatileTag($container);
         $this->processSubVolatileTag($container);
         $this->processSubSubVolatileTag($container);
@@ -356,12 +355,13 @@ class VelocityService
             if (!$d->getClass()) {
                 $d->setClass($this->getDefault('repo.class'));
             }
-            $params = array_shift($attributes);
+            $params = array_shift($attributes) + ['id' => $typeName];
             $d->addMethodCall('setCollectionName', [isset($params['collection']) ? $params['collection'] : $typeName]);
             $this->addLoggerSetterCall($d);
             $this->addDatabaseSetterCall($d);
             $this->addTranslatorSetterCall($d);
             $this->addEventDispatcherSetterCall($d);
+            $this->setArrayParameterKey('repositoryIds', strtolower($params['id']), $id);
         }
     }
     /**
@@ -398,26 +398,11 @@ class VelocityService
         return $this;
     }
     /**
-     * Create and register a new repository definition.
-     *
-     * @param ContainerBuilder $container
-     * @param $repositoryId
-     *
-     * @return Definition
-     */
-    protected function createRepositoryDefinition(ContainerBuilder $container, $repositoryId)
-    {
-        $d = new Definition();
-        $d->addTag($this->getDefault('repo.tag'));
-
-        $container->setDefinition($repositoryId, $d);
-
-        return $d;
-    }
-    /**
      * Process crud tags.
      *
      * @param ContainerBuilder $container
+     *
+     * @throws \Exception
      */
     protected function processCrudTag(ContainerBuilder $container)
     {
@@ -425,14 +410,27 @@ class VelocityService
             list($type) = array_slice(explode('.', $id), -1);
             $d = $container->getDefinition($id);
             $this->ensureDefinitionClassSet($d, 'crud');
-            $repositoryId = $this->buildRepoId(array_shift($attributes), $type);
-            if (!$container->has($repositoryId)) {
-                $this->createRepositoryDefinition($container, $repositoryId);
-            }
             $d->addMethodCall('setTypes', [[$type]]);
-            $this->addRepositorySetterCall($d, $repositoryId);
+            $params = array_shift($attributes) + ['repo' => $type];
+            $this->addRepositorySetterCall($d, $this->getRepositoryId($params['repo']));
             $this->populateModelService($container, $id, $d, [$type]);
         }
+    }
+    /**
+     * @param string $alias
+     * @return string
+     *
+     * @throws \Exception
+     */
+    protected function getRepositoryId($alias)
+    {
+        $alias = strtolower($alias);
+
+        if (!$this->hasArrayParameterKey('repositoryIds', $alias)) {
+            throw $this->createRequiredException("Unknown repository '%s'", $alias);
+        }
+
+        return $this->getArrayParameterKey('repositoryIds', $alias);
     }
     /**
      * Process sub crud tags.
@@ -446,7 +444,8 @@ class VelocityService
             $d = $container->getDefinition($id);
             $this->ensureDefinitionClassSet($d, 'crud.sub');
             $d->addMethodCall('setTypes', [[$type, $subType]]);
-            $this->addRepositorySetterCall($d, $this->buildRepoId(array_shift($attrs), $type));
+            $params = array_shift($attrs) + ['repo' => $type];
+            $this->addRepositorySetterCall($d, $this->getRepositoryId($params['repo']));
             $this->populateModelService($container, $id, $d, [$type, $subType]);
         }
     }
@@ -462,7 +461,8 @@ class VelocityService
             $d = $container->getDefinition($id);
             $this->ensureDefinitionClassSet($d, 'crud.sub.sub');
             $d->addMethodCall('setTypes', [[$type, $subType, $subSubType]]);
-            $this->addRepositorySetterCall($d, $this->buildRepoId(array_shift($attrs), $type));
+            $params = array_shift($attrs) + ['repo' => $type];
+            $this->addRepositorySetterCall($d, $this->getRepositoryId($params['repo']));
             $this->populateModelService($container, $id, $d, [$type, $subType, $subSubType]);
         }
     }
@@ -718,8 +718,8 @@ class VelocityService
             $d = $container->getDefinition($id);
             foreach ($attributes as $params) {
                 $params += ['method' => 'addRepository'];
-                foreach ($this->findVelocityTaggedServiceIds($container, 'repository') as $repositoryId) {
-                    $d->addMethodCall($params['method'], [$repositoryId, new Reference($repositoryId)]);
+                foreach ($this->getArrayParameter('repositoryIds') as $repoAlias => $repoId) {
+                    $d->addMethodCall($params['method'], [$repoAlias, new Reference($repoId)]);
                 }
             }
         }
@@ -799,16 +799,6 @@ class VelocityService
     protected function ref($alias)
     {
         return new Reference($this->getServiceKey($alias));
-    }
-    /**
-     * @param $params
-     * @param $typeName
-     *
-     * @return string
-     */
-    protected function buildRepoId($params, $typeName)
-    {
-        return isset($params['repo']) ? $params['repo'] : (sprintf($this->getDefault('repo.key.pattern'), $typeName));
     }
     /**
      * @param ContainerBuilder $container

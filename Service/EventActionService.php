@@ -114,14 +114,24 @@ class EventActionService
      * @param array  $params
      *
      * @return $this
+     *
+     * @throws \Exception
      */
     public function executeEventAction(Event $event, $eventName, $name, array $params = [])
     {
         $eventAction = $this->getEventActionByName($name);
 
+        $params += ['ignoreOnException' => false];
+
         $this->getContext()->setCurrentEventVariables($event, $eventName, $params);
 
-        call_user_func_array($eventAction['callable'], [$eventAction['options']]);
+        try {
+            call_user_func_array($eventAction['callable'], [$eventAction['options']]);
+        } catch (\Exception $e) {
+            if (true !== $params['ignoreOnException']) {
+                throw $e;
+            }
+        }
 
         return $this;
     }

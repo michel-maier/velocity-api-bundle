@@ -9,19 +9,15 @@
  * file that was distributed with this source code.
  */
 
-namespace Velocity\Bundle\ApiBundle\Annotation;
+namespace Velocity\Bundle\ApiBundle\Event;
 
-use Velocity\Bundle\ApiBundle\Annotation\Base\Annotation;
+use Symfony\Component\EventDispatcher\Event;
 
 /**
- * EventAction annotation
+ * Audit Log Event.
  *
  * @author Olivier Hoareau <olivier@phppro.fr>
- *
- * @Annotation
- * @Target("METHOD")
  */
-final class EventAction extends Annotation
+class AuditLogEvent extends Event
 {
-    public $ignoreOnException = false;
 }

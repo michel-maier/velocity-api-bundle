@@ -26,3 +26,16 @@ services:
     tags:
       - { name: velocity.event_action }
       - { name: velocity.repositories_aware }
+  velocity.eventAction.auditLog:
+    class: Velocity\Bundle\ApiBundle\EventAction\AuditLogEventAction
+    arguments:
+      - @security.token_storage
+      - @event_dispatcher
+    tags:
+      - { name: velocity.event_action }
+  velocity.eventAction.log:
+    class: Velocity\Bundle\ApiBundle\EventAction\LogEventAction
+    arguments:
+      - @logger
+    tags:
+      - { name: velocity.event_action }
