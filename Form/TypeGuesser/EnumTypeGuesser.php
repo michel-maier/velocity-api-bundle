@@ -24,7 +24,7 @@ use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
  *
  * @author Olivier Hoareau <olivier@phppro.fr>
  */
-class EnumFormTypeGuesser implements FormTypeGuesserInterface
+class EnumTypeGuesser implements FormTypeGuesserInterface
 {
     use ServiceTrait;
     use ServiceAware\MetaDataServiceAwareTrait;
