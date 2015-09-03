@@ -9,16 +9,16 @@
  * file that was distributed with this source code.
  */
 
-namespace Velocity\Bundle\ApiBundle\Traits;
+namespace Velocity\Bundle\ApiBundle\Traits\ServiceAware;
 
-use Velocity\Bundle\ApiBundle\Service\MigrationService;
+use Velocity\Bundle\ApiBundle\Service\RequestService;
 
 /**
- * MigrationServiceAware trait.
+ * RequestServiceAware trait.
  *
  * @author Olivier Hoareau <olivier@phppro.fr>
  */
-trait MigrationServiceAwareTrait
+trait RequestServiceAwareTrait
 {
     /**
      * @param string $key
@@ -34,19 +34,19 @@ trait MigrationServiceAwareTrait
      */
     protected abstract function getService($key);
     /**
-     * @param MigrationService $service
+     * @param RequestService $service
      *
      * @return $this
      */
-    public function setMigrationService(MigrationService $service)
+    public function setRequestService(RequestService $service)
     {
-        return $this->setService('migration', $service);
+        return $this->setService('request', $service);
     }
     /**
-     * @return MigrationService
+     * @return RequestService
      */
-    public function getMigrationService()
+    public function getRequestService()
     {
-        return $this->getService('migration');
+        return $this->getService('request');
     }
 }

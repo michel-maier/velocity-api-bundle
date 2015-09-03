@@ -12,7 +12,7 @@
 namespace Velocity\Bundle\ApiBundle\Listener;
 
 use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
-use Velocity\Bundle\ApiBundle\Traits\ExceptionServiceAwareTrait;
+use Velocity\Bundle\ApiBundle\Traits\ServiceAware;
 use Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent;
 
 /**
@@ -23,7 +23,7 @@ use Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent;
 class ExceptionListener
 {
     use ServiceTrait;
-    use ExceptionServiceAwareTrait;
+    use ServiceAware\ExceptionServiceAwareTrait;
     /**
      * Kernel exception event callback.
      *

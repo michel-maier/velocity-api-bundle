@@ -1,0 +1,5 @@
+services:
+  velocity.typeGuesser.enum:
+    class: Velocity\Bundle\ApiBundle\Form\TypeGuesser\EnumTypeGuesser
+    tags:
+      - { name: form.type_guesser }

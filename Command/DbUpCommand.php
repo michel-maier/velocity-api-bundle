@@ -13,10 +13,10 @@ namespace Velocity\Bundle\ApiBundle\Command;
 
 use Symfony\Component\Console\Input\InputOption;
 use Symfony\Component\Console\Input\InputArgument;
+use Velocity\Bundle\ApiBundle\Traits\ServiceAware;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 use Velocity\Bundle\ApiBundle\Command\Base\ApiCommand;
-use Velocity\Bundle\ApiBundle\Traits\MigrationServiceAwareTrait;
 
 /**
  * DB Up Commmand
@@ -25,7 +25,7 @@ use Velocity\Bundle\ApiBundle\Traits\MigrationServiceAwareTrait;
  */
 class DbUpCommand extends ApiCommand
 {
-    use MigrationServiceAwareTrait;
+    use ServiceAware\MigrationServiceAwareTrait;
     /**
      * Configure the command.
      *

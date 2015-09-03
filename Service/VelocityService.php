@@ -199,6 +199,9 @@ class VelocityService
                         case $a instanceof Velocity\Refresh:
                             $m->addMethodCall('addModelPropertyRefresh', [$class, $property, $vars]);
                             break;
+                        case $a instanceof Velocity\Enum:
+                            $m->addMethodCall('addModelPropertyEnum', [$class, $property, $vars]);
+                            break;
                         case $a instanceof Velocity\Generated:
                             $m->addMethodCall('addModelPropertyGenerated', [$class, $property, $vars]);
                             break;

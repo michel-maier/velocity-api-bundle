@@ -14,7 +14,7 @@ namespace Velocity\Bundle\ApiBundle\Service;
 use Velocity\Bundle\ApiBundle\Exception\UnsupportedAccountTypeException;
 use Exception;
 use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
-use Velocity\Bundle\ApiBundle\Traits\FormServiceAwareTrait;
+use Velocity\Bundle\ApiBundle\Traits\ServiceAware;
 use Velocity\Bundle\ApiBundle\Exception\FormValidationException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RequestStack;
@@ -31,7 +31,7 @@ use Symfony\Component\Security\Core\Exception\AuthenticationException;
 class ExceptionService
 {
     use ServiceTrait;
-    use FormServiceAwareTrait;
+    use ServiceAware\FormServiceAwareTrait;
     /**
      * @param RequestStack $requestStack
      * @param FormService  $formService

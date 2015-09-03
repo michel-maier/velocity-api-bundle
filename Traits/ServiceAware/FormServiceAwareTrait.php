@@ -9,16 +9,16 @@
  * file that was distributed with this source code.
  */
 
-namespace Velocity\Bundle\ApiBundle\Traits;
+namespace Velocity\Bundle\ApiBundle\Traits\ServiceAware;
 
-use Velocity\Bundle\ApiBundle\Service\RequestService;
+use Velocity\Bundle\ApiBundle\Service\FormService;
 
 /**
- * RequestServiceAware trait.
+ * FormServiceAware trait.
  *
  * @author Olivier Hoareau <olivier@phppro.fr>
  */
-trait RequestServiceAwareTrait
+trait FormServiceAwareTrait
 {
     /**
      * @param string $key
@@ -34,19 +34,19 @@ trait RequestServiceAwareTrait
      */
     protected abstract function getService($key);
     /**
-     * @param RequestService $service
+     * @param FormService $service
      *
      * @return $this
      */
-    public function setRequestService(RequestService $service)
+    public function setFormService(FormService $service)
     {
-        return $this->setService('request', $service);
+        return $this->setService('form', $service);
     }
     /**
-     * @return RequestService
+     * @return FormService
      */
-    public function getRequestService()
+    public function getFormService()
     {
-        return $this->getService('request');
+        return $this->getService('form');
     }
 }

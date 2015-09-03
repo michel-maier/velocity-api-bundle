@@ -51,7 +51,8 @@ class VelocityApiExtension extends Extension
         $loader->load('services/repositories.yml');
         $loader->load('services/crud.yml');
         $loader->load('security.yml');
-        $loader->load('forms.yml');
+        $loader->load('forms/types.yml');
+        $loader->load('forms/typeGuessers.yml');
         $loader->load('commands.yml');
         $loader->load('validators.yml');
         $loader->load('migrators.yml');

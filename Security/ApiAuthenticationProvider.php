@@ -14,8 +14,8 @@ namespace Velocity\Bundle\ApiBundle\Security;
 use DateTime;
 use Exception;
 use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
+use Velocity\Bundle\ApiBundle\Traits\ServiceAware;
 use Velocity\Bundle\ApiBundle\Traits\ClientProviderAwareTrait;
-use Velocity\Bundle\ApiBundle\Traits\RequestServiceAwareTrait;
 use Velocity\Bundle\ApiBundle\Exception\BadUserTokenException;
 use Symfony\Component\Security\Core\User\UserProviderInterface;
 use Velocity\Bundle\ApiBundle\Exception\BadClientTokenException;
@@ -34,7 +34,7 @@ class ApiAuthenticationProvider implements AuthenticationProviderInterface
 {
     use ServiceTrait;
     use ClientProviderAwareTrait;
-    use RequestServiceAwareTrait;
+    use ServiceAware\RequestServiceAwareTrait;
     /**
      * Construct a new authentication provider.
      *

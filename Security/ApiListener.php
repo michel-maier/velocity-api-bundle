@@ -12,8 +12,8 @@
 namespace Velocity\Bundle\ApiBundle\Security;
 
 use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
+use Velocity\Bundle\ApiBundle\Traits\ServiceAware;
 use Symfony\Component\HttpKernel\Event\GetResponseEvent;
-use Velocity\Bundle\ApiBundle\Traits\RequestServiceAwareTrait;
 use Symfony\Component\Security\Http\Firewall\ListenerInterface;
 use Symfony\Component\Security\Core\Authentication\AuthenticationManagerInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
@@ -26,7 +26,7 @@ use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInt
 class ApiListener implements ListenerInterface
 {
     use ServiceTrait;
-    use RequestServiceAwareTrait;
+    use ServiceAware\RequestServiceAwareTrait;
     /**
      * Construct the listener.
      *

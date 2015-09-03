@@ -9,16 +9,16 @@
  * file that was distributed with this source code.
  */
 
-namespace Velocity\Bundle\ApiBundle\Traits;
+namespace Velocity\Bundle\ApiBundle\Traits\ServiceAware;
 
-use Velocity\Bundle\ApiBundle\Service\ExceptionService;
+use Velocity\Bundle\ApiBundle\Service\MigrationService;
 
 /**
- * ExceptionServiceAware trait.
+ * MigrationServiceAware trait.
  *
  * @author Olivier Hoareau <olivier@phppro.fr>
  */
-trait ExceptionServiceAwareTrait
+trait MigrationServiceAwareTrait
 {
     /**
      * @param string $key
@@ -34,19 +34,19 @@ trait ExceptionServiceAwareTrait
      */
     protected abstract function getService($key);
     /**
-     * @param ExceptionService $service
+     * @param MigrationService $service
      *
      * @return $this
      */
-    public function setExceptionService(ExceptionService $service)
+    public function setMigrationService(MigrationService $service)
     {
-        return $this->setService('exception', $service);
+        return $this->setService('migration', $service);
     }
     /**
-     * @return ExceptionService
+     * @return MigrationService
      */
-    public function getExceptionService()
+    public function getMigrationService()
     {
-        return $this->getService('exception');
+        return $this->getService('migration');
     }
 }

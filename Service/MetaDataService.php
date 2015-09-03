@@ -11,6 +11,8 @@
 
 namespace Velocity\Bundle\ApiBundle\Service;
 
+use Symfony\Component\Form\Guess\Guess;
+use Symfony\Component\Form\Guess\TypeGuess;
 use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
 
 /**
@@ -145,6 +147,31 @@ class MetaDataService
      *
      * @return $this
      */
+    public function addModelPropertyEnum($class, $property, $definition)
+    {
+        $this->checkModel($class);
+
+        $values = $definition['value'];
+        if (!is_array($values)) {
+            $values = [];
+        }
+
+        if (!isset($this->models[$class]['types'][$property])) {
+            $this->models[$class]['types'][$property] = [];
+        }
+
+        $this->models[$class]['types'][$property]['type'] = 'enum';
+        $this->models[$class]['types'][$property]['values'] = $values;
+
+        return $this;
+    }
+    /**
+     * @param string $class
+     * @param string $property
+     * @param array  $definition
+     *
+     * @return $this
+     */
     public function addModelPropertyGenerated($class, $property, $definition)
     {
         $this->checkModel($class);
@@ -186,7 +213,9 @@ class MetaDataService
     {
         $this->checkModel($class);
 
-        $this->models[$class]['types'][$property] = $definition['name'];
+        $this->models[$class]['types'][$property] = [
+            'type' => $definition['name'],
+        ];
 
         return $this;
     }
@@ -323,6 +352,27 @@ class MetaDataService
             : null;
     }
     /**
+     * @param string $class
+     * @param string $property
+     *
+     * @return TypeGuess
+     */
+    public function getModelPropertyTypeGuess($class, $property)
+    {
+        $propertyType = $this->getModelPropertyType($class, $property);
+
+        if (null === $propertyType) {
+            return new TypeGuess(null, [], Guess::LOW_CONFIDENCE);
+        }
+
+        switch ($propertyType['type']) {
+            case 'enum':
+                return new TypeGuess('choice', ['choices' => $propertyType['values']], Guess::HIGH_CONFIDENCE);
+            default:
+                return new TypeGuess(null, [], Guess::LOW_CONFIDENCE);
+        }
+    }
+    /**
      * @param mixed $doc
      * @param array $options
      *
@@ -403,9 +453,9 @@ class MetaDataService
                 unset($data[$k]);
                 continue;
             }
-            if (isset($meta['types'][$k])) {
+            if (isset($meta['types'][$k]['type'])) {
                 switch (true) {
-                    case 'DateTime' === substr($meta['types'][$k], 0, 8):
+                    case 'DateTime' === substr($meta['types'][$k]['type'], 0, 8):
                         $data = $this->convertDataDateTimeFieldToMongoDateWithTimeZone($data, $k);
                         continue 2;
                 }
@@ -445,7 +495,7 @@ class MetaDataService
             }
             if (isset($types[$k])) {
                 switch (true) {
-                    case 'DateTime' === substr($types[$k], 0, 8):
+                    case 'DateTime' === substr($types[$k]['type'], 0, 8):
                         $data = $this->revertDocumentMongoDateWithTimeZoneFieldToDateTime($data, $k);
                         $v = $data[$k];
                 }
@@ -472,7 +522,8 @@ class MetaDataService
         unset($options);
 
         foreach ($this->getModelEmbeddedReferences($doc) as $property => $embeddedReference) {
-            $doc->$property = $this->convertIdToObject($doc->$property, isset($embeddedReference['class']) ? $embeddedReference['class'] : $this->getModelPropertyType($doc, $property), $embeddedReference['type']);
+            $type = $this->getModelPropertyType($doc, $property);
+            $doc->$property = $this->convertIdToObject($doc->$property, isset($embeddedReference['class']) ? $embeddedReference['class'] : ($type ? $type['type'] : null), $embeddedReference['type']);
         }
 
         return $doc;
@@ -531,7 +582,7 @@ class MetaDataService
 
         foreach ($this->getModelRefreshablePropertiesByOperation($doc, 'create') as $property) {
             $type = $this->getModelPropertyType($doc, $property);
-            switch ($type) {
+            switch ($type['type']) {
                 case "DateTime<'c'>":
                     $doc->$property = new \DateTime();
                     break;
@@ -562,7 +613,7 @@ class MetaDataService
             if (property_exists($doc, $property) && null === $doc->$property) {
                 continue;
             }
-            switch ($type) {
+            switch ($type['type']) {
                 case "DateTime<'c'>":
                     if ('' === $doc->$property) {
                         $doc->$property = null;

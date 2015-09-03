@@ -18,7 +18,6 @@ use Velocity\Bundle\ApiBundle\Traits\ServiceAware;
 use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
 use Velocity\Bundle\ApiBundle\Traits\LoggerAwareTrait;
 use Velocity\Bundle\ApiBundle\Traits\ContainerAwareTrait;
-use Velocity\Bundle\ApiBundle\Traits\FormServiceAwareTrait;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Velocity\Bundle\ApiBundle\Exception\FormValidationException;
 use Symfony\Component\DependencyInjection\ContainerAwareInterface;
@@ -33,7 +32,7 @@ class MigrationService implements ContainerAwareInterface
     use ServiceTrait;
     use LoggerAwareTrait;
     use ContainerAwareTrait;
-    use FormServiceAwareTrait;
+    use ServiceAware\FormServiceAwareTrait;
     use ServiceAware\DatabaseServiceAwareTrait;
     /**
      * List of migrators.
