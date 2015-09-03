@@ -147,6 +147,37 @@ abstract class AbstractSubSubDocumentController extends AbstractRestController
         );
     }
     /**
+     * Update the specified document property.
+     *
+     * @param Request $request
+     * @param string  $property
+     * @param array   $options
+     *
+     * @return Response
+     */
+    protected function handleUpdateProperty(Request $request, $property, $options = [])
+    {
+        $service = $this->getService();
+        $method  = 'update'.ucfirst($property);
+
+        if (!method_exists($service, $method)) {
+            throw $this->createAccessDeniedException();
+        }
+
+        return $this->returnResponse(
+            $service->$method(
+                $this->getRequestService()->fetchRouteParameter($request, 'pParentId'),
+                $this->getRequestService()->fetchRouteParameter($request, 'parentId'),
+                $this->getRequestService()->fetchRouteParameter($request, 'id'),
+                $this->getRequestService()->fetchRequestData($request),
+                $options
+            ),
+            200,
+            [],
+            ['groups' => ['Default', 'updated']]
+        );
+    }
+    /**
      * Create a new document.
      *
      * @param Request $request
