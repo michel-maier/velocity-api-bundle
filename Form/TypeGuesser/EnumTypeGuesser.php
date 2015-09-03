@@ -11,13 +11,13 @@
 
 namespace Velocity\Bundle\ApiBundle\Form\TypeGuesser;
 
-use Symfony\Component\Form\FormTypeGuesserInterface;
 use Symfony\Component\Form\Guess\Guess;
-
 use Symfony\Component\Form\Guess\TypeGuess;
 use Symfony\Component\Form\Guess\ValueGuess;
-use Velocity\Bundle\ApiBundle\Traits\ServiceAware;
 use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
+use Velocity\Bundle\ApiBundle\Traits\ServiceAware;
+use Symfony\Component\Form\FormTypeGuesserInterface;
+use Velocity\Bundle\ApiBundle\Service\MetaDataService;
 
 /**
  * Enum Form Type Guesser
@@ -28,6 +28,13 @@ class EnumTypeGuesser implements FormTypeGuesserInterface
 {
     use ServiceTrait;
     use ServiceAware\MetaDataServiceAwareTrait;
+    /**
+     * @param MetaDataService $metaDataService
+     */
+    public function __construct(MetaDataService $metaDataService)
+    {
+        $this->setMetaDataService($metaDataService);
+    }
     /**
      * @param string $class
      * @param string $property

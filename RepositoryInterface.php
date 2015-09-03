@@ -245,6 +245,16 @@ interface RepositoryInterface
      */
     public function unsetProperty($id, $property, $options = []);
     /**
+     * Alter (raw update) the specified document with the specified data.
+     *
+     * @param string|array $id      primary key or criteria array
+     * @param array        $data
+     * @param array        $options
+     *
+     * @return $this
+     */
+    public function alter($id, $data, $options = []);
+    /**
      * Update the specified document with the specified data.
      *
      * @param string $id

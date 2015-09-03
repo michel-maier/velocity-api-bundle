@@ -104,6 +104,7 @@ class VelocityService
             'business_rule.tag'       => 'velocity.business_rule',
             'invitation_event.tag'    => 'velocity.invitation_event',
             'generator.tag'           => 'velocity.generator',
+            'repositories_aware.tag'  => 'velocity.repositories_aware',
 
         ];
 
@@ -315,6 +316,7 @@ class VelocityService
         $this->processBusinessRuleTag($container);
         $this->processInvitationEventTag($container);
         $this->processGeneratorTag($container);
+        $this->processRepositoriesAwareTag($container);
 
         return $this;
     }
@@ -701,6 +703,23 @@ class VelocityService
                                 break;
                         }
                     }
+                }
+            }
+        }
+    }
+    /**
+     * Process repositories aware tags.
+     *
+     * @param ContainerBuilder $container
+     */
+    protected function processRepositoriesAwareTag(ContainerBuilder $container)
+    {
+        foreach ($this->findVelocityTaggedServiceIds($container, 'repositories_aware') as $id => $attributes) {
+            $d = $container->getDefinition($id);
+            foreach ($attributes as $params) {
+                $params += ['method' => 'addRepository'];
+                foreach ($this->findVelocityTaggedServiceIds($container, 'repository') as $repositoryId) {
+                    $d->addMethodCall($params['method'], [$repositoryId, new Reference($repositoryId)]);
                 }
             }
         }

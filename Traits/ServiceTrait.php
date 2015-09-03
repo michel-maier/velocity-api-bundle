@@ -113,6 +113,61 @@ trait ServiceTrait
         return $this->parameters[$key];
     }
     /**
+     * @param string $name
+     * @param string $key
+     *
+     * @return mixed
+     *
+     * @throws \Exception
+     */
+    protected function getArrayParameterKey($name, $key)
+    {
+        if (!isset($this->parameters[$name][$key])) {
+            throw $this->createRequiredException("Unknown '%s' in %s", $key, $name);
+        }
+
+        return $this->parameters[$name][$key];
+    }
+    /**
+     * @param string $name
+     * @param string $key
+     * @param mixed  $value
+     *
+     * @return $this
+     *
+     * @throws \Exception
+     */
+    protected function setArrayParameterKey($name, $key, $value)
+    {
+        if (!isset($this->parameters[$name])) {
+            $this->parameters[$name] = [];
+        }
+
+        if (!is_array($this->parameters[$name])) {
+            throw $this->createMalformedException("Parameter '%s' is not a list", $name);
+        }
+
+        $this->parameters[$name][$key] = $value;
+
+        return $this;
+    }
+    /**
+     * @param string $name
+     * @return mixed
+     *
+     * @throws \Exception
+     */
+    protected function getArrayParameter($name)
+    {
+        $value = $this->getParameter($name, []);
+
+        if (!is_array($value)) {
+            $this->createMalformedException("Parameter '%s' is not a list", $name);
+        }
+
+        return $value;
+    }
+    /**
      * @param EventDispatcherInterface $eventDispatcher
      *
      * @return $this

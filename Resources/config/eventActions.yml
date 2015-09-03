@@ -21,3 +21,8 @@ services:
     class: Velocity\Bundle\ApiBundle\EventAction\ExceptionEventAction
     tags:
       - { name: "velocity.event_action" }
+  velocity.eventAction.alter:
+    class: Velocity\Bundle\ApiBundle\EventAction\AlterEventAction
+    tags:
+      - { name: velocity.event_action }
+      - { name: velocity.repositories_aware }
