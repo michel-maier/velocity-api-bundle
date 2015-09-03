@@ -38,14 +38,17 @@ class AuditLogEventAction extends AbstractEventAction
      */
     public function auditLog()
     {
-        $context   = $this->getContext();
-        $eventName = $context->getVariable('type', $context->getCurrentEventName());
-        $params    = $context->getVariable('params', []);
-        $eventData = [] + (is_array($params) ? $params : []);
-        $date      = new \DateTime();
-        $token     = $this->getTokenStorage()->getToken();
-        $user      = null === $token ? null : $token->getUser();
+        $context     = $this->getContext();
+        $type        = $context->getVariable('type', $context->getCurrentEventName());
+        $contextType = $context->getVariable('contextType');
+        $contextId   = $context->getVariable('contextId');
+        $date        = new \DateTime();
+        $params      = $context->getVariable('params', []);
+        $data        = [] + (is_array($params) ? $params : []);
+        $token       = $this->getTokenStorage()->getToken();
+        $user        = null === $token ? null : $token->getUser();
+        $userId      = null !== $user ? $user->getId() : null;
 
-        $this->dispatch('audit.log', new AuditLogEvent($eventName, $eventData, $date, $user));
+        $this->dispatch('audit.log', new AuditLogEvent($type, $contextType, $contextId, $userId, $date, $data));
     }
 }
