@@ -20,7 +20,7 @@ use Velocity\Bundle\ApiBundle\EventAction\Base\AbstractEventAction;
 class ExceptionEventAction extends AbstractEventAction
 {
     /**
-     * @Velocity\EventAction("exception")
+     * @Velocity\EventAction("exception", description="fail")
      */
     public function execute()
     {

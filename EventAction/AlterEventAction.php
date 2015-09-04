@@ -49,7 +49,7 @@ class AlterEventAction extends AbstractEventAction
         return $this->getArrayParameter('repositories');
     }
     /**
-     * @Velocity\EventAction("alter")
+     * @Velocity\EventAction("alter", description="update database")
      */
     public function alter()
     {

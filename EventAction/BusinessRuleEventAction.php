@@ -30,7 +30,7 @@ class BusinessRuleEventAction extends AbstractEventAction
         $this->setBusinessRuleService($businessRuleService);
     }
     /**
-     * @Velocity\EventAction("business_rule")
+     * @Velocity\EventAction("business_rule", description="check a business rule")
      */
     public function execute()
     {

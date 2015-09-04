@@ -201,6 +201,13 @@ class EventActionService
         return $this->sequences[$eventName];
     }
     /**
+     * @return array
+     */
+    public function getEventActionSequences()
+    {
+        return $this->sequences;
+    }
+    /**
      * @param Event  $event
      * @param string $eventName
      *

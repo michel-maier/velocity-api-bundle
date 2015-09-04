@@ -24,4 +24,5 @@ use Velocity\Bundle\ApiBundle\Annotation\Base\Annotation;
 final class EventAction extends Annotation
 {
     public $ignoreOnException = false;
+    public $description;
 }

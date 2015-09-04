@@ -30,7 +30,7 @@ class AddVarEventAction extends AbstractEventAction
         $this->setContainer($container);
     }
     /**
-     * @Velocity\EventAction("add_var")
+     * @Velocity\EventAction("add_var", description="add a variable to context")
      */
     public function execute()
     {

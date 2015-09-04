@@ -19,3 +19,9 @@ services:
       - [setBusinessRuleService, [@velocity.businessRule]]
     tags:
       - { name: console.command }
+  api.command.eventActionList:
+    class: Velocity\Bundle\ApiBundle\Command\EventActionListCommand
+    calls:
+      - [setEventActionService, [@velocity.eventAction]]
+    tags:
+      - { name: console.command }

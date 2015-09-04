@@ -30,7 +30,7 @@ class LogEventAction extends AbstractEventAction
         $this->setLogger($logger);
     }
     /**
-     * @Velocity\EventAction("log", ignoreOnException=true)
+     * @Velocity\EventAction("log", ignoreOnException=true, description="log")
      */
     public function log()
     {

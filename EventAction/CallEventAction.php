@@ -30,7 +30,7 @@ class CallEventAction extends AbstractEventAction
         $this->setContainer($container);
     }
     /**
-     * @Velocity\EventAction("call")
+     * @Velocity\EventAction("call", description="execute")
      */
     public function execute()
     {

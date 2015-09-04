@@ -34,7 +34,7 @@ class AuditLogEventAction extends AbstractEventAction
         $this->setEventDispatcher($eventDispatcher);
     }
     /**
-     * @Velocity\EventAction("audit_log", ignoreOnException=true)
+     * @Velocity\EventAction("audit_log", ignoreOnException=true, description="add an audit log")
      */
     public function auditLog()
     {
