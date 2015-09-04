@@ -74,6 +74,10 @@ services:
     lazy: true
   velocity.generator:
     class: Velocity\Bundle\ApiBundle\Service\GeneratorService
+  velocity.shipping:
+    class: Velocity\Bundle\ApiBundle\Service\ShippingService
+    arguments:
+      - @velocity.date
   velocity.attachment:
     class: Velocity\Bundle\ApiBundle\Service\AttachmentService
     arguments:
