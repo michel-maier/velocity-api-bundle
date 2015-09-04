@@ -60,7 +60,7 @@ class EventActionListCommand extends ApiCommand
             if ($hasEventFilters) {
                 if (!in_array($eventName, $events)) {
                     $found = false;
-                    foreach($events as $e) {
+                    foreach ($events as $e) {
                         if (0 < preg_match('/^'.str_replace(['.', '*'], ['\\.', '.*'], $e).'$/', $eventName)) {
                             $found = true;
                         }
@@ -93,7 +93,7 @@ class EventActionListCommand extends ApiCommand
                     if ($conditional) {
                         $conditional = 'if '.$conditional.' ';
                     }
-                    foreach($params as $k => $v) {
+                    foreach ($params as $k => $v) {
                         $details .= ($details ? ' and ' : '').$k.' '.(is_array($v) ? json_encode($v) : '<comment>'.$v.'</comment>');
                     }
                     if ($details) {
