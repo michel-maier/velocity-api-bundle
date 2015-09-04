@@ -57,8 +57,18 @@ class EventActionListCommand extends ApiCommand
         $hasEventFilters = 0 < count($events);
 
         foreach ($this->getEventActionService()->getEventActionSequences() as $eventName => $sequence) {
-            if ($hasEventFilters && !in_array($eventName, $events)) {
-                continue;
+            if ($hasEventFilters) {
+                if (!in_array($eventName, $events)) {
+                    $found = false;
+                    foreach($events as $e) {
+                        if (0 < preg_match('/^'.str_replace(['.', '*'], ['\\.', '.*'], $e).'$/', $eventName)) {
+                            $found = true;
+                        }
+                    }
+                    if (!$found) {
+                        continue;
+                    }
+                }
             }
             if (!count($sequence)) {
                 continue;
