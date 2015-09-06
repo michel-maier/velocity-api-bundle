@@ -250,7 +250,7 @@ trait UpdateServiceTrait
      *
      * @return $this
      */
-    protected abstract function checkBusinessRules($parentId, $operation, $model, array $options = []);
+    protected abstract function applyBusinessRules($parentId, $operation, $model, array $options = []);
     /**
      * Test if specified document event has registered event listeners.
      *
@@ -318,7 +318,7 @@ trait UpdateServiceTrait
         $doc = $this->callback($parentId, 'pre_save', $doc, $options);
         $doc = $this->callback($parentId, 'update.pre_save', $doc, $options);
 
-        $this->checkBusinessRules($parentId, 'update', $doc, $options);
+        $this->applyBusinessRules($parentId, 'update', $doc, $options);
 
         $doc   = $this->callback($parentId, 'update.pre_save_checked', $doc, $options);
         $array = $this->convertToArray($doc, $options);
@@ -345,6 +345,8 @@ trait UpdateServiceTrait
         $doc = $this->callback($parentId, 'update.saved', $doc, $options);
         $doc = $this->callback($parentId, 'saved', $doc, $options);
         $doc = $this->callback($parentId, 'updated', $doc, $options);
+
+        $this->applyBusinessRules($parentId, 'complete_update', $doc, $options);
 
         $this->event($parentId, 'updated', $doc);
 

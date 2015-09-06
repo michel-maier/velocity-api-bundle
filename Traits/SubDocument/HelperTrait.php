@@ -98,7 +98,7 @@ trait HelperTrait
      *
      * @return $this
      */
-    protected function checkBusinessRules($parentId, $operation, $model, array $options = [])
+    protected function applyBusinessRules($parentId, $operation, $model, array $options = [])
     {
         $this->getBusinessRuleService()->executeBusinessRulesForModelOperation(
             $this->getModelName(),

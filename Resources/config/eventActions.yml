@@ -33,6 +33,12 @@ services:
       - @event_dispatcher
     tags:
       - { name: velocity.event_action }
+  velocity.eventAction.archiveDoc:
+    class: Velocity\Bundle\ApiBundle\EventAction\ArchiveDocEventAction
+    arguments:
+      - @velocity.archiver
+    tags:
+      - { name: velocity.event_action }
   velocity.eventAction.log:
     class: Velocity\Bundle\ApiBundle\EventAction\LogEventAction
     arguments:

@@ -14,33 +14,13 @@ namespace Velocity\Bundle\ApiBundle\Annotation;
 use Velocity\Bundle\ApiBundle\Annotation\Base\Annotation;
 
 /**
- * BusinessRule annotation
+ * Archiver annotation
  *
  * @author Olivier Hoareau <olivier@phppro.fr>
  *
  * @Annotation
  * @Target("METHOD")
  */
-final class BusinessRule extends Annotation
+final class Archiver extends Annotation
 {
-    /**
-     * @var string
-     */
-    public $id = null;
-    /**
-     * @var string
-     */
-    public $name = null;
-    /**
-     * @var string
-     */
-    public $model = null;
-    /**
-     * @var string
-     */
-    public $operation = null;
-    /**
-     * @var string
-     */
-    public $when = 'before';
 }

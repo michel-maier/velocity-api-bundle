@@ -74,6 +74,8 @@ services:
     lazy: true
   velocity.generator:
     class: Velocity\Bundle\ApiBundle\Service\GeneratorService
+  velocity.archiver:
+    class: Velocity\Bundle\ApiBundle\Service\ArchiverService
   velocity.shipping:
     class: Velocity\Bundle\ApiBundle\Service\ShippingService
     arguments:

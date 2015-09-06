@@ -56,12 +56,12 @@ class MetaDataService
     {
         if (!isset($this->models[$class])) {
             $this->models[$class] = [
-                'embeddedReferences' => [],
-                'embeddedReferenceLists'=> [],
-                'refreshes' => [],
-                'generateds' => [],
-                'ids' => [],
-                'types' => [],
+                'embeddedReferences'     => [],
+                'embeddedReferenceLists' => [],
+                'refreshes'              => [],
+                'generateds'             => [],
+                'ids'                    => [],
+                'types'                  => [],
             ];
         }
 

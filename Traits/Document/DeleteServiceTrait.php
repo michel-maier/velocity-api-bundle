@@ -112,7 +112,7 @@ trait DeleteServiceTrait
 
         $this->callback('delete.pre_save', $old, $options);
 
-        $this->checkBusinessRules('delete', $old, $options);
+        $this->applyBusinessRules('delete', $old, $options);
 
         $this->callback('delete.pre_save_checked', $old, $options);
 
@@ -129,6 +129,8 @@ trait DeleteServiceTrait
     {
         $this->callback('delete.saved', $old, $options);
         $this->callback('deleted', $old, $options);
+
+        $this->applyBusinessRules('complete_delete', $old, $options);
 
         $this->event('deleted', $old);
 
@@ -153,7 +155,7 @@ trait DeleteServiceTrait
      *
      * @return $this
      */
-    protected abstract function checkBusinessRules($operation, $model, array $options = []);
+    protected abstract function applyBusinessRules($operation, $model, array $options = []);
     /**
      * Trigger the specified document event if listener are registered.
      *

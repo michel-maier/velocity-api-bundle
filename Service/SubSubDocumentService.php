@@ -263,7 +263,7 @@ class SubSubDocumentService implements SubSubDocumentServiceInterface
      *
      * @return $this
      */
-    protected function checkBusinessRules($pParentId, $parentId, $operation, $model, array $options = [])
+    protected function applyBusinessRules($pParentId, $parentId, $operation, $model, array $options = [])
     {
         $this->getBusinessRuleService()->executeBusinessRulesForModelOperation(
             $this->getModelName(),
