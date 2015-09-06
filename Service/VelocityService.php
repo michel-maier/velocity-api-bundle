@@ -50,6 +50,7 @@ class VelocityService
             'invitationEvent.key'                 => 'velocity.invitationEvent',
             'generator.key'                       => 'velocity.generator',
             'archiver.key'                        => 'velocity.archiver',
+            'job.key'                             => 'velocity.job',
             'db.key'                              => 'velocity.database',
             'form.key'                            => 'velocity.form',
             'request.key'                         => 'velocity.request',
@@ -106,6 +107,7 @@ class VelocityService
             'generator.tag'           => 'velocity.generator',
             'repositories_aware.tag'  => 'velocity.repositories_aware',
             'archiver.tag'            => 'velocity.archiver',
+            'job.tag'                 => 'velocity.job',
 
         ];
 
@@ -318,6 +320,7 @@ class VelocityService
         $this->processInvitationEventTag($container);
         $this->processGeneratorTag($container);
         $this->processArchiverTag($container);
+        $this->processJobTag($container);
         $this->processRepositoriesAwareTag($container);
 
         return $this;
@@ -733,6 +736,36 @@ class VelocityService
                                 $type = $vars['value'];
                                 unset($vars['value']);
                                 $archiverDefinition->addMethodCall('register', [$type, [$this->ref($id), $method], $vars]);
+                                break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    /**
+     * Process job tags.
+     *
+     * @param ContainerBuilder $container
+     */
+    protected function processJobTag(ContainerBuilder $container)
+    {
+        $jobDefinition = $container->getDefinition($this->getDefault('job.key'));
+
+        foreach ($this->findVelocityTaggedServiceIds($container, 'job') as $id => $attributes) {
+            $d = $container->getDefinition($id);
+            foreach ($attributes as $params) {
+                unset($params);
+                $rClass = new \ReflectionClass($d->getClass());
+                foreach ($rClass->getMethods(\ReflectionProperty::IS_PUBLIC) as $rMethod) {
+                    foreach ($this->getAnnotationReader()->getMethodAnnotations($rMethod) as $a) {
+                        $vars   = get_object_vars($a);
+                        $method = $rMethod->getName();
+                        switch (true) {
+                            case $a instanceof Velocity\Job:
+                                $name = $vars['value'];
+                                unset($vars['value']);
+                                $jobDefinition->addMethodCall('add', [$name, [$this->ref($id), $method], $vars]);
                                 break;
                         }
                     }

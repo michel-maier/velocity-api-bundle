@@ -39,9 +39,25 @@ services:
       - @velocity.archiver
     tags:
       - { name: velocity.event_action }
+  velocity.eventAction.job:
+    class: Velocity\Bundle\ApiBundle\EventAction\JobEventAction
+    arguments:
+      - @velocity.job
+    tags:
+      - { name: velocity.event_action }
+  velocity.eventAction.batch:
+    class: Velocity\Bundle\ApiBundle\EventAction\BatchEventAction
+    arguments:
+      - @velocity.batch
+    tags:
+      - { name: velocity.event_action }
   velocity.eventAction.log:
     class: Velocity\Bundle\ApiBundle\EventAction\LogEventAction
     arguments:
       - @logger
+    tags:
+      - { name: velocity.event_action }
+  velocity.eventAction.context:
+    class: Velocity\Bundle\ApiBundle\EventAction\ContextEventAction
     tags:
       - { name: velocity.event_action }

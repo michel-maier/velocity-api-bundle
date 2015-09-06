@@ -25,3 +25,15 @@ services:
       - [setEventActionService, [@velocity.eventAction]]
     tags:
       - { name: console.command }
+  api.command.jobRun:
+    class: Velocity\Bundle\ApiBundle\Command\JobCommand
+    calls:
+      - [setJobService, [@velocity.job]]
+    tags:
+      - { name: console.command }
+  api.command.batch:
+    class: Velocity\Bundle\ApiBundle\Command\BatchCommand
+    calls:
+      - [setBatchService, [@velocity.batch]]
+    tags:
+      - { name: console.command }

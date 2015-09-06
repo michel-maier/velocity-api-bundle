@@ -11,6 +11,7 @@
 
 namespace Velocity\Bundle\ApiBundle\EventAction;
 
+use Symfony\Component\EventDispatcher\GenericEvent;
 use Velocity\Bundle\ApiBundle\Event;
 use Velocity\Bundle\ApiBundle\Traits\ServiceAware;
 use Velocity\Bundle\ApiBundle\Annotation as Velocity;
@@ -42,14 +43,17 @@ class ArchiveDocEventAction extends AbstractEventAction
         $context = $this->getContext();
         $event   = $context->getCurrentEvent();
 
-        if (! $event instanceof Event\DocumentEvent) {
+        if ($event instanceof Event\DocumentEvent) {
+            $doc  = $event->getData();
+        } elseif ($event instanceof GenericEvent) {
+            $doc = $event->getSubject();
+        } else {
             throw $this->createRequiredException(
                 'Unable to archive, document required but not provided (event: %s)',
                 get_class($event)
             );
         }
 
-        $doc  = $event->getData();
         $type = 'default';
 
         if ($context->hasVariable('type')) {

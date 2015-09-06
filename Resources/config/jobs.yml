@@ -1,0 +1,8 @@
+services:
+  velocity.job.database:
+    class: Velocity\Bundle\ApiBundle\Job\DatabaseJob
+    arguments:
+      - @velocity.database
+      - @event_dispatcher
+    tags:
+      - { name: "velocity.job" }

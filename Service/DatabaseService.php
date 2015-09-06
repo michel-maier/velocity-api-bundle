@@ -31,6 +31,8 @@ class DatabaseService
      * @param MongoClient $mongoClient
      * @param string      $databaseName
      * @param bool        $randomDatabaseName
+     *
+     * @throws \Exception
      */
     public function __construct(MongoClient $mongoClient, $databaseName, $randomDatabaseName = false)
     {
@@ -265,6 +267,18 @@ class DatabaseService
             is_array($fields) ? $fields : [$fields => true],
             $index
         );
+    }
+    /**
+     * @param string|null $name
+     *
+     * @return array
+     */
+    public function getStatistics($name = null)
+    {
+        return $this->getMongoClient()
+            ->selectDB(null === $name ? $this->getDatabaseName() : $name)
+            ->command(['dbStats' => true])
+        ;
     }
     /**
      * Ensure specified id is a MongoId (convert to MongoId if is string).

@@ -76,6 +76,12 @@ services:
     class: Velocity\Bundle\ApiBundle\Service\GeneratorService
   velocity.archiver:
     class: Velocity\Bundle\ApiBundle\Service\ArchiverService
+  velocity.job:
+    class: Velocity\Bundle\ApiBundle\Service\JobService
+  velocity.batch:
+    class: Velocity\Bundle\ApiBundle\Service\BatchService
+    arguments:
+      - @event_dispatcher
   velocity.shipping:
     class: Velocity\Bundle\ApiBundle\Service\ShippingService
     arguments:
