@@ -35,8 +35,9 @@ class VelocityApiExtension extends Extension
         $config = $this->processConfiguration($configuration, $configs);
 
         $container->setParameter('app_variables', [
-            'front' => $config['front'],
+            'front'   => $config['front'],
             'senders' => $config['senders'],
+            'sdk'     => isset($config['sdk']) ? $config['sdk'] : null,
         ]);
         $container->setParameter('app_models_bundles', $config['models']['bundles']);
         $container->setParameter('app_events', $config['events']);

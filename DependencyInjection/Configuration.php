@@ -32,6 +32,7 @@ class Configuration implements ConfigurationInterface
 
         $this
             ->addFrontSection($rootNode)
+            ->addSdkSection($rootNode)
             ->addSendersSection($rootNode)
             ->addModelsSection($rootNode)
             ->addRecipientsSection($rootNode)
@@ -54,6 +55,33 @@ class Configuration implements ConfigurationInterface
                     ->children()
                         ->scalarNode('name')->end()
                         ->scalarNode('url')->end()
+                    ->end()
+                ->end()
+            ->end()
+        ;
+
+        return $this;
+    }
+    /**
+     * @param ArrayNodeDefinition $rootNode
+     *
+     * @return $this
+     */
+    protected function addSdkSection(ArrayNodeDefinition $rootNode)
+    {
+        $rootNode
+            ->children()
+                ->arrayNode('sdk')
+                    ->children()
+                        ->scalarNode('name')->end()
+                        ->scalarNode('company_name')->end()
+                        ->scalarNode('company_email')->end()
+                        ->scalarNode('package')->end()
+                        ->scalarNode('namespace')->end()
+                        ->scalarNode('start_year')->end()
+                        ->scalarNode('company_author_name')->end()
+                        ->scalarNode('company_author_email')->end()
+                        ->scalarNode('bundle_name')->end()
                     ->end()
                 ->end()
             ->end()

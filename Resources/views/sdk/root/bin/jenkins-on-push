@@ -1,0 +1,5 @@
+#!/bin/bash
+
+[ -f composer.phar ] || curl -sS https://getcomposer.org/installer | php
+./composer.phar install --no-interaction
+./bin/phpunit --group unit

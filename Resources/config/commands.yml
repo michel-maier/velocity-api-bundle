@@ -37,3 +37,9 @@ services:
       - [setBatchService, [@velocity.batch]]
     tags:
       - { name: console.command }
+  api.command.sdkGenerate:
+    class: Velocity\Bundle\ApiBundle\Command\SdkGenerateCommand
+    calls:
+      - [setSdkService, [@velocity.sdk]]
+    tags:
+      - { name: console.command }

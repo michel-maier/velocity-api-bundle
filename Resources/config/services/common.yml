@@ -90,6 +90,13 @@ services:
     class: Velocity\Bundle\ApiBundle\Service\AttachmentService
     arguments:
       - @velocity.generator
+  velocity.sdk:
+    class: Velocity\Bundle\ApiBundle\Service\SdkService
+    arguments:
+      - @filesystem
+      - @logger
+      - @templating
+      - %app_variables%
   velocity.twig.extension.velocity:
     class: Velocity\Bundle\ApiBundle\Twig\ApiExtension
     arguments:
@@ -98,3 +105,8 @@ services:
       - {name: twig.extension}
   velocity.eventActionContext:
     class: Velocity\Bundle\ApiBundle\EventAction\Context
+
+  twig.loader.string:
+    class: Twig_Extension_StringLoader
+    tags:
+      - {name: twig.extension}
