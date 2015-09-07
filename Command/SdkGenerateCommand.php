@@ -36,7 +36,7 @@ class SdkGenerateCommand extends ApiCommand
         $this
             ->setName('velocity:sdk:generate')
             ->setDescription('Generate SDK source code')
-            ->addArgument('target', InputArgument::REQUIRED, 'target directory')
+            ->addArgument('target', InputArgument::OPTIONAL, 'target directory', 'sdk')
         ;
     }
     /**

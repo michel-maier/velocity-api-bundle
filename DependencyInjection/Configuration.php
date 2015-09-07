@@ -34,7 +34,7 @@ class Configuration implements ConfigurationInterface
             ->addFrontSection($rootNode)
             ->addSdkSection($rootNode)
             ->addSendersSection($rootNode)
-            ->addModelsSection($rootNode)
+            ->addBundlesSection($rootNode)
             ->addRecipientsSection($rootNode)
             ->addEventsSection($rootNode)
         ;
@@ -116,17 +116,12 @@ class Configuration implements ConfigurationInterface
      *
      * @return $this
      */
-    protected function addModelsSection(ArrayNodeDefinition $rootNode)
+    protected function addBundlesSection(ArrayNodeDefinition $rootNode)
     {
         $rootNode
             ->children()
-                ->arrayNode('models')
-                    ->addDefaultsIfNotSet()
-                    ->children()
-                        ->arrayNode('bundles')
-                            ->prototype('scalar')
-                            ->end()
-                        ->end()
+                ->arrayNode('bundles')
+                    ->prototype('scalar')
                     ->end()
                 ->end()
             ->end()

@@ -96,7 +96,11 @@ services:
       - @filesystem
       - @logger
       - @templating
+      - @velocity.metaData
+      - @velocity.codeGenerator
       - %app_variables%
+  velocity.codeGenerator:
+    class: Velocity\Bundle\ApiBundle\Service\CodeGeneratorService
   velocity.twig.extension.velocity:
     class: Velocity\Bundle\ApiBundle\Twig\ApiExtension
     arguments:

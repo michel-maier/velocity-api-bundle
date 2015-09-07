@@ -39,7 +39,7 @@ class VelocityApiExtension extends Extension
             'senders' => $config['senders'],
             'sdk'     => isset($config['sdk']) ? $config['sdk'] : null,
         ]);
-        $container->setParameter('app_models_bundles', $config['models']['bundles']);
+        $container->setParameter('app_bundles', $config['bundles']);
         $container->setParameter('app_events', $config['events']);
 
         foreach ($config['recipients'] as $type => $emails) {

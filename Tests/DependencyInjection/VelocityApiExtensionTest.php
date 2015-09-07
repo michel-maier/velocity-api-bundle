@@ -54,10 +54,10 @@ class VelocityApiExtensionTest extends PHPUnit_Framework_TestCase
      */
     public function testLoadForModelsSectionSetAppropriateParameters()
     {
-        $c = $this->load([['front' => ['name' => 'a', 'url' => 'b'], 'models' => ['bundles' => ['AppBundle']]]]);
+        $c = $this->load([['front' => ['name' => 'a', 'url' => 'b'], 'bundles' => ['AppBundle']]]);
 
-        $this->assertTrue($c->hasParameter('app_models_bundles'));
-        $this->assertEquals(['AppBundle'], $c->getParameter('app_models_bundles'));
+        $this->assertTrue($c->hasParameter('app_bundles'));
+        $this->assertEquals(['AppBundle'], $c->getParameter('app_bundles'));
     }
     /**
      * @group unit

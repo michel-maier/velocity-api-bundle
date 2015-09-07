@@ -12,14 +12,16 @@
 namespace Velocity\Bundle\ApiBundle\Service;
 
 use Psr\Log\LoggerInterface;
-use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Finder\SplFileInfo;
+use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Templating\EngineInterface;
 use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
+use Velocity\Bundle\ApiBundle\Traits\ServiceAware;
 use Velocity\Bundle\ApiBundle\Traits\LoggerAwareTrait;
 use Velocity\Bundle\ApiBundle\Traits\FilesystemAwareTrait;
 use Velocity\Bundle\ApiBundle\Traits\TemplatingAwareTrait;
+use Zend\Code\Generator\FileGenerator;
 
 /**
  * Sdk Service.
@@ -32,18 +34,24 @@ class SdkService
     use LoggerAwareTrait;
     use FilesystemAwareTrait;
     use TemplatingAwareTrait;
+    use ServiceAware\MetaDataServiceAwareTrait;
+    use ServiceAware\CodeGeneratorServiceAwareTrait;
     /**
-     * @param Filesystem      $filesystem
-     * @param LoggerInterface $logger
-     * @param EngineInterface $templating
-     * @param array           $variables
+     * @param Filesystem           $filesystem
+     * @param LoggerInterface      $logger
+     * @param EngineInterface      $templating
+     * @param MetaDataService      $metaDataService
+     * @param CodeGeneratorService $codeGeneratorService
+     * @param array                $variables
      */
-    public function __construct(Filesystem $filesystem, LoggerInterface $logger, EngineInterface $templating, array $variables = [])
+    public function __construct(Filesystem $filesystem, LoggerInterface $logger, EngineInterface $templating, MetaDataService $metaDataService, CodeGeneratorService $codeGeneratorService, array $variables = [])
     {
-        $this->setFilesystem($filesystem);
         $this->setLogger($logger);
-        $this->setTemplating($templating);
         $this->setVariables($variables);
+        $this->setFilesystem($filesystem);
+        $this->setTemplating($templating);
+        $this->setMetaDataService($metaDataService);
+        $this->setCodeGeneratorService($codeGeneratorService);
     }
     /**
      * @param array $variables
@@ -84,9 +92,33 @@ class SdkService
             throw $this->createRequiredException("No information set for SDK");
         }
 
+        $this
+            ->generateStaticFiles($path, $exceptions, $options)
+            ->generateServices($path, $exceptions, $options)
+        ;
+
+        if (count($exceptions)) {
+            throw array_shift($exceptions);
+        }
+
+        unset($options);
+
+        return $this;
+    }
+    /**
+     * @param string       $path
+     * @param \Exception[] $exceptions
+     * @param array        $options
+     *
+     * @return $this
+     */
+    protected function generateStaticFiles($path, array &$exceptions, array $options = [])
+    {
         $f = new Finder();
         $f->ignoreDotFiles(false);
-        foreach ($f->in(__DIR__.'/../Resources/views/sdk/root') as $file) {
+        $rClass = new \ReflectionClass($this);
+        $root = dirname(dirname($rClass->getFileName()));
+        foreach ($f->in($root.'/Resources/views/sdk/root') as $file) {
             /** @var SplFileInfo $file */
             $realPath = $path.'/'.$file->getRelativePathname();
             if (false !== strpos($realPath, '{')) {
@@ -104,11 +136,49 @@ class SdkService
             }
         }
 
-        if (count($exceptions)) {
-            throw array_shift($exceptions);
+        return $this;
+    }
+    /**
+     * @param string $path
+     * @param array  $exceptions
+     * @param array  $options
+     *
+     * @return $this
+     */
+    protected function generateServices($path, array &$exceptions, array $options = [])
+    {
+        foreach ($this->getMetaDataService()->getSdkServices() as $serviceName => $service) {
+            $this->generateService($path, $serviceName, $service, $exceptions, $options);
         }
 
-        unset($options);
+        return $this;
+    }
+    /**
+     * @param string $path
+     * @param string $serviceName
+     * @param array  $service
+     * @param array  $exceptions
+     * @param array  $options
+     *
+     * @return $this
+     *
+     * @throws \Exception
+     */
+    protected function generateService($path, $serviceName, array $service, array &$exceptions, array $options = [])
+    {
+        $sdkConfig = $this->getArrayParameterKey('variables', 'sdk');
+
+        $className = $sdkConfig['namespace'].'\\Service\\'.ucfirst($serviceName).'Service';
+
+        $service += ['methods' => []];
+        $service['methods']['__construct'] = ['type' => 'sdk.construct'];
+
+        asort($service['methods']);
+
+        $this->getFilesystem()->dumpFile(
+            $path.'/src/'.str_replace('\\', '/', 'Service\\'.ucfirst($serviceName).'Service').'.php',
+            $this->getCodeGeneratorService()->createClassFile($className, ['serviceName' => $serviceName] + $service)->generate()
+        );
 
         return $this;
     }

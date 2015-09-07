@@ -32,6 +32,10 @@ class MetaDataService
      */
     protected $models = [];
     /**
+     * @var array
+     */
+    protected $sdk = ['services' => []];
+    /**
      * @param string $class
      *
      * @return $this
@@ -218,6 +222,45 @@ class MetaDataService
         ];
 
         return $this;
+    }
+    /**
+     * @param string $sourceClass
+     * @param string $sourceMethod
+     * @param string $service
+     * @param string $method
+     * @param string $type
+     * @param array  $params
+     * @param array  $options
+     *
+     * @return $this
+     *
+     * @throws \Exception
+     */
+    public function addSdkMethod($sourceClass, $sourceMethod, $service, $method, $type, $params = [], $options = [])
+    {
+        if (!isset($this->sdk['services'][$service])) {
+            $this->sdk['services'][$service] = ['methods' => []];
+        }
+        if (isset($this->sdk['services'][$service]['methods'][$method])) {
+            throw $this->createDuplicatedException("SDK Method '%s' already registered for service '%s'", $method, $service);
+        }
+
+        $this->sdk['services'][$service]['methods'][$method] = [
+            'sourceClass'  => $sourceClass,
+            'sourceMethod' => $sourceMethod,
+            'type'         => $type,
+            'params'       => $params,
+            'options'      => $options,
+        ];
+
+        return $this;
+    }
+    /**
+     * @return array
+     */
+    public function getSdkServices()
+    {
+        return $this->sdk['services'];
     }
     /**
      * @param string|Object $class

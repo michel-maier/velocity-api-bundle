@@ -66,12 +66,12 @@ class VelocityService
             'generated_client.key.pattern' => 'app.client_%s',
 
             // parameters keys
-            'param.modelsBundles.key' => 'app_models_bundles',
-            'param.events.key'        => 'app_events',
+            'param.bundles.key' => 'app_bundles',
+            'param.events.key'  => 'app_events',
 
             // parameters default values
-            'param.modelsBundles'     => [],
-            'param.events'            => [],
+            'param.bundles' => [],
+            'param.events'  => [],
 
             // classes
             'repo.class'              => __NAMESPACE__.'\\RepositoryService',
@@ -153,9 +153,9 @@ class VelocityService
      */
     public function analyzeClasses(ContainerBuilder $container, KernelInterface $kernel)
     {
-        $trackedBundles = $container->hasParameter($this->getDefault('param.modelsBundles.key'))
-            ? $container->getParameter($this->getDefault('param.modelsBundles.key'))
-            : $this->getDefault('param.modelsBundles');
+        $trackedBundles = $container->hasParameter($this->getDefault('param.bundles.key'))
+            ? $container->getParameter($this->getDefault('param.bundles.key'))
+            : $this->getDefault('param.bundles');
 
         $classes = [];
 
@@ -182,11 +182,25 @@ class VelocityService
     {
         foreach ($classes as $class) {
             $rClass = new \ReflectionClass($class);
+            $model = false;
             foreach ($this->getAnnotationReader()->getClassAnnotations($rClass) as $a) {
                 switch (true) {
                     case $a instanceof Velocity\Model:
                         $m->addMethodCall('addModel', [$class, []]);
+                        $model = true;
                         break;
+                }
+            }
+            foreach ($rClass->getMethods(\ReflectionMethod::IS_PUBLIC) as $rMethod) {
+                foreach ($this->getAnnotationReader()->getMethodAnnotations($rMethod) as $a) {
+                    $vars = get_object_vars($a);
+                    $method = $rMethod->getName();
+                    switch (true) {
+                        case $a instanceof Velocity\Sdk:
+                            unset($vars['service'], $vars['method'], $vars['type'], $vars['params'], $vars['value']);
+                            $m->addMethodCall('addSdkMethod', [$class, $method, $a->service, $a->method, $a->type, $a->params, $vars]);
+                            break;
+                    }
                 }
             }
             foreach ($rClass->getProperties(\ReflectionProperty::IS_PUBLIC) as $rProperty) {
@@ -195,24 +209,45 @@ class VelocityService
                     $property = $rProperty->getName();
                     switch (true) {
                         case $a instanceof Velocity\EmbeddedReference:
+                            if (!$model) {
+                                throw $this->createRequiredException('EmbeddedReference annotation only allowed in models');
+                            }
                             $m->addMethodCall('addModelPropertyEmbeddedReference', [$class, $property, $vars]);
                             break;
                         case $a instanceof Velocity\EmbeddedReferenceList:
+                            if (!$model) {
+                                throw $this->createRequiredException('EmbeddedReferenceList annotation only allowed in models');
+                            }
                             $m->addMethodCall('addModelPropertyEmbeddedReferenceList', [$class, $property, $vars]);
                             break;
                         case $a instanceof Velocity\Refresh:
+                            if (!$model) {
+                                throw $this->createRequiredException('Refresh annotation only allowed in models');
+                            }
                             $m->addMethodCall('addModelPropertyRefresh', [$class, $property, $vars]);
                             break;
                         case $a instanceof Velocity\Enum:
+                            if (!$model) {
+                                throw $this->createRequiredException('Enum annotation only allowed in models');
+                            }
                             $m->addMethodCall('addModelPropertyEnum', [$class, $property, $vars]);
                             break;
                         case $a instanceof Velocity\Generated:
+                            if (!$model) {
+                                throw $this->createRequiredException('Generated annotation only allowed in models');
+                            }
                             $m->addMethodCall('addModelPropertyGenerated', [$class, $property, $vars]);
                             break;
                         case $a instanceof Velocity\Id:
+                            if (!$model) {
+                                throw $this->createRequiredException('Id annotation only allowed in models');
+                            }
                             $m->addMethodCall('addModelPropertyId', [$class, $property, $vars]);
                             break;
                         case $a instanceof Type:
+                            if (!$model) {
+                                throw $this->createRequiredException('Type annotation only allowed in models');
+                            }
                             $m->addMethodCall('setModelPropertyType', [$class, $property, $vars]);
                             break;
                     }
