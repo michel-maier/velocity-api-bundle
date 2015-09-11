@@ -14,7 +14,7 @@
 
   "autoload": {
     "psr-4": {
-      "Velocity\\Bundle\\ApiBundle\\": ""
+      "Velocity\\Bundle\\ApiBundle\\": "src/"
     }
   },
   "require": {

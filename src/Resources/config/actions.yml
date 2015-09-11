@@ -1,0 +1,63 @@
+services:
+  velocity.action.addVar:
+    class: Velocity\Bundle\ApiBundle\Action\AddVarAction
+    arguments:
+      - @service_container
+    tags:
+      - { name: "velocity.action" }
+  velocity.action.call:
+    class: Velocity\Bundle\ApiBundle\Action\CallAction
+    arguments:
+      - @service_container
+    tags:
+      - { name: "velocity.action" }
+  velocity.action.businessRule:
+    class: Velocity\Bundle\ApiBundle\Action\BusinessRuleAction
+    arguments:
+      - @velocity.businessRule
+    tags:
+      - { name: "velocity.action" }
+  velocity.action.exception:
+    class: Velocity\Bundle\ApiBundle\Action\ExceptionAction
+    tags:
+      - { name: "velocity.action" }
+  velocity.action.alter:
+    class: Velocity\Bundle\ApiBundle\Action\AlterAction
+    tags:
+      - { name: velocity.action }
+      - { name: velocity.repositories_aware }
+  velocity.action.auditLog:
+    class: Velocity\Bundle\ApiBundle\Action\AuditLogAction
+    arguments:
+      - @security.token_storage
+      - @event_dispatcher
+    tags:
+      - { name: velocity.action }
+  velocity.action.archiveDoc:
+    class: Velocity\Bundle\ApiBundle\Action\ArchiveDocAction
+    arguments:
+      - @velocity.archiver
+    tags:
+      - { name: velocity.action }
+  velocity.action.job:
+    class: Velocity\Bundle\ApiBundle\Action\JobAction
+    arguments:
+      - @velocity.job
+    tags:
+      - { name: velocity.action }
+  velocity.action.batch:
+    class: Velocity\Bundle\ApiBundle\Action\BatchAction
+    arguments:
+      - @velocity.batch
+    tags:
+      - { name: velocity.action }
+  velocity.action.log:
+    class: Velocity\Bundle\ApiBundle\Action\LogAction
+    arguments:
+      - @logger
+    tags:
+      - { name: velocity.action }
+  velocity.action.context:
+    class: Velocity\Bundle\ApiBundle\Action\ContextAction
+    tags:
+      - { name: velocity.action }

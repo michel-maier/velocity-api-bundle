@@ -3,25 +3,7 @@
 
     <description>Project coding standard</description>
 
-    <file>./Annotation</file>
-    <file>./Command</file>
-    <file>./Controller</file>
-    <file>./DependencyInjection</file>
-    <file>./EventAction</file>
-    <file>./Exception</file>
-    <file>./Listener</file>
-    <file>./Migrator</file>
-    <file>./Security</file>
-    <file>./Service</file>
-    <file>./Tests</file>
-    <file>./Traits</file>
-    <file>./Twig</file>
-    <file>./Validator</file>
-    <file>./ClientProviderInterface.php</file>
-    <file>./MigratorInterface.php</file>
-    <file>./VelocityApiBundle.php</file>
-    <file>./EventActionInterface.php</file>
-    <file>./RepositoryInterface.php</file>
+    <file>./src</file>
 
     <rule ref="Symfony2"/>
 

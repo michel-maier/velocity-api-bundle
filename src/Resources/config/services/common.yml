@@ -1,0 +1,116 @@
+services:
+  velocity.metadata:
+    class: Velocity\Bundle\ApiBundle\Service\MetaDataService
+    lazy: true
+  velocity.exception:
+    class: Velocity\Bundle\ApiBundle\Service\ExceptionService
+    arguments:
+      - @request_stack
+      - @velocity.form
+  velocity.supervision:
+    class: Velocity\Bundle\ApiBundle\Service\SupervisionService
+    arguments:
+      - @security.context
+  velocity.math:
+    class: Velocity\Bundle\ApiBundle\Service\MathService
+  velocity.date:
+    class: Velocity\Bundle\ApiBundle\Service\DateService
+  velocity.request:
+    class: Velocity\Bundle\ApiBundle\Service\RequestService
+    arguments:
+      - @velocity.security.provider.user.api
+      - %app_security_client_secret%
+      - %app_security_user_secret%
+  velocity.factory:
+    class: Velocity\Bundle\ApiBundle\Service\ServiceFactoryService
+  velocity.mangoPayApi:
+    class: MangoPay\MangoPayApi
+    factory_service: velocity.factory
+    factory_method: createMangoPayApi
+    arguments:
+      - %app_mango_env%
+      - %app_mango_client_id%
+      - %app_mango_client_password%
+  velocity.mangoPay:
+    class: Velocity\Bundle\ApiBundle\Service\MangoPayService
+    arguments:
+      - @velocity.mangoPayApi
+  velocity.mongo:
+    class: MongoClient
+    arguments:
+      - %app_mongo_server%
+  velocity.database:
+    class: Velocity\Bundle\ApiBundle\Service\DatabaseService
+    arguments:
+      - @velocity.mongo
+      - %app_mongo_db%
+      - %app_mongo_db_random%
+  velocity.migration:
+    class: Velocity\Bundle\ApiBundle\Service\MigrationService
+    arguments:
+      - @velocity.database
+      - @logger
+      - @velocity.form
+      - @service_container
+      - 'migration'
+      - %app_db_dir%
+      - %app_env%
+  velocity.form:
+    class: Velocity\Bundle\ApiBundle\Service\FormService
+    arguments:
+      - @form.factory
+  velocity.password:
+    class: Velocity\Bundle\ApiBundle\Service\PasswordService
+  velocity.eventAction:
+    class: Velocity\Bundle\ApiBundle\Service\ActionService
+    lazy: true
+    arguments:
+      - @velocity.eventActionContext
+  velocity.businessRule:
+    class: Velocity\Bundle\ApiBundle\Service\BusinessRuleService
+    lazy: true
+  velocity.invitationEvent:
+    class: Velocity\Bundle\ApiBundle\Service\InvitationEventService
+    lazy: true
+  velocity.generator:
+    class: Velocity\Bundle\ApiBundle\Service\GeneratorService
+  velocity.archiver:
+    class: Velocity\Bundle\ApiBundle\Service\ArchiverService
+  velocity.job:
+    class: Velocity\Bundle\ApiBundle\Service\JobService
+  velocity.batch:
+    class: Velocity\Bundle\ApiBundle\Service\BatchService
+    arguments:
+      - @event_dispatcher
+  velocity.shipping:
+    class: Velocity\Bundle\ApiBundle\Service\ShippingService
+    arguments:
+      - @velocity.date
+  velocity.attachment:
+    class: Velocity\Bundle\ApiBundle\Service\AttachmentService
+    arguments:
+      - @velocity.generator
+  velocity.sdk:
+    class: Velocity\Bundle\ApiBundle\Service\SdkService
+    arguments:
+      - @filesystem
+      - @logger
+      - @templating
+      - @velocity.metaData
+      - @velocity.codeGenerator
+      - %app_variables%
+  velocity.codeGenerator:
+    class: Velocity\Bundle\ApiBundle\Service\CodeGeneratorService
+  velocity.twig.extension.velocity:
+    class: Velocity\Bundle\ApiBundle\Twig\ApiExtension
+    arguments:
+      - %app_variables%
+    tags:
+      - {name: twig.extension}
+  velocity.eventActionContext:
+    class: Velocity\Bundle\ApiBundle\Action\Context
+
+  twig.loader.string:
+    class: Twig_Extension_StringLoader
+    tags:
+      - {name: twig.extension}

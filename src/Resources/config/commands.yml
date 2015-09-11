@@ -1,0 +1,45 @@
+parameters:
+
+services:
+  api.command.dbUp:
+    class: Velocity\Bundle\ApiBundle\Command\DbUpCommand
+    calls:
+      - [setMigrationService, [@velocity.migration]]
+    tags:
+      - { name: console.command }
+  api.command.dbDrop:
+    class: Velocity\Bundle\ApiBundle\Command\DbDropCommand
+    calls:
+      - [setDatabaseService, [@velocity.database]]
+    tags:
+      - { name: console.command }
+  api.command.businessRuleList:
+    class: Velocity\Bundle\ApiBundle\Command\BusinessRuleListCommand
+    calls:
+      - [setBusinessRuleService, [@velocity.businessRule]]
+    tags:
+      - { name: console.command }
+  api.command.eventActionList:
+    class: Velocity\Bundle\ApiBundle\Command\ActionListCommand
+    calls:
+      - [setActionService, [@velocity.eventAction]]
+    tags:
+      - { name: console.command }
+  api.command.jobRun:
+    class: Velocity\Bundle\ApiBundle\Command\JobCommand
+    calls:
+      - [setJobService, [@velocity.job]]
+    tags:
+      - { name: console.command }
+  api.command.batch:
+    class: Velocity\Bundle\ApiBundle\Command\BatchCommand
+    calls:
+      - [setBatchService, [@velocity.batch]]
+    tags:
+      - { name: console.command }
+  api.command.sdkGenerate:
+    class: Velocity\Bundle\ApiBundle\Command\SdkGenerateCommand
+    calls:
+      - [setSdkService, [@velocity.sdk]]
+    tags:
+      - { name: console.command }
