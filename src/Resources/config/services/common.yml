@@ -101,6 +101,8 @@ services:
       - %app_variables%
   velocity.codeGenerator:
     class: Velocity\Bundle\ApiBundle\Service\CodeGeneratorService
+  velocity.callable:
+    class: Velocity\Bundle\ApiBundle\Service\CallableService
   velocity.twig.extension.velocity:
     class: Velocity\Bundle\ApiBundle\Twig\ApiExtension
     arguments:
