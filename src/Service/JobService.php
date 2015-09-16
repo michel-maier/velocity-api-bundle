@@ -22,58 +22,72 @@ use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
 class JobService
 {
     use ServiceTrait;
+    use ServiceAware\CallableServiceAwareTrait;
     /**
-     * Return the list of registered jobs.
-     *
-     * @return callable[]
+     * @param CallableService $callableService
      */
-    public function find()
+    public function __construct(CallableService $callableService)
     {
-        return $this->getArrayParameter('jobs');
+        $this->setCallableService($callableService);
     }
     /**
-     * Register a job by its name.
+     * Register an job for the specified name (replace if exist).
      *
-     * @param string   $id
+     * @param string   $name
      * @param callable $callable
      * @param array    $options
      *
+     * @return $this
+     *
      * @throws \Exception
+     */
+    public function register($name, $callable, array $options = [])
+    {
+        $this->getCallableService()->registerByType('job', $name, $callable, $options);
+
+        return $this;
+    }
+    /**
+     * Register an job set for the specified name (replace if exist).
+     *
+     * @param string $name
+     * @param array  $jobs
+     * @param array  $options
      *
      * @return $this
+     *
+     * @throws \Exception
      */
-    public function add($id, $callable, $options = [])
+    public function registerSet($name, array $jobs, array $options = [])
     {
-        if (!is_callable($callable)) {
-            throw $this->createUnexpectedException("Registered job must be a callable for '%s'", $id);
-        }
+        $this->getCallableService()->registerSetByType('job', $name, $jobs, $options);
 
-        return $this->setArrayParameterKey('jobs', $id, ['callable' => $callable, 'options' => $options]);
+        return $this;
     }
     /**
      * Return the job registered for the specified name.
      *
-     * @param string $id
+     * @param string $name
+     *
+     * @return callable
+     *
+     * @throws \Exception if no job registered for this name
+     */
+    public function get($name)
+    {
+        return $this->getCallableService()->getByType('job', $name);
+    }
+    /**
+     * @param string $name
+     * @param array  $params
+     * @param array  $options
      *
      * @return mixed
      *
      * @throws \Exception
      */
-    public function get($id)
+    public function execute($name, array $params = [], array $options = [])
     {
-        return $this->getArrayParameterKey('jobs', $id);
-    }
-    /**
-     * @param string $id
-     * @param array  $params
-     * @param array  $options
-     *
-     * @return mixed
-     */
-    public function execute($id, array $params = [], array $options = [])
-    {
-        $job = $this->get($id);
-
-        return call_user_func_array($job['callable'], [$params, ['job' => $id] + $options + $job['options']]);
+        return $this->getCallableService()->executeByType('job', $name, [$params, ['job' => $name] + $options]);
     }
 }

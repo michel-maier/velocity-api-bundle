@@ -11,10 +11,12 @@
 
 namespace Velocity\Bundle\ApiBundle\Service;
 
+use Velocity\Bundle\ApiBundle\Bag;
 use Symfony\Component\EventDispatcher\Event;
-use Velocity\Bundle\ApiBundle\Action\Context;
+use Velocity\Bundle\ApiBundle\Event as Events;
 use Velocity\Bundle\ApiBundle\Traits\ServiceAware;
 use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
+use Symfony\Component\EventDispatcher\GenericEvent;
 
 /**
  * Event Action Service.
@@ -26,9 +28,12 @@ class EventService
     use ServiceTrait;
     use ServiceAware\ActionServiceAwareTrait;
     /**
-     * @var array
+     * @param ActionService $actionService
      */
-    protected $sequences = [];
+    public function __construct(ActionService $actionService)
+    {
+        $this->setActionService($actionService);
+    }
     /**
      * @param string $eventName
      * @param string $name
@@ -36,15 +41,9 @@ class EventService
      *
      * @return $this
      */
-    public function addAction($eventName, $name, array $params = [])
+    public function register($eventName, $name, array $params = [])
     {
-        $this->getActionService()->checkActionExist($name);
-
-        if (!isset($this->sequences[$eventName])) {
-            $this->sequences[$eventName] = [];
-        }
-
-        $this->sequences[$eventName][] = ['name' => $name, 'params' => $params];
+        $this->pushArrayParameterKeyItem('sequences', $eventName, ['name' => $name, 'params' => $params]);
 
         return $this;
     }
@@ -53,20 +52,16 @@ class EventService
      *
      * @return array
      */
-    public function getActionSequence($eventName)
+    public function getSequence($eventName)
     {
-        if (!isset($this->sequences[$eventName])) {
-            return [];
-        }
-
-        return $this->sequences[$eventName];
+        return $this->getArrayParameterListKey('sequences', $eventName);
     }
     /**
      * @return array
      */
-    public function getActionSequences()
+    public function getSequences()
     {
-        return $this->sequences;
+        return $this->getArrayParameter('sequences');
     }
     /**
      * @param Event  $event
@@ -76,24 +71,15 @@ class EventService
      */
     public function consume(Event $event, $eventName)
     {
-        $event   = $context->getCurrentEvent();
+        $params  = new Bag();
+        $context = new Bag(['eventName' => $eventName, 'event' => $event]);
 
-        if ($event instanceof Event\DocumentEvent) {
-            $doc  = $event->getData();
+        if ($event instanceof Events\DocumentEvent) {
+            $context->set('doc', $event->getData());
         } elseif ($event instanceof GenericEvent) {
-            $doc = $event->getSubject();
-        } else {
-            throw $this->createRequiredException(
-                'Unable to archive, document required but not provided (event: %s)',
-                get_class($event)
-            );
+            $context->set('doc', $event->getSubject());
         }
 
-
-        $context = new Context();
-        // @todo replace setCurrentEventVariables by basic variable without event
-        $context->setCurrentEventVariables($event, $eventName);
-
-        $this->getActionService()->executeSequence($this->getActionSequence($eventName), $context);
+        $this->getActionService()->executeBulk($this->getSequence($eventName), $params, $context);
     }
 }

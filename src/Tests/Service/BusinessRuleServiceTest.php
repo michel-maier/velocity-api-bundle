@@ -42,7 +42,7 @@ class BusinessRuleServiceTest extends PHPUnit_Framework_TestCase
         };
 
         $this->setExpectedException('RuntimeException', "Unsupported business rule type for id 'X001'", 500);
-        $this->s->addBusinessRule('X001', 'my business rule', $brX001);
+        $this->s->register('X001', 'my business rule', $brX001);
 
         $this->assertEquals(['callback' => $brX001, 'code' => 'X001', 'params' => []], $this->s->getBusinessRuleById('X001'));
     }
@@ -62,8 +62,8 @@ class BusinessRuleServiceTest extends PHPUnit_Framework_TestCase
             $context->value /= 2;
         };
 
-        $this->s->addBusinessRule('X001', 'my first business rule', $brX001, ['model' => 'myModel', 'operation' => 'create']);
-        $this->s->addBusinessRule('X002', 'my second business rule', $brX002, ['model' => 'myModel', 'operation' => 'create']);
+        $this->s->register('X001', 'my first business rule', $brX001, ['model' => 'myModel', 'operation' => 'create']);
+        $this->s->register('X002', 'my second business rule', $brX002, ['model' => 'myModel', 'operation' => 'create']);
 
         $this->s->executeBusinessRulesForModelOperation('myModel', 'create', (object) []);
 

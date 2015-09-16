@@ -11,98 +11,66 @@
 
 namespace Velocity\Bundle\ApiBundle\Service;
 
-use Exception;
 use Velocity\Bundle\ApiBundle\Traits\ServiceAware;
 use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
 
 /**
- * Archive Service.
+ * Archiver Service.
  *
  * @author Olivier Hoareau <olivier@phppro.fr>
  */
 class ArchiverService
 {
     use ServiceTrait;
+    use ServiceAware\CallableServiceAwareTrait;
     /**
-     * List of archivers.
-     *
-     * @var callable[]
+     * @param CallableService $callableService
      */
-    protected $archivers = [];
-    /**
-     * Return the list of registered archivers.
-     *
-     * @return callable[]
-     */
-    public function getArchivers()
+    public function __construct(CallableService $callableService)
     {
-        return $this->archivers;
+        $this->setCallableService($callableService);
     }
     /**
-     * Register an archiver for the specified type (replace if exist).
+     * Register an archiver for the specified name (replace if exist).
      *
      * @param string   $type
      * @param callable $callable
      * @param array    $options
      *
-     * @throws \Exception
-     *
-     * @return $this
-     */
-    public function register($type, $callable, $options = [])
-    {
-        if (!is_callable($callable)) {
-            throw $this->createUnexpectedException("Registered archiver must be a callable for '%s'", $type);
-        }
-
-        $this->archivers[$type] = ['callable' => $callable, 'options' => $options];
-
-        return $this;
-    }
-    /**
-     * @param string $type
-     *
      * @return $this
      *
      * @throws \Exception
      */
-    public function checkArchiverExist($type)
+    public function register($type, $callable, array $options = [])
     {
-        if (!isset($this->archivers[$type])) {
-            throw $this->createRequiredException(
-                "No archiver registered for '%s'",
-                $type
-            );
-        }
+        $this->getCallableService()->registerByType('archiver', $type, $callable, $options);
 
         return $this;
     }
     /**
-     * Return the archiver registered for the specified type.
+     * Return the archiver registered for the specified name.
      *
      * @param string $type
      *
      * @return callable
      *
-     * @throws Exception if no archiver registered for this type
+     * @throws \Exception if no archiver registered for this name
      */
-    public function getArchiverByType($type)
+    public function get($type)
     {
-        $this->checkArchiverExist($type);
-
-        return $this->archivers[$type];
+        return $this->getCallableService()->getByType('archiver', $type);
     }
     /**
      * @param string $type
-     * @param mixed  $data
+     * @param array  $data
      * @param array  $options
      *
      * @return mixed
+     *
+     * @throws \Exception
      */
     public function archive($type, $data, array $options = [])
     {
-        $archiver = $this->getArchiverByType($type);
-
-        return call_user_func_array($archiver['callable'], [$data, ['type' => $type] + $options + $archiver['options']]);
+        return $this->getCallableService()->executeByType('archiver', $type, [$data, ['type' => $type] + $options]);
     }
 }

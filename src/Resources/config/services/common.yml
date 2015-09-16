@@ -61,11 +61,11 @@ services:
       - @form.factory
   velocity.password:
     class: Velocity\Bundle\ApiBundle\Service\PasswordService
-  velocity.eventAction:
-    class: Velocity\Bundle\ApiBundle\Service\ActionService
+  velocity.event:
+    class: Velocity\Bundle\ApiBundle\Service\EventService
     lazy: true
     arguments:
-      - @velocity.eventActionContext
+      - @velocity.action
   velocity.businessRule:
     class: Velocity\Bundle\ApiBundle\Service\BusinessRuleService
     lazy: true
@@ -74,10 +74,16 @@ services:
     lazy: true
   velocity.generator:
     class: Velocity\Bundle\ApiBundle\Service\GeneratorService
+    arguments:
+      - @velocity.callable
   velocity.archiver:
     class: Velocity\Bundle\ApiBundle\Service\ArchiverService
+    arguments:
+      - @velocity.callable
   velocity.job:
     class: Velocity\Bundle\ApiBundle\Service\JobService
+    arguments:
+      - @velocity.callable
   velocity.batch:
     class: Velocity\Bundle\ApiBundle\Service\BatchService
     arguments:
@@ -109,8 +115,6 @@ services:
       - %app_variables%
     tags:
       - {name: twig.extension}
-  velocity.eventActionContext:
-    class: Velocity\Bundle\ApiBundle\Action\Context
 
   twig.loader.string:
     class: Twig_Extension_StringLoader

@@ -678,7 +678,7 @@ class VelocityService
                                 $brId = strtoupper($vars['id']);
                                 $brName = strtolower(isset($vars['name']) ? $vars['name'] : trim(join(' ', preg_split('/(?=\\p{Lu})/', ucfirst($method)))));
                                 unset($vars['value'], $vars['id'], $vars['name']);
-                                $businessRuleDefinition->addMethodCall('addBusinessRule', [$brId, $brName, [$this->ref($id), $method], $vars]);
+                                $businessRuleDefinition->addMethodCall('register', [$brId, $brName, [$this->ref($id), $method], $vars]);
                                 break;
                         }
                     }
@@ -712,7 +712,7 @@ class VelocityService
                                 $ieType = $vars['type'];
                                 $ieTransition = $vars['transition'];
                                 unset($vars['value'], $vars['type'], $vars['transition']);
-                                $invitationEventDefinition->addMethodCall('addInvitationEvent', [$ieType, $ieTransition, [$this->ref($id), $method], $vars]);
+                                $invitationEventDefinition->addMethodCall('register', [$ieType, $ieTransition, [$this->ref($id), $method], $vars]);
                                 break;
                         }
                     }
@@ -802,7 +802,7 @@ class VelocityService
                             case $a instanceof Velocity\Job:
                                 $name = $vars['value'];
                                 unset($vars['value']);
-                                $jobDefinition->addMethodCall('add', [$name, [$this->ref($id), $method], $vars]);
+                                $jobDefinition->addMethodCall('register', [$name, [$this->ref($id), $method], $vars]);
                                 break;
                         }
                     }

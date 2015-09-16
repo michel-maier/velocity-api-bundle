@@ -11,7 +11,6 @@
 
 namespace Velocity\Bundle\ApiBundle\Service;
 
-use Exception;
 use Velocity\Bundle\ApiBundle\Traits\ServiceAware;
 use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
 
@@ -23,57 +22,28 @@ use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
 class GeneratorService
 {
     use ServiceTrait;
+    use ServiceAware\CallableServiceAwareTrait;
     /**
-     * List of generators.
-     *
-     * @var callable[]
+     * @param CallableService $callableService
      */
-    protected $generators = [];
-    /**
-     * Return the list of registered generators.
-     *
-     * @return callable[]
-     */
-    public function getGenerators()
+    public function __construct(CallableService $callableService)
     {
-        return $this->generators;
+        $this->setCallableService($callableService);
     }
     /**
-     * Register a generator for the specified name (replace if exist).
+     * Register an generator for the specified name (replace if exist).
      *
      * @param string   $name
      * @param callable $callable
      * @param array    $options
      *
-     * @throws \Exception
-     *
-     * @return $this
-     */
-    public function register($name, $callable, $options = [])
-    {
-        if (!is_callable($callable)) {
-            throw $this->createUnexpectedException("Registered generator must be a callable for '%s'", $name);
-        }
-
-        $this->generators[$name] = ['callable' => $callable, 'options' => $options];
-
-        return $this;
-    }
-    /**
-     * @param string $name
-     *
      * @return $this
      *
      * @throws \Exception
      */
-    public function checkGeneratorExist($name)
+    public function register($name, $callable, array $options = [])
     {
-        if (!isset($this->generators[$name])) {
-            throw $this->createRequiredException(
-                "No generator registered for '%s'",
-                $name
-            );
-        }
+        $this->getCallableService()->registerByType('generator', $name, $callable, $options);
 
         return $this;
     }
@@ -84,13 +54,11 @@ class GeneratorService
      *
      * @return callable
      *
-     * @throws Exception if no generator registered for this name
+     * @throws \Exception if no generator registered for this name
      */
-    public function getGeneratorByName($name)
+    public function get($name)
     {
-        $this->checkGeneratorExist($name);
-
-        return $this->generators[$name];
+        return $this->getCallableService()->getByType('generator', $name);
     }
     /**
      * @param string $name
@@ -98,11 +66,11 @@ class GeneratorService
      * @param array  $options
      *
      * @return mixed
+     *
+     * @throws \Exception
      */
     public function generate($name, array $params = [], array $options = [])
     {
-        $generator = $this->getGeneratorByName($name);
-
-        return call_user_func_array($generator['callable'], [$params, $options + $generator['options']]);
+        return $this->getCallableService()->executeByType('generator', $name, [$params, $options]);
     }
 }

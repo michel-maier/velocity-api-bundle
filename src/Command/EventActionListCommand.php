@@ -19,11 +19,11 @@ use Symfony\Component\Console\Output\OutputInterface;
 use Velocity\Bundle\ApiBundle\Command\Base\ApiCommand;
 
 /**
- * Business Rule List Commmand
+ * Event Action List Commmand
  *
  * @author Olivier Hoareau <olivier@phppro.fr>
  */
-class ActionListCommand extends ApiCommand
+class EventActionListCommand extends ApiCommand
 {
     use ServiceAware\EventServiceAwareTrait;
     use ServiceAware\ActionServiceAwareTrait;
@@ -57,7 +57,7 @@ class ActionListCommand extends ApiCommand
         $detailed = $input->getOption('details');
         $hasEventFilters = 0 < count($events);
 
-        foreach ($this->getEventService()->getActionSequences() as $eventName => $sequence) {
+        foreach ($this->getEventService()->getSequences() as $eventName => $sequence) {
             if ($hasEventFilters) {
                 if (!in_array($eventName, $events)) {
                     $found = false;
@@ -102,7 +102,7 @@ class ActionListCommand extends ApiCommand
                     }
                 }
 
-                $eventActionType = $this->getActionService()->getActionByName($eventAction['name']);
+                $eventActionType = $this->getActionService()->get($eventAction['name']);
 
                 $output->writeln(
                     sprintf(

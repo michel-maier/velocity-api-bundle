@@ -13,18 +13,18 @@ namespace Velocity\Bundle\ApiBundle\Tests\Service;
 
 use PHPUnit_Framework_TestCase;
 use PHPUnit_Framework_MockObject_MockObject;
-use Velocity\Bundle\ApiBundle\Service\JobService;
+use Velocity\Bundle\ApiBundle\Service\ArchiverService;
 use Velocity\Bundle\ApiBundle\Service\CallableService;
 
 /**
  * @author Olivier Hoareau <olivier@phppro.fr>
  *
- * @group job
+ * @group archiver
  */
-class JobServiceTest extends PHPUnit_Framework_TestCase
+class ArchiverServiceTest extends PHPUnit_Framework_TestCase
 {
     /**
-     * @var JobService
+     * @var ArchiverService
      */
     protected $s;
     /**
@@ -37,7 +37,7 @@ class JobServiceTest extends PHPUnit_Framework_TestCase
     public function setUp()
     {
         $this->callableService = $this->getMock("Velocity\\Bundle\\ApiBundle\\Service\\CallableService", [], [], '', false);
-        $this->s = new JobService($this->callableService);
+        $this->s = new ArchiverService($this->callableService);
     }
     /**
      * @group unit
@@ -58,7 +58,7 @@ class JobServiceTest extends PHPUnit_Framework_TestCase
             ->expects($this->once())
             ->method('registerByType')
             ->will($this->returnValue($this->callableService))
-            ->with('job', 'test', $callback)
+            ->with('archiver', 'test', $callback)
         ;
 
         $this->s->register('test', $callback);
@@ -67,7 +67,7 @@ class JobServiceTest extends PHPUnit_Framework_TestCase
             ->expects($this->once())
             ->method('getByType')
             ->will($this->returnValue(['type' => 'callable', 'callable' => $callback, 'options' => []]))
-            ->with('job', 'test')
+            ->with('archiver', 'test')
         ;
 
         $this->assertEquals(['type' => 'callable', 'callable' => $callback, 'options' => []], $this->s->get('test'));

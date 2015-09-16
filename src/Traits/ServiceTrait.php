@@ -192,6 +192,45 @@ trait ServiceTrait
         return $value;
     }
     /**
+     * @param string $name
+     * @param string $key
+     * @param mixed  $item
+     *
+     * @return $this
+     */
+    protected function pushArrayParameterKeyItem($name, $key, $item)
+    {
+        if (!isset($this->parameters[$name])) {
+            $this->parameters[$name] = [];
+        }
+
+        if (!isset($this->parameters[$name][$key])) {
+            $this->parameters[$name][$key] = [];
+        }
+
+        $this->parameters[$name][$key][] = $item;
+
+        return $this;
+    }
+    /**
+     * @param string $name
+     * @param string $key
+     *
+     * @return array
+     */
+    protected function getArrayParameterListKey($name, $key)
+    {
+        if (!isset($this->parameters[$name][$key])) {
+            return [];
+        }
+
+        if (!is_array($this->parameters[$name][$key])) {
+            return [];
+        }
+
+        return $this->parameters[$name][$key];
+    }
+    /**
      * @param EventDispatcherInterface $eventDispatcher
      *
      * @return $this

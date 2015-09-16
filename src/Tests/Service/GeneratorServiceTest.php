@@ -12,10 +12,14 @@
 namespace Velocity\Bundle\ApiBundle\Tests\Service;
 
 use PHPUnit_Framework_TestCase;
+use PHPUnit_Framework_MockObject_MockObject;
 use Velocity\Bundle\ApiBundle\Service\GeneratorService;
+use Velocity\Bundle\ApiBundle\Service\CallableService;
 
 /**
  * @author Olivier Hoareau <olivier@phppro.fr>
+ *
+ * @group generator
  */
 class GeneratorServiceTest extends PHPUnit_Framework_TestCase
 {
@@ -24,24 +28,48 @@ class GeneratorServiceTest extends PHPUnit_Framework_TestCase
      */
     protected $s;
     /**
+     * @var CallableService|PHPUnit_Framework_MockObject_MockObject
+     */
+    protected $callableService;
+    /**
      *
      */
     public function setUp()
     {
-        $this->s = new GeneratorService();
+        $this->callableService = $this->getMock("Velocity\\Bundle\\ApiBundle\\Service\\CallableService", [], [], '', false);
+        $this->s = new GeneratorService($this->callableService);
     }
     /**
      * @group unit
-     * @group generator
+     */
+    public function testConstruct()
+    {
+        $this->assertNotNull($this->s);
+    }
+    /**
+     * @group unit
      */
     public function testRegister()
     {
         $callback = function () {
         };
 
-        $this->assertEquals([], $this->s->getGenerators());
+        $this->callableService
+            ->expects($this->once())
+            ->method('registerByType')
+            ->will($this->returnValue($this->callableService))
+            ->with('generator', 'test', $callback)
+        ;
+
         $this->s->register('test', $callback);
-        $this->assertEquals(['test' => ['callable' => $callback, 'options' => []]], $this->s->getGenerators());
-        $this->assertEquals(['callable' => $callback, 'options' => []], $this->s->getGeneratorByName('test'));
+
+        $this->callableService
+            ->expects($this->once())
+            ->method('getByType')
+            ->will($this->returnValue(['type' => 'callable', 'callable' => $callback, 'options' => []]))
+            ->with('generator', 'test')
+        ;
+
+        $this->assertEquals(['type' => 'callable', 'callable' => $callback, 'options' => []], $this->s->get('test'));
     }
 }

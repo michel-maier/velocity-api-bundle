@@ -105,7 +105,7 @@ class CallableService
      * @param string $name
      * @param array  $params
      *
-     * @return $this
+     * @return mixed
      *
      * @throws \Exception
      */
@@ -115,17 +115,19 @@ class CallableService
 
         $params += ['ignoreOnException' => false];
 
+        $r = null;
+
         try {
             switch ($callable['type']) {
                 case 'callable':
-                    $this->execute(
+                    $r = $this->execute(
                         $callable['callable'],
                         $params + (isset($callable['params']) ? $callable['params'] : []),
                         isset($callable['options']) ? $callable['options'] : []
                     );
                     break;
                 case 'set':
-                    $this->executeListByType($type, $callable['subItems'], $params);
+                    $r = $this->executeListByType($type, $callable['subItems'], $params);
                     break;
                 default:
                     throw $this->createUnexpectedException("Unsupported callable type '%s'", $callable['type']);
@@ -136,7 +138,7 @@ class CallableService
             }
         }
 
-        return $this;
+        return $r;
     }
     /**
      * @param callable $callable

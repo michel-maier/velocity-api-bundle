@@ -11,7 +11,7 @@
 
 namespace Velocity\Bundle\ApiBundle\Service;
 
-use Exception;
+use Velocity\Bundle\ApiBundle\Bag;
 use Velocity\Bundle\ApiBundle\Traits\ServiceAware;
 use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
 
@@ -23,14 +23,13 @@ use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
 class ActionService
 {
     use ServiceTrait;
+    use ServiceAware\CallableServiceAwareTrait;
     /**
-     * Return the list of registered actions.
-     *
-     * @return array
+     * @param CallableService $callableService
      */
-    public function getActions()
+    public function __construct(CallableService $callableService)
     {
-        return $this->getArrayParameter('actions');
+        $this->setCallableService($callableService);
     }
     /**
      * Register an action for the specified name (replace if exist).
@@ -45,15 +44,9 @@ class ActionService
      */
     public function register($name, $callable, array $options = [])
     {
-        if (!is_callable($callable)) {
-            throw $this->createUnexpectedException("Registered action must be a callable for '%s'", $name);
-        }
+        $this->getCallableService()->registerByType('action', $name, $callable, $options);
 
-        return $this->setArrayParameterKey(
-            'actions',
-            $name,
-            ['type' => 'action', 'callable' => $callable, 'options' => $options]
-        );
+        return $this;
     }
     /**
      * Register an action set for the specified name (replace if exist).
@@ -68,21 +61,9 @@ class ActionService
      */
     public function registerSet($name, array $actions, array $options = [])
     {
-        foreach ($actions as $k => $action) {
-            if (!is_array($action)) {
-                $action = [];
-            }
-            if (!isset($action['action'])) {
-                throw $this->createRequiredException("Missing action name for action #%d in set '%s'", $k, $name);
-            }
-            $actions[$k] = $action;
-        }
+        $this->getCallableService()->registerSetByType('action', $name, $actions, $options);
 
-        return $this->setArrayParameterKey(
-            'actions',
-            $name,
-            ['type' => 'set', 'actions' => $actions, 'options' => $options]
-        );
+        return $this;
     }
     /**
      * Return the action registered for the specified name.
@@ -91,78 +72,36 @@ class ActionService
      *
      * @return callable
      *
-     * @throws Exception if no action registered for this name
+     * @throws \Exception if no action registered for this name
      */
-    public function getActionByName($name)
+    public function get($name)
     {
-        return $this->getArrayParameterKey('actions', $name);
+        return $this->getCallableService()->getByType('action', $name);
     }
     /**
      * @param string $name
-     * @param array  $params
+     * @param Bag    $params
+     * @param Bag    $context
      *
-     * @return $this
+     * @return mixed
      *
      * @throws \Exception
      */
-    public function executeAction($name, array $params = [])
+    public function execute($name, Bag $params, Bag $context)
     {
-        $action = $this->getActionByName($name);
-
-        $params += ['ignoreOnException' => false];
-
-        try {
-            switch ($action['type']) {
-                case 'action':
-                    call_user_func_array($action['callable'], [$action['options']]);
-                    break;
-                case 'set':
-                    foreach ($action['actions'] as $action) {
-                        $actionName = $action['action'];
-                        unset($action['action']);
-                        $this->executeAction($actionName, $action);
-                    }
-                    break;
-                default:
-                    throw $this->createUnexpectedException("Unsupported action type '%s'", $action['type']);
-            }
-        } catch (\Exception $e) {
-            if (true !== $params['ignoreOnException']) {
-                throw $e;
-            }
-        }
-
-        return $this;
+        return $this->getCallableService()->executeByType('action', $name, [$params, $context]);
     }
     /**
-     * @param array $sequence
+     * @param array $actions
+     * @param Bag   $params
+     * @param Bag   $context
      *
-     * @return $this
+     * @return mixed
      *
      * @throws \Exception
      */
-    public function executeActionSequence(array $sequence)
+    public function executeBulk(array $actions, Bag $params, Bag $context)
     {
-        $i = 0;
-
-        foreach ($sequence as $step) {
-            if (!is_array($step)) {
-                $step = [];
-            }
-
-            if (!isset($step['name'])) {
-                throw $this->createRequiredException('Missing event action sequence step name (step #%d)', $i);
-            }
-
-            if (!isset($step['params']) || !is_array($step['params'])) {
-                $step['params'] = [];
-            }
-
-            $this->executeAction($step['name'], $step['params']);
-
-            $i++;
-        }
-
-        return $this;
+        return $this->getCallableService()->executeListByType('action', $actions, [$params, $context]);
     }
 }

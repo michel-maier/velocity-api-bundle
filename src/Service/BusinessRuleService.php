@@ -86,7 +86,7 @@ class BusinessRuleService
      *
      * @throws \Exception
      */
-    public function addBusinessRule($id, $name, $callable, array $params = [])
+    public function register($id, $name, $callable, array $params = [])
     {
         if (!is_callable($callable)) {
             throw $this->createUnexpectedException("Registered business rule must be a callable for '%s'", $id);
