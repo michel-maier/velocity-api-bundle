@@ -50,7 +50,7 @@ class AuditLogAction extends AbstractAction
         $data        = [] + (is_array($params) ? $params : []);
         $token       = $this->getTokenStorage()->getToken();
         $user        = null === $token ? null : $token->getUser();
-        $userId      = null !== $user ? $user->getId() : null;
+        $userId      = null !== $user && method_exists($user, 'getId') ? $user->getId() : null;
 
         $this->dispatch('audit.log', new AuditLogEvent($type, $contextType, $contextId, $userId, $date, $data));
     }
