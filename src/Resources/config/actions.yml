@@ -1,39 +1,39 @@
 services:
-  velocity.action.addVar:
+  velocity.action.addvar:
     class: Velocity\Bundle\ApiBundle\Action\AddVarAction
     arguments:
       - @service_container
     tags:
-      - { name: "velocity.action" }
+      - { name: velocity.action }
   velocity.action.call:
     class: Velocity\Bundle\ApiBundle\Action\CallAction
     arguments:
       - @service_container
     tags:
-      - { name: "velocity.action" }
-  velocity.action.businessRule:
+      - { name: velocity.action }
+  velocity.action.businessrule:
     class: Velocity\Bundle\ApiBundle\Action\BusinessRuleAction
     arguments:
-      - @velocity.businessRule
+      - @velocity.businessrule
     tags:
-      - { name: "velocity.action" }
+      - { name: velocity.action }
   velocity.action.exception:
     class: Velocity\Bundle\ApiBundle\Action\ExceptionAction
     tags:
-      - { name: "velocity.action" }
+      - { name: velocity.action }
   velocity.action.alter:
     class: Velocity\Bundle\ApiBundle\Action\AlterAction
     tags:
       - { name: velocity.action }
       - { name: velocity.repositories_aware }
-  velocity.action.auditLog:
+  velocity.action.auditlog:
     class: Velocity\Bundle\ApiBundle\Action\AuditLogAction
     arguments:
       - @security.token_storage
       - @event_dispatcher
     tags:
       - { name: velocity.action }
-  velocity.action.archiveDoc:
+  velocity.action.archivedoc:
     class: Velocity\Bundle\ApiBundle\Action\ArchiveDocAction
     arguments:
       - @velocity.archiver
@@ -59,5 +59,47 @@ services:
       - { name: velocity.action }
   velocity.action.context:
     class: Velocity\Bundle\ApiBundle\Action\ContextAction
+    tags:
+      - { name: velocity.action }
+  velocity.action.mail:
+    class: Velocity\Bundle\ApiBundle\Action\MailAction
+    arguments:
+      - @templating
+      - @translator
+      - @velocity.attachment
+      - @event_dispatcher
+      - %app_senders%
+      - %app_recipients%
+      - %app_env%
+    tags:
+      - { name: velocity.action }
+  velocity.action.sms:
+    class: Velocity\Bundle\ApiBundle\Action\SmsAction
+    arguments:
+      - @templating
+      - @translator
+      - @velocity.attachment
+      - @event_dispatcher
+      - %app_senders%
+      - %app_recipients%
+      - %app_env%
+    tags:
+      - { name: velocity.action }
+  velocity.action.fax:
+    class: Velocity\Bundle\ApiBundle\Action\FaxAction
+    arguments:
+      - @templating
+      - @translator
+      - @velocity.attachment
+      - @event_dispatcher
+      - %app_senders%
+      - %app_recipients%
+      - %app_env%
+    tags:
+      - { name: velocity.action }
+  velocity.action.fire:
+    class: Velocity\Bundle\ApiBundle\Action\FireAction
+    arguments:
+      - @event_dispatcher
     tags:
       - { name: velocity.action }

@@ -61,6 +61,12 @@ services:
       - @form.factory
   velocity.password:
     class: Velocity\Bundle\ApiBundle\Service\PasswordService
+  velocity.action:
+    class: Velocity\Bundle\ApiBundle\Service\ActionService
+    lazy: true
+    arguments:
+      - @velocity.callable
+      - @templating
   velocity.event:
     class: Velocity\Bundle\ApiBundle\Service\EventService
     lazy: true

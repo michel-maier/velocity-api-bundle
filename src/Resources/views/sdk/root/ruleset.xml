@@ -1,0 +1,10 @@
+<?xml version="1.0"?>
+<ruleset name="Project Standard">
+
+    <description>Project coding standard</description>
+
+    <file>./src</file>
+
+    <rule ref="Symfony2"/>
+
+</ruleset>

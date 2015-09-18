@@ -156,20 +156,27 @@ class CallableService
         return call_user_func_array($callable, $params);
     }
     /**
-     * @param string $type
-     * @param array  $callables
-     * @param array  $params
+     * @param string          $type
+     * @param array           $callables
+     * @param array|\Closure  $params
      *
      * @return $this
      *
      * @throws \Exception
      */
-    public function executeListByType($type, array $callables, array $params = [])
+    public function executeListByType($type, array $callables, $params = [])
     {
+        if (!($params instanceof \Closure)) {
+            $originalParams = $params;
+            $params = function ($callableParams) use ($originalParams) {
+                return $originalParams + $callableParams;
+            };
+        }
+
         $i = 0;
 
         foreach ($callables as $callable) {
-            if (!is_array($$callable)) {
+            if (!is_array($callable)) {
                 $callable = [];
             }
 
@@ -181,7 +188,7 @@ class CallableService
                 $callable['params'] = [];
             }
 
-            $this->executeByType($type, $callable['name'], $params + $callable['params']);
+            $this->executeByType($type, $callable['name'], $params($callable['params']));
 
             $i++;
         }

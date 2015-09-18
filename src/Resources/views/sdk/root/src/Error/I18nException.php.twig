@@ -1,0 +1,55 @@
+<?php
+
+/*
+ * This file is part of the SDK package.
+ *
+ * (c) {{ velocity.sdk.company_name }} <{{ velocity.sdk.company_email }}>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+namespace {{ velocity.sdk.namespace }}\Error;
+
+/**
+ * @author {{ velocity.sdk.company_author_name }} <{{ velocity.sdk.company_author_email }}>
+ */
+class I18nException extends \RuntimeException
+{
+    /**
+     * @var array
+     */
+    protected $params;
+    /**
+     * @param string $params
+     * @param int    $code
+     */
+    public function __construct($params, $code = 500)
+    {
+        if (!is_array($params)) {
+            $params = [$params];
+        }
+
+        parent::__construct($params[0], $code);
+
+        $this->setParams($params);
+    }
+    /**
+     * @return array
+     */
+    public function getParams()
+    {
+        return $this->params;
+    }
+    /**
+     * @param array $params
+     *
+     * @return $this
+     */
+    protected function setParams($params)
+    {
+        $this->params = $params;
+
+        return $this;
+    }
+}

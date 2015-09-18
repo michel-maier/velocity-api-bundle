@@ -103,7 +103,7 @@ class FormService
             }
         }
 
-        $form = $this->createForm($type, $mode, $cleanData, $options);
+        $form = $this->createForm($type, $mode, $options);
 
         $form->submit($cleanData + (is_array($data) ? $data : []), $clearMissing);
 
@@ -116,58 +116,30 @@ class FormService
     /**
      * @param string $type
      * @param string $mode
-     * @param array  $cleanData
      *
      * @return FormBuilderInterface
      *
      * @throws \Exception
      */
-    public function createBuilder($type, $mode = 'create', $cleanData = [])
+    public function createBuilder($type, $mode = 'create')
     {
-        $builder = null;
-
-        $namespaces =
-            ['AppBundle\\Form\\Type', str_replace('/', '\\', dirname(str_replace('\\', '/', __NAMESPACE__)).'/Form/Type')]
-        ;
-
-        foreach ($namespaces as $ns) {
-            $formTypeClasses = [
-                sprintf('%s\\%s%sType', $ns, str_replace(' ', '', ucwords(str_replace('.', ' ', $type))), ucfirst($mode)),
-                sprintf('%s\\%sType', $ns, str_replace(' ', '', ucwords(str_replace('.', ' ', $type)))),
-            ];
-
-            $builder = null;
-
-            foreach ($formTypeClasses as $formTypeClass) {
-                if (class_exists($formTypeClass, true)) {
-                    $builder = $this->getFormFactory()->createBuilder(new $formTypeClass($cleanData), null, [
-                        'csrf_protection' => false,
-                        'validation_groups' => [$mode],
-                    ]);
-                    break 2;
-                }
-            }
-        }
-
-        if (null === $builder) {
-            throw $this->createRequiredException("Missing form type '%s' (mode: %s)", $type, $mode);
-        }
-
-        return $builder;
+        return $this->getFormFactory()->createBuilder('app_'.str_replace('.', '_', $type).'_'.$mode, null, [
+            'csrf_protection' => false,
+            'validation_groups' => [$mode],
+        ]);
     }
     /**
      * @param string $type
      * @param string $mode
-     * @param array  $cleanData
      * @param array  $options
      *
      * @return FormInterface
      */
-    public function createForm($type, $mode = 'create', $cleanData = [], $options = [])
+    public function createForm($type, $mode = 'create', $options = [])
     {
         unset($options);
 
-        return $this->createBuilder($type, $mode, $cleanData)->getForm();
+        return $this->createBuilder($type, $mode)->getForm();
     }
     /**
      * @param FormInterface $form

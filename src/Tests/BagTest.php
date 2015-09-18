@@ -16,7 +16,8 @@ use Velocity\Bundle\ApiBundle\Bag;
 
 /**
  * @author Olivier Hoareau <olivier@phppro.fr>
- * @group eventAction
+ *
+ * @group bag
  */
 class BagTest extends PHPUnit_Framework_TestCase
 {

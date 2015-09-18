@@ -44,8 +44,8 @@ class VelocityService
 
             // container keys
             'metaData.key'                        => 'velocity.metaData',
-            'eventAction.key'                     => 'velocity.eventAction',
-            'eventActionContext.key'              => 'velocity.eventActionContext',
+            'action.key'                          => 'velocity.action',
+            'event.key'                           => 'velocity.event',
             'businessRule.key'                    => 'velocity.businessRule',
             'invitationEvent.key'                 => 'velocity.invitationEvent',
             'generator.key'                       => 'velocity.generator',
@@ -103,7 +103,7 @@ class VelocityService
             'account_provider.tag'    => 'velocity.provider.account',
             'client_provider.tag'     => 'velocity.provider.client',
             'migrator.tag'            => 'velocity.migrator',
-            'event_action.tag'        => 'velocity.event_action',
+            'action.tag'              => 'velocity.action',
             'business_rule.tag'       => 'velocity.business_rule',
             'invitation_event.tag'    => 'velocity.invitation_event',
             'generator.tag'           => 'velocity.generator',
@@ -248,7 +248,7 @@ class VelocityService
                             break;
                         case $a instanceof Type:
                             if (!$model) {
-                                throw $this->createRequiredException('Type annotation only allowed in models');
+                                throw $this->createRequiredException('Type annotation only allowed in models (found in: %s)', $class);
                             }
                             $m->addMethodCall('setModelPropertyType', [$class, $property, $vars]);
                             break;
@@ -627,15 +627,13 @@ class VelocityService
      */
     protected function processActionTag(ContainerBuilder $container)
     {
-        $eventActionDefinition = $container->getDefinition($this->getDefault('eventAction.key'));
-        $contextRef            = $this->ref('eventActionContext');
+        $actionDefinition = $container->getDefinition($this->getDefault('action.key'));
 
-        foreach ($this->findVelocityTaggedServiceIds($container, 'event_action') as $id => $attributes) {
+        foreach ($this->findVelocityTaggedServiceIds($container, 'action') as $id => $attributes) {
             $d = $container->getDefinition($id);
             foreach ($attributes as $params) {
                 unset($params);
                 $rClass = new \ReflectionClass($d->getClass());
-                $d->addMethodCall('setContext', [$contextRef]);
                 foreach ($rClass->getMethods(\ReflectionProperty::IS_PUBLIC) as $rMethod) {
                     foreach ($this->getAnnotationReader()->getMethodAnnotations($rMethod) as $a) {
                         $vars   = get_object_vars($a);
@@ -644,7 +642,7 @@ class VelocityService
                             case $a instanceof Velocity\Action:
                                 $name = $vars['value'];
                                 unset($vars['value']);
-                                $eventActionDefinition->addMethodCall('register', [$name, [$this->ref($id), $method], $vars]);
+                                $actionDefinition->addMethodCall('register', [$name, [$this->ref($id), $method], $vars]);
                                 break;
                         }
                     }
@@ -908,7 +906,7 @@ class VelocityService
      */
     protected function loadActionListeners(ContainerBuilder $container)
     {
-        $ea = $container->getDefinition($this->getServiceKey('eventAction'));
+        $ea = $container->getDefinition($this->getServiceKey('event'));
 
         foreach ($container->getParameter($this->getDefault('param.event_sets.key', $this->getDefault('param.event_sets'))) as $setName => $actions) {
             $ea->addMethodCall('registerSet', [$setName, $actions]);
@@ -918,7 +916,7 @@ class VelocityService
             $eventName = false === strpos($eventName, '.') ? str_replace('_', '.', $eventName) : $eventName;
             $ea->addTag('kernel.event_listener', ['event' => $eventName, 'method' => 'consume']);
             foreach ($info['actions'] as $action) {
-                $ea->addMethodCall('addAction', [$eventName, $action['action'], $action['params']]);
+                $ea->addMethodCall('register', [$eventName, $action['action'], $action['params']]);
             }
         }
     }

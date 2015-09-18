@@ -43,8 +43,8 @@ class AuditLogAction extends AbstractAction
     public function auditLog(Bag $params, Bag $context)
     {
         $type        = $params->get('type', $context->get('eventName', null));
-        $contextType = $params->get('contextType');
-        $contextId   = $params->get('contextId');
+        $contextType = $params->get('contextType', null);
+        $contextId   = $params->get('contextId', null);
         $date        = new \DateTime();
         $params      = $params->get('params', []);
         $data        = [] + (is_array($params) ? $params : []);

@@ -1,0 +1,74 @@
+<?php
+
+/*
+ * This file is part of the SDK package.
+ *
+ * (c) {{ velocity.sdk.company_name }} <{{ velocity.sdk.company_email }}>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+namespace {{ velocity.sdk.namespace }}\Twig\Extension;
+
+use Phppro\Sdk\Traits\SdkAwareTrait;
+use Symfony\Component\DependencyInjection\ContainerAwareTrait;
+use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
+
+/**
+ * @author {{ velocity.sdk.company_author_name }} <{{ velocity.sdk.company_author_email }}>
+ */
+class {{ velocity.sdk.bundle_prefix }}Extension extends \Twig_Extension
+{
+    use SdkAwareTrait;
+    use ContainerAwareTrait;
+    /**
+     * @param string $key
+     *
+     * @return object
+     *
+     * @throws \RuntimeException
+     */
+    public function get($key)
+    {
+        if (!$this->container) {
+            throw new \RuntimeException('Container not set', 412);
+        }
+
+        return $this->container->get($key);
+    }
+    /**
+     * @return array
+     */
+    public function getTokenParsers()
+    {
+        return [];
+    }
+    /**
+     * @return array
+     */
+    public function getFunctions()
+    {
+        return [];
+    }
+    public function getUser()
+    {
+        /** @var TokenInterface $token */
+        $token = $this->get('security.context')->getToken();
+
+        if (!$token) {
+            return null;
+        }
+
+        return $token->getUser();
+    }
+    /**
+     * Returns the name of the extension.
+     *
+     * @return string The extension name
+     */
+    public function getName()
+    {
+        return '{{ velocity.sdk.bundle_key }}';
+    }
+}

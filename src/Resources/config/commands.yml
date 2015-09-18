@@ -23,6 +23,7 @@ services:
     class: Velocity\Bundle\ApiBundle\Command\EventActionListCommand
     calls:
       - [setEventService, [@velocity.event]]
+      - [setActionService, [@velocity.action]]
     tags:
       - { name: console.command }
   api.command.jobRun:

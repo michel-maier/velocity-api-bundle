@@ -134,6 +134,9 @@ class SdkService
                     $exceptions[] = $e;
                 }
             }
+            if ('bin/' === substr(str_replace(DIRECTORY_SEPARATOR, '/', $file->getRelativePathname()), 0, 4)) {
+                $this->getFilesystem()->chmod($realPath, 0755);
+            }
         }
 
         return $this;
@@ -149,6 +152,7 @@ class SdkService
     {
         foreach ($this->getMetaDataService()->getSdkServices() as $serviceName => $service) {
             $this->generateService($path, $serviceName, $service, $exceptions, $options);
+            $this->generateServiceTest($path, $serviceName, $service, $exceptions, $options);
         }
 
         return $this;
@@ -170,14 +174,62 @@ class SdkService
 
         $className = $sdkConfig['namespace'].'\\Service\\'.ucfirst($serviceName).'Service';
 
-        $service += ['methods' => []];
+        $service += ['methods' => [], 'uses' => [], 'traits' => []];
         $service['methods']['__construct'] = ['type' => 'sdk.construct'];
+
+        $service['uses'][] = ['use' => 'Phppro\\Sdk\\SdkInterface'];
+        $service['uses'][] = ['use' => 'Phppro\\Sdk\\Traits', 'as' => 'SdkTraits'];
+
+        $service['traits'][] = ['traitName' => 'SdkTraits\\SdkAwareTrait'];
 
         asort($service['methods']);
 
         $this->getFilesystem()->dumpFile(
             $path.'/src/'.str_replace('\\', '/', 'Service\\'.ucfirst($serviceName).'Service').'.php',
             $this->getCodeGeneratorService()->createClassFile($className, ['serviceName' => $serviceName] + $service)->generate()
+        );
+
+        return $this;
+    }
+    /**
+     * @param string $path
+     * @param string $serviceName
+     * @param array  $service
+     * @param array  $exceptions
+     * @param array  $options
+     *
+     * @return $this
+     *
+     * @throws \Exception
+     */
+    protected function generateServiceTest($path, $serviceName, array $service, array &$exceptions, array $options = [])
+    {
+        $sdkConfig = $this->getArrayParameterKey('variables', 'sdk');
+
+        $serviceClassName = $sdkConfig['namespace'].'\\Service\\'.ucfirst($serviceName).'Service';
+        $className = $sdkConfig['namespace'].'\\Tests\\Service\\'.ucfirst($serviceName).'ServiceTest';
+
+        $testClass = [
+            'properties' => [
+                'sdk' => ['cast' => ['SdkInterface', 'PHPUnit_Framework_MockObject_MockObject'], 'visibility' => 'protected'],
+            ],
+            'parent' => 'PHPUnit_Framework_TestCase',
+            'uses'    => [
+                ['use' => 'PHPUnit_Framework_TestCase'],
+                ['use' => $serviceClassName],
+                ['use' => 'Phppro\\Sdk\\SdkInterface'],
+                ['use' => 'PHPUnit_Framework_MockObject_MockObject'],
+            ],
+            'methods' => [
+                'testConstruct' => ['type' => 'sdk.service.test.testConstruct'],
+            ],
+        ];
+
+        asort($testClass['methods']);
+
+        $this->getFilesystem()->dumpFile(
+            $path.'/src/'.str_replace('\\', '/', 'Tests\\Service\\'.ucfirst($serviceName).'ServiceTest').'.php',
+            $this->getCodeGeneratorService()->createClassFile($className, ['serviceName' => $serviceName] + $testClass)->generate()
         );
 
         return $this;

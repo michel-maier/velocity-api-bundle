@@ -37,6 +37,7 @@ class Configuration implements ConfigurationInterface
             ->addBundlesSection($rootNode)
             ->addRecipientsSection($rootNode)
             ->addEventsSection($rootNode)
+            ->addEventSetsSection($rootNode)
         ;
 
         return $treeBuilder;
@@ -82,6 +83,8 @@ class Configuration implements ConfigurationInterface
                         ->scalarNode('company_author_name')->end()
                         ->scalarNode('company_author_email')->end()
                         ->scalarNode('bundle_name')->end()
+                        ->scalarNode('bundle_key')->end()
+                        ->scalarNode('bundle_prefix')->end()
                     ->end()
                 ->end()
             ->end()
@@ -97,12 +100,48 @@ class Configuration implements ConfigurationInterface
     protected function addSendersSection(ArrayNodeDefinition $rootNode)
     {
         $rootNode
+            ->beforeNormalization()
+                ->always(function ($v) {
+                    return $v + ['senders' => []];
+                })
+            ->end()
             ->children()
                 ->arrayNode('senders')
                     ->prototype('array')
-                        ->children()
-                            ->scalarNode('sender')->end()
-                            ->scalarNode('name')->end()
+                        ->prototype('array')
+                            ->beforeNormalization()
+                                ->always(function ($v) {
+                                    if (!is_array($v)) {
+                                        $v = [];
+                                    }
+                                    if (!isset($v['sender'])) {
+                                        $v['sender'] = null;
+                                    }
+                                    if (!isset($v['name'])) {
+                                        $v['name'] = $v['sender'];
+                                    }
+                                    if (!isset($v['envs'])) {
+                                        $v += ['envs' => ['*']];
+                                    }
+                                    if (!isset($v['types'])) {
+                                        $v += ['types' => ['*']];
+                                    }
+
+                                    return $v;
+                                })
+                            ->end()
+                            ->children()
+                                ->scalarNode('name')->end()
+                                ->scalarNode('sender')->end()
+                                ->arrayNode('envs')
+                                    ->requiresAtLeastOneElement()
+                                    ->prototype('scalar')->end()
+                                ->end()
+                                ->arrayNode('types')
+                                    ->requiresAtLeastOneElement()
+                                    ->prototype('scalar')->end()
+                                ->end()
+                            ->end()
                         ->end()
                     ->end()
                 ->end()
@@ -172,6 +211,7 @@ class Configuration implements ConfigurationInterface
                                     ->prototype('scalar')->end()
                                 ->end()
                             ->end()
+                        ->end()
                     ->end()
                 ->end()
             ->end()
@@ -196,6 +236,54 @@ class Configuration implements ConfigurationInterface
                 ->arrayNode('events')
                     ->prototype('array')
                         ->children()
+                            ->arrayNode('actions')
+                                ->prototype('array')
+                                    ->beforeNormalization()
+                                        ->always(function ($v) {
+                                            if (!is_array($v)) {
+                                                return [];
+                                            }
+                                            if (!isset($v['action'])) {
+                                                return ['params' => $v];
+                                            }
+                                            $action = $v['action'];
+                                            unset($v['action']);
+
+                                            return ['action' => $action, 'params' => $v];
+                                        })
+                                    ->end()
+                                    ->children()
+                                        ->scalarNode('action')->end()
+                                        ->variableNode('params')->defaultValue([])->end()
+                                    ->end()
+                                ->end()
+                            ->end()
+                        ->end()
+                    ->end()
+                ->end()
+            ->end()
+        ;
+
+        return $this;
+    }
+    /**
+     * @param ArrayNodeDefinition $rootNode
+     *
+     * @return $this
+     */
+    protected function addEventSetsSection(ArrayNodeDefinition $rootNode)
+    {
+        $rootNode
+            ->beforeNormalization()
+                ->always(function ($v) {
+                    return $v + ['event_sets' => []];
+                })
+            ->end()
+            ->children()
+                ->arrayNode('event_sets')
+                    ->prototype('array')
+                        ->children()
+                            ->scalarNode('description')->defaultValue(null)->end()
                             ->arrayNode('actions')
                                 ->prototype('array')
                                     ->beforeNormalization()

@@ -12,7 +12,9 @@
 namespace Velocity\Bundle\ApiBundle\Service;
 
 use Zend\Code\Generator\ClassGenerator;
+use Zend\Code\Generator\DocBlock\Tag\GenericTag;
 use Zend\Code\Generator\DocBlock\Tag\ParamTag;
+use Zend\Code\Generator\DocBlock\Tag\PropertyTag;
 use Zend\Code\Generator\DocBlock\Tag\ReturnTag;
 use Zend\Code\Generator\DocBlock\Tag\ThrowsTag;
 use Zend\Code\Generator\DocBlockGenerator;
@@ -21,6 +23,8 @@ use Zend\Code\Generator\MethodGenerator;
 use Zend\Code\Generator\ParameterGenerator;
 use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
 use Velocity\Bundle\ApiBundle\Traits\ServiceAware;
+use Zend\Code\Generator\PropertyGenerator;
+use Zend\Code\Generator\PropertyValueGenerator;
 use Zend\Code\Generator\ValueGenerator;
 
 /**
@@ -39,8 +43,10 @@ class CodeGeneratorService
      */
     public function createClassFile($name, $definition = [])
     {
-        $zFile = $this->createFile();
-        $zFile->setClass($this->createClass($name, $definition));
+        list($namespace) = $this->explodeClassNamespace($name);
+
+        $zFile = $this->createFile(['namespace' => $namespace] + $definition);
+        $zFile->setClass($this->createClass($name, ['namespace' => false] + $definition));
 
         return $zFile;
     }
@@ -51,9 +57,17 @@ class CodeGeneratorService
      */
     public function createFile($definition = [])
     {
-        unset($definition);
+        $zFile = new FileGenerator();
 
-        return new FileGenerator();
+        if (isset($definition['uses'])) {
+            $zFile->setUses($definition['uses']);
+        }
+
+        if (isset($definition['namespace'])) {
+            $zFile->setNamespace($definition['namespace']);
+        }
+
+        return $zFile;
     }
     /**
      * @param string $name
@@ -63,9 +77,10 @@ class CodeGeneratorService
      */
     public function createClass($name, $definition = [])
     {
-        $definition += ['methods' => []];
+        $definition += ['methods' => [], 'uses' => [], 'properties' => []];
 
-        $zMethods = [];
+        $zMethods    = [];
+        $zProperties = [];
 
         foreach ($definition['methods'] as $methodName => $method) {
             $params = isset($method['params']) ? $method['params'] : [];
@@ -73,9 +88,31 @@ class CodeGeneratorService
             $zMethods[] = $this->createMethod($methodName, $method + $params + $definition);
         }
 
+        foreach ($definition['properties'] as $propertyName => $property) {
+            $params = isset($property['params']) ? $property['params'] : [];
+            unset($property['params']);
+            $zProperties[] = $this->createProperty($propertyName, $property + $params + $definition);
+        }
+
         list($namespace, $baseName) = $this->explodeClassNamespace($name);
 
-        return new ClassGenerator($baseName, $namespace, null, null, null, [], $zMethods);
+        if (isset($definition['namespace']) && false === $definition['namespace']) {
+            $namespace = null;
+        }
+
+        $parent = null;
+
+        if (isset($definition['parent'])) {
+            $parent = $definition['parent'];
+        }
+
+        $zClass = new ClassGenerator($baseName, $namespace, null, $parent, null, $zProperties, $zMethods);
+
+        if (isset($definition['traits'])) {
+            $zClass->addTraits($definition['traits']);
+        }
+
+        return $zClass;
     }
     /**
      * @param string $name
@@ -104,6 +141,59 @@ class CodeGeneratorService
         return $zMethod;
     }
     /**
+     * @param string $name
+     * @param array  $definition
+     *
+     * @return PropertyGenerator
+     *
+     * @throws \Exception
+     */
+    public function createProperty($name, $definition = [])
+    {
+        $definition += ['type' => 'basic', 'visibility' => 'public'];
+
+        switch($definition['visibility']) {
+            case 'private':
+                $visibility = PropertyGenerator::FLAG_PRIVATE;
+                break;
+            case 'protected':
+                $visibility = PropertyGenerator::FLAG_PROTECTED;
+                break;
+            default:
+            case 'public':
+                $visibility = PropertyGenerator::FLAG_PUBLIC;
+                break;
+        }
+
+        $zProperty = new PropertyGenerator($name, isset($definition['default']) ? $definition['default'] : new PropertyValueGenerator(), $visibility);
+
+        $buildTypeProperty = 'build'.ucfirst(str_replace(' ', '', ucwords(str_replace('.', ' ', $definition['type'])))).'Property';
+
+        if (!method_exists($this, $buildTypeProperty)) {
+            throw $this->createMalformedException("Unknown property type '%s'", $definition['type']);
+        }
+
+        unset($definition['type']);
+
+        $this->$buildTypeProperty($zProperty, $definition);
+
+        if (isset($definition['cast'])) {
+            if (null === $zProperty->getDocBlock()) {
+                $zProperty->setDocBlock(new DocBlockGenerator());
+            }
+            $zProperty->getDocBlock()->setTag(new GenericTag('var', is_array($definition['cast']) ? join('|', $definition['cast']) : $definition['cast'], $name));
+        }
+
+        return $zProperty;
+    }
+    /**
+     * @param PropertyGenerator $zMethod
+     * @param array           $definition
+     */
+    protected function buildBasicProperty(PropertyGenerator $zMethod, $definition = [])
+    {
+    }
+    /**
      * @param MethodGenerator $zMethod
      * @param array           $definition
      */
@@ -127,6 +217,23 @@ class CodeGeneratorService
             new ParameterGenerator('sdk', 'SdkInterface'),
         ]);
         $zMethod->setBody('$this->setSdk($sdk);');
+    }
+    /**
+     * @param MethodGenerator $zMethod
+     * @param array           $definition
+     */
+    protected function buildSdkServiceTestTestConstructMethod(MethodGenerator $zMethod, $definition = [])
+    {
+        $zMethod->setDocBlock(new DocBlockGenerator(
+            sprintf('Test constructor for service %s', $definition['serviceName']),
+            null,
+            []
+        ));
+        $zMethod->setParameters([]);
+        $zMethod->setBody(
+            '$this->sdk = $this->getMock(\'Phppro\\\\Sdk\\\\Sdk\', [], [], \'\', false);' . "\n"
+            .sprintf('$this->assertNotNull(new %sService($this->sdk));', ucfirst($definition['serviceName']))
+        );
     }
     /**
      * @param MethodGenerator $zMethod

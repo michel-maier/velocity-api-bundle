@@ -58,6 +58,27 @@ class Bag
         return $this;
     }
     /**
+     * @param string|array $key
+     * @param mixed        $value
+     *
+     * @return $this
+     */
+    public function setDefault($key, $value = null)
+    {
+        if (!is_array($key)) {
+            $key = [$key => $value];
+        }
+
+        foreach($key as $k => $v) {
+            if (array_key_exists($k, $this->vars)) {
+                continue;
+            }
+            $this->vars[$k] = $v;
+        }
+
+        return $this;
+    }
+    /**
      * @return $this
      */
     public function reset()
@@ -92,5 +113,29 @@ class Bag
         }
 
         return $this->vars[$key];
+    }
+    /**
+     * @param array|string $keys
+     * @param array        $vars
+     *
+     * @return mixed
+     */
+    public function getFirstOf($keys, ...$vars)
+    {
+        if (!is_array($keys)) {
+            $keys = [$keys];
+        }
+
+        foreach($keys as $k) {
+            if ($this->has($k)) {
+                return $this->get($k);
+            }
+        }
+
+        if (count($vars)) {
+            return array_shift($vars);
+        }
+
+        throw new \RuntimeException(sprintf("Missing '%s'", join(' or ', $keys)), 412);
     }
 }

@@ -1,0 +1,32 @@
+<?php
+
+/*
+ * This file is part of the SDK package.
+ *
+ * (c) {{ velocity.sdk.company_name }} <{{ velocity.sdk.company_email }}>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+namespace {{ velocity.sdk.namespace }}\DependencyInjection;
+
+use Symfony\Component\Config\Definition\Builder\TreeBuilder;
+use Symfony\Component\Config\Definition\ConfigurationInterface;
+
+/**
+ * @author {{ velocity.sdk.company_author_name }} <{{ velocity.sdk.company_author_email }}>
+ */
+class Configuration implements ConfigurationInterface
+{
+    /**
+     * @return TreeBuilder
+     */
+    public function getConfigTreeBuilder()
+    {
+        $treeBuilder = new TreeBuilder();
+        $treeBuilder->root('{{velocity.sdk.bundle_key}}', 'array');
+
+        return $treeBuilder;
+    }
+}

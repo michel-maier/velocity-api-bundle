@@ -1,0 +1,15 @@
+parameters:
+  asd_cert.api_sdk.user.class:                        AsdCert\Bundle\ApiSdkBundle\Service\UserService
+  asd_cert.api_sdk.twig.extension.class:              AsdCert\Bundle\ApiSdkBundle\Twig\Extension\AsdCertApiSdkExtension
+
+services:
+  asd_cert.api_sdk.twig.extension:
+    class:     %asd_cert.api_sdk.twig.extension.class%
+    public:    false
+    tags:      [{name: twig.extension}]
+    arguments: [@twig.loader]
+    calls:
+      - [setContainer, [@service_container]]
+  asd_cert.api_sdk.user:
+      class:     %asd_cert.api_sdk.user.class%
+      arguments: ['@sdk']
