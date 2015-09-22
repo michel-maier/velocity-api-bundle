@@ -177,6 +177,20 @@ trait ServiceTrait
     }
     /**
      * @param string $name
+     * @param string $key
+     *
+     * @return $this
+     *
+     * @throws \Exception
+     */
+    protected function unsetArrayParameterKey($name, $key)
+    {
+        unset($this->parameters[$name][$key]);
+
+        return $this;
+    }
+    /**
+     * @param string $name
      * @return mixed
      *
      * @throws \Exception

@@ -102,6 +102,15 @@ class CallableService
     }
     /**
      * @param string $type
+     *
+     * @return mixed
+     */
+    public function findByType($type)
+    {
+        return $this->getArrayParameter($type.'s');
+    }
+    /**
+     * @param string $type
      * @param string $name
      * @param array  $params
      *

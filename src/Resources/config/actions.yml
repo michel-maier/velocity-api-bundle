@@ -103,3 +103,22 @@ services:
       - @event_dispatcher
     tags:
       - { name: velocity.action }
+  velocity.action.generate:
+    class: Velocity\Bundle\ApiBundle\Action\GenerateAction
+    arguments:
+      - @velocity.generator
+      - @velocity.storage
+    tags:
+      - { name: velocity.action }
+  velocity.action.storage:
+    class: Velocity\Bundle\ApiBundle\Action\StorageAction
+    arguments:
+      - @velocity.storage
+    tags:
+      - { name: velocity.action }
+  velocity.action.documentBuilder:
+    class: Velocity\Bundle\ApiBundle\Action\DocumentBuilderAction
+    arguments:
+      - @velocity.documentBuilder
+    tags:
+      - { name: velocity.action }

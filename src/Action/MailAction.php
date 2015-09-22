@@ -18,7 +18,7 @@ use Velocity\Bundle\ApiBundle\Annotation as Velocity;
 use Velocity\Bundle\ApiBundle\Action\Base\AbstractTextNotificationAction;
 
 /**
- * @author Olivier Hoareau <olivier@tomboladirecte.com>
+ * @author Olivier Hoareau <olivier@phppro.fr>
  */
 class MailAction extends AbstractTextNotificationAction
 {

@@ -38,6 +38,7 @@ class Configuration implements ConfigurationInterface
             ->addRecipientsSection($rootNode)
             ->addEventsSection($rootNode)
             ->addEventSetsSection($rootNode)
+            ->addStoragesSection($rootNode)
         ;
 
         return $treeBuilder;
@@ -306,6 +307,45 @@ class Configuration implements ConfigurationInterface
                                     ->end()
                                 ->end()
                             ->end()
+                        ->end()
+                    ->end()
+                ->end()
+            ->end()
+        ;
+
+        return $this;
+    }
+    /**
+     * @param ArrayNodeDefinition $rootNode
+     *
+     * @return $this
+     */
+    protected function addStoragesSection(ArrayNodeDefinition $rootNode)
+    {
+        $rootNode
+            ->beforeNormalization()
+                ->always(function ($v) {
+                    return $v + ['storages' => []];
+                })
+            ->end()
+            ->children()
+                ->arrayNode('storages')
+                    ->prototype('variable')
+                        ->beforeNormalization()
+                            ->always(function ($v) {
+                                if (!is_array($v)) {
+                                    return [];
+                                }
+                                if (!isset($v['mount'])) {
+                                    $v['mount'] = '/';
+                                }
+
+                                if (!isset($v['type'])) {
+                                    $v['type'] = 'file';
+                                }
+
+                                return $v;
+                            })
                         ->end()
                     ->end()
                 ->end()

@@ -20,7 +20,7 @@ use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 
 /**
- * @author Olivier Hoareau <olivier@tomboladirecte.com>
+ * @author Olivier Hoareau <olivier@phppro.fr>
  */
 class AuditLogAction extends AbstractAction
 {

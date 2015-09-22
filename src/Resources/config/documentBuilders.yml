@@ -1,0 +1,5 @@
+services:
+  velocity.documentBuilder.excel:
+    class: Velocity\Bundle\ApiBundle\DocumentBuilder\ExcelDocumentBuilder
+    tags:
+      - {name: velocity.document_builder, type: excel}

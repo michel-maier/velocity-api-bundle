@@ -18,7 +18,7 @@ use Velocity\Bundle\ApiBundle\Traits\ContainerAwareTrait;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**
- * @author Olivier Hoareau <olivier@tomboladirecte.com>
+ * @author Olivier Hoareau <olivier@phppro.fr>
  */
 class AddVarAction extends AbstractAction
 {

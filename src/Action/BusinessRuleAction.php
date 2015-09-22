@@ -18,7 +18,7 @@ use Velocity\Bundle\ApiBundle\Action\Base\AbstractAction;
 use Velocity\Bundle\ApiBundle\Service\BusinessRuleService;
 
 /**
- * @author Olivier Hoareau <olivier@tomboladirecte.com>
+ * @author Olivier Hoareau <olivier@phppro.fr>
  */
 class BusinessRuleAction extends AbstractAction
 {

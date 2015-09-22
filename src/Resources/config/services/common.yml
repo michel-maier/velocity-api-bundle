@@ -82,6 +82,10 @@ services:
     class: Velocity\Bundle\ApiBundle\Service\GeneratorService
     arguments:
       - @velocity.callable
+  velocity.documentBuilder:
+    class: Velocity\Bundle\ApiBundle\Service\DocumentBuilderService
+    arguments:
+      - @velocity.callable
   velocity.archiver:
     class: Velocity\Bundle\ApiBundle\Service\ArchiverService
     arguments:
@@ -115,6 +119,10 @@ services:
     class: Velocity\Bundle\ApiBundle\Service\CodeGeneratorService
   velocity.callable:
     class: Velocity\Bundle\ApiBundle\Service\CallableService
+  velocity.storage:
+    class: Velocity\Bundle\ApiBundle\Service\StorageService
+    arguments:
+      - @event_dispatcher
   velocity.twig.extension.velocity:
     class: Velocity\Bundle\ApiBundle\Twig\ApiExtension
     arguments:
@@ -126,3 +134,8 @@ services:
     class: Twig_Extension_StringLoader
     tags:
       - {name: twig.extension}
+
+  redis:
+    class: Redis
+    calls:
+      - [connect, [127.0.0.1]]

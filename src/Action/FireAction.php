@@ -18,7 +18,7 @@ use Velocity\Bundle\ApiBundle\Action\Base\AbstractAction;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**
- * @author Olivier Hoareau <olivier@tomboladirecte.com>
+ * @author Olivier Hoareau <olivier@phppro.fr>
  */
 class FireAction extends AbstractAction
 {

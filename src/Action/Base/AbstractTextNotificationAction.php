@@ -23,7 +23,7 @@ use Velocity\Bundle\ApiBundle\Traits\TranslatorAwareTrait;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**
- * @author Olivier Hoareau <olivier@tomboladirecte.com>
+ * @author Olivier Hoareau <olivier@phppro.fr>
  */
 abstract class AbstractTextNotificationAction extends AbstractAction
 {

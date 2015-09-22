@@ -19,7 +19,7 @@ use Velocity\Bundle\ApiBundle\Service\ArchiverService;
 use Velocity\Bundle\ApiBundle\Action\Base\AbstractAction;
 
 /**
- * @author Olivier Hoareau <olivier@tomboladirecte.com>
+ * @author Olivier Hoareau <olivier@phppro.fr>
  */
 class ArchiveDocAction extends AbstractAction
 {

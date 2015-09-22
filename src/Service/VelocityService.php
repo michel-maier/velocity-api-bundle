@@ -45,7 +45,9 @@ class VelocityService
             // container keys
             'metaData.key'                        => 'velocity.metaData',
             'action.key'                          => 'velocity.action',
+            'documentBuilder.key'                 => 'velocity.documentBuilder',
             'event.key'                           => 'velocity.event',
+            'storage.key'                         => 'velocity.storage',
             'businessRule.key'                    => 'velocity.businessRule',
             'invitationEvent.key'                 => 'velocity.invitationEvent',
             'generator.key'                       => 'velocity.generator',
@@ -61,6 +63,8 @@ class VelocityService
             'event_dispatcher.key'                => 'event_dispatcher',
             'translator.key'                      => 'translator',
             'service_container.key'               => 'service_container',
+            'database.key'                        => 'velocity.database',
+            'redis.key'                           => 'redis',
 
             // container keys patterns
             'generated_client.key.pattern' => 'app.client_%s',
@@ -69,11 +73,13 @@ class VelocityService
             'param.bundles.key'    => 'app_bundles',
             'param.events.key'     => 'app_events',
             'param.event_sets.key' => 'app_event_sets',
+            'param.storages.key'   => 'app_storages',
 
             // parameters default values
             'param.bundles'    => [],
             'param.events'     => [],
             'param.event_sets' => [],
+            'param.storages'   => [],
 
             // classes
             'repo.class'              => __NAMESPACE__.'\\RepositoryService',
@@ -84,6 +90,11 @@ class VelocityService
             'volatile.sub.class'      => __NAMESPACE__.'\\Base\\VolatileSubDocumentService',
             'volatile.sub.sub.class'  => __NAMESPACE__.'\\Base\\VolatileSubSubDocumentService',
             'decorated_client.class'  => __NAMESPACE__.'\\DecoratedClientService',
+
+            'storage.file.class'      => 'Velocity\\Bundle\\ApiBundle\\Storage\\FileStorage',
+            'storage.redis.class'     => 'Velocity\\Bundle\\ApiBundle\\Storage\\RedisStorage',
+            'storage.memory.class'    => 'Velocity\\Bundle\\ApiBundle\\Storage\\MemoryStorage',
+            'storage.database.class'  => 'Velocity\\Bundle\\ApiBundle\\Storage\\DatabaseStorage',
 
             // interfaces
             'container_aware.interface' => 'Symfony\\Component\\DependencyInjection\\ContainerAwareInterface',
@@ -110,6 +121,8 @@ class VelocityService
             'repositories_aware.tag'  => 'velocity.repositories_aware',
             'archiver.tag'            => 'velocity.archiver',
             'job.tag'                 => 'velocity.job',
+            'storage.tag'             => 'velocity.storage',
+            'document_builder.tag'    => 'velocity.document_builder',
 
         ];
 
@@ -142,6 +155,7 @@ class VelocityService
     public function load(ContainerBuilder $container, KernelInterface $kernel)
     {
         $this->analyzeClasses($container, $kernel);
+        $this->loadDynamicTags($container);
         $this->analyzeTags($container);
         $this->loadActionListeners($container);
 
@@ -179,6 +193,7 @@ class VelocityService
      *
      * @return $this
      *
+     * @throws \Exception
      */
     public function loadClassesMetaData($classes, Definition $m)
     {
@@ -358,6 +373,8 @@ class VelocityService
         $this->processGeneratorTag($container);
         $this->processArchiverTag($container);
         $this->processJobTag($container);
+        $this->processStorageTag($container);
+        $this->processDocumentBuilderTag($container);
         $this->processRepositoriesAwareTag($container);
 
         return $this;
@@ -749,6 +766,23 @@ class VelocityService
         }
     }
     /**
+     * Process document builder tags.
+     *
+     * @param ContainerBuilder $container
+     */
+    protected function processDocumentBuilderTag(ContainerBuilder $container)
+    {
+        $dbDefinition = $container->getDefinition($this->getDefault('documentBuilder.key'));
+
+        foreach ($this->findVelocityTaggedServiceIds($container, 'document_builder') as $id => $attributes) {
+            foreach ($attributes as $params) {
+                $type = $params['type'];
+                unset($params['type']);
+                $dbDefinition->addMethodCall('register', [$type, [$this->ref($id), 'build'], $params]);
+            }
+        }
+    }
+    /**
      * Process archiver tags.
      *
      * @param ContainerBuilder $container
@@ -805,6 +839,22 @@ class VelocityService
                         }
                     }
                 }
+            }
+        }
+    }
+    /**
+     * Process storage tags.
+     *
+     * @param ContainerBuilder $container
+     */
+    protected function processStorageTag(ContainerBuilder $container)
+    {
+        $storageDefinition = $container->getDefinition($this->getDefault('storage.key'));
+
+        foreach ($this->findVelocityTaggedServiceIds($container, 'storage') as $id => $attributes) {
+            foreach ($attributes as $params) {
+                $params += ['name' => null, 'mount' => '/'];
+                $storageDefinition->addMethodCall('mount', [$params['name'], $params['mount'], $this->ref($id)]);
             }
         }
     }
@@ -900,6 +950,36 @@ class VelocityService
     protected function ref($alias)
     {
         return new Reference($this->getServiceKey($alias));
+    }
+    /**
+     * @param ContainerBuilder $container
+     *
+     * @throws \Exception
+     */
+    protected function loadDynamicTags(ContainerBuilder $container)
+    {
+        foreach ($container->getParameter($this->getDefault('param.storages.key', $this->getDefault('param.storages'))) as $storageName => $storage) {
+            $storage = (is_array($storage) ? ($storage) : []) + ['mount' => '/', 'type' => 'file'];
+            switch($storage['type']) {
+                case 'file':
+                    $d = new Definition($this->getDefault('storage.file.class'), [$storage['root'], $this->ref('filesystem')]);
+                    break;
+                case 'memory':
+                    $d = new Definition($this->getDefault('storage.memory.class'));
+                    break;
+                case 'redis':
+                    $d = new Definition($this->getDefault('storage.redis.class'), [$this->ref('redis')]);
+                    break;
+                case 'database':
+                    $d = new Definition($this->getDefault('storage.database.class'), [$storage['collection'], $this->ref('database')]);
+                    break;
+                default:
+                    throw $this->createMalformedException("Unsupported storage type '%s'", $storage['type']);
+            }
+            $d->addTag($this->getDefault('storage.tag'), ['name' => $storageName, 'mount' => $storage['mount']]);
+            $container->setDefinition(sprintf('velocity.generated.storages.%s', $storageName), $d);
+
+        }
     }
     /**
      * @param ContainerBuilder $container
