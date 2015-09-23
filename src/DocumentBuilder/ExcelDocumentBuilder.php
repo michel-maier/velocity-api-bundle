@@ -51,18 +51,18 @@ class ExcelDocumentBuilder extends AbstractSpreadSheetDocumentBuilder
         $headers = null;
 
         $row = 1;
-        foreach($data as $k => $v) {
+        foreach ($data as $k => $v) {
             if (!is_array($v)) {
                 $v = [];
             }
             if (null === $headers) {
                 $headers = array_keys($v);
-                foreach($headers as $kk => $vv) {
+                foreach ($headers as $kk => $vv) {
                     $sheet->setCellValueByColumnAndRow($kk, 1, ucwords($vv));
                 }
             }
             $row++;
-            foreach($headers as $kk => $vv) {
+            foreach ($headers as $kk => $vv) {
                 $sheet->setCellValueByColumnAndRow($kk, $row, isset($v[$vv]) ? $this->formatCellValue($v[$vv]) : null);
             }
         }

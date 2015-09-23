@@ -12,7 +12,7 @@
 namespace Velocity\Bundle\ApiBundle\Security;
 
 use Exception;
-use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
+use Velocity\Core\Traits\ServiceTrait;
 
 /**
  * API Decorated Account Provider.

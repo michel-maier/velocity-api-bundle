@@ -13,9 +13,9 @@ namespace Velocity\Bundle\ApiBundle\Formatter;
 
 use JMS\Serializer\SerializationContext;
 use JMS\Serializer\SerializerInterface;
-use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
+use Velocity\Core\Traits\ServiceTrait;
 use Velocity\Bundle\ApiBundle\Annotation as Velocity;
-use Velocity\Bundle\ApiBundle\Traits\SerializerAwareTrait;
+use Velocity\Core\Traits\SerializerAwareTrait;
 
 /**
  * Xml Formatter Action.

@@ -12,7 +12,7 @@
 namespace Velocity\Bundle\ApiBundle\Tests\Action;
 
 use PHPUnit_Framework_TestCase;
-use Velocity\Bundle\ApiBundle\Bag;
+use Velocity\Core\Bag;
 use PHPUnit_Framework_MockObject_MockObject;
 use Velocity\Bundle\ApiBundle\Event\DocumentEvent;
 use Velocity\Bundle\ApiBundle\Service\ArchiverService;

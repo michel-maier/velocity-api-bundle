@@ -11,7 +11,7 @@
 
 namespace Velocity\Bundle\ApiBundle\BusinessRule;
 
-use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
+use Velocity\Core\Traits\ServiceTrait;
 use Velocity\Bundle\ApiBundle\Exception\BusinessRuleException;
 
 /**

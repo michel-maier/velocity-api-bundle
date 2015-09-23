@@ -12,7 +12,7 @@
 namespace Velocity\Bundle\ApiBundle\Service;
 
 use Velocity\Bundle\ApiBundle\Traits\ServiceAware;
-use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
+use Velocity\Core\Traits\ServiceTrait;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**

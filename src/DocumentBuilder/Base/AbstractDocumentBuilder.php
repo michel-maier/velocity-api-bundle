@@ -11,7 +11,7 @@
 
 namespace Velocity\Bundle\ApiBundle\DocumentBuilder\Base;
 
-use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
+use Velocity\Core\Traits\ServiceTrait;
 
 /**
  * Abstract Document Builder.

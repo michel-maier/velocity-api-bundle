@@ -11,15 +11,15 @@
 
 namespace Velocity\Bundle\ApiBundle\Action\Base;
 
-use Velocity\Bundle\ApiBundle\Bag;
+use Velocity\Core\Bag;
+use Velocity\Core\Traits\ParameterAware;
+use Velocity\Core\Traits\TemplatingAwareTrait;
+use Velocity\Core\Traits\TranslatorAwareTrait;
 use Symfony\Component\Templating\EngineInterface;
 use Velocity\Bundle\ApiBundle\Traits\ServiceAware;
-use Velocity\Bundle\ApiBundle\Traits\ParameterAware;
 use Velocity\Bundle\ApiBundle\Annotation as Velocity;
 use Symfony\Component\Translation\TranslatorInterface;
 use Velocity\Bundle\ApiBundle\Service\AttachmentService;
-use Velocity\Bundle\ApiBundle\Traits\TemplatingAwareTrait;
-use Velocity\Bundle\ApiBundle\Traits\TranslatorAwareTrait;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**
@@ -128,7 +128,7 @@ abstract class AbstractTextNotificationAction extends AbstractAction
 
         $cleanedRecipients = [];
 
-        foreach($recipients as $recipient) {
+        foreach ($recipients as $recipient) {
             $cleanedRecipients[$recipient['email']] = $recipient['name'];
         }
 
@@ -143,7 +143,7 @@ abstract class AbstractTextNotificationAction extends AbstractAction
      */
     protected function filterByEnvAndType(array $items, $env, $type)
     {
-        foreach($items as $k => $item) {
+        foreach ($items as $k => $item) {
             if (isset($item['envs']) && is_array($item['envs']) && count($item['envs'])) {
                 if (!in_array('*', $item['envs']) && !in_array($env, $item['envs'])) {
                     unset($items[$k]);

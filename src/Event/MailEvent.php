@@ -75,6 +75,48 @@ class MailEvent extends Event
         return $this->subject;
     }
     /**
+     * @return string
+     */
+    public function getContent()
+    {
+        return $this->content;
+    }
+    /**
+     * @return array
+     */
+    public function getRecipients()
+    {
+        return $this->recipients;
+    }
+    /**
+     * @return array
+     */
+    public function getAttachments()
+    {
+        return $this->attachments;
+    }
+    /**
+     * @return array
+     */
+    public function getImages()
+    {
+        return $this->images;
+    }
+    /**
+     * @return array
+     */
+    public function getSender()
+    {
+        return $this->sender;
+    }
+    /**
+     * @return array
+     */
+    public function getOptions()
+    {
+        return $this->options;
+    }
+    /**
      * @param string $subject
      *
      * @return $this
@@ -84,13 +126,6 @@ class MailEvent extends Event
         $this->subject = $subject;
 
         return $this;
-    }
-    /**
-     * @return string
-     */
-    public function getContent()
-    {
-        return $this->content;
     }
     /**
      * @param string $content
@@ -104,13 +139,6 @@ class MailEvent extends Event
         return $this;
     }
     /**
-     * @return array
-     */
-    public function getRecipients()
-    {
-        return $this->recipients;
-    }
-    /**
      * @param array $recipients
      *
      * @return $this
@@ -120,13 +148,6 @@ class MailEvent extends Event
         $this->recipients = $recipients;
 
         return $this;
-    }
-    /**
-     * @return array
-     */
-    public function getAttachments()
-    {
-        return $this->attachments;
     }
     /**
      * @param array $attachments
@@ -140,13 +161,6 @@ class MailEvent extends Event
         return $this;
     }
     /**
-     * @return array
-     */
-    public function getImages()
-    {
-        return $this->images;
-    }
-    /**
      * @param array $images
      *
      * @return $this
@@ -158,13 +172,6 @@ class MailEvent extends Event
         return $this;
     }
     /**
-     * @return array
-     */
-    public function getSender()
-    {
-        return $this->sender;
-    }
-    /**
      * @param array $sender
      *
      * @return $this
@@ -174,13 +181,6 @@ class MailEvent extends Event
         $this->sender = $sender;
 
         return $this;
-    }
-    /**
-     * @return array
-     */
-    public function getOptions()
-    {
-        return $this->options;
     }
     /**
      * @param array $options

@@ -69,6 +69,41 @@ class FaxEvent extends Event
         return $this->content;
     }
     /**
+     * @return array
+     */
+    public function getRecipients()
+    {
+        return $this->recipients;
+    }
+    /**
+     * @return array
+     */
+    public function getAttachments()
+    {
+        return $this->attachments;
+    }
+    /**
+     * @return array
+     */
+    public function getImages()
+    {
+        return $this->images;
+    }
+    /**
+     * @return array
+     */
+    public function getSender()
+    {
+        return $this->sender;
+    }
+    /**
+     * @return array
+     */
+    public function getOptions()
+    {
+        return $this->options;
+    }
+    /**
      * @param string $content
      *
      * @return $this
@@ -78,13 +113,6 @@ class FaxEvent extends Event
         $this->content = $content;
 
         return $this;
-    }
-    /**
-     * @return array
-     */
-    public function getRecipients()
-    {
-        return $this->recipients;
     }
     /**
      * @param array $recipients
@@ -98,13 +126,6 @@ class FaxEvent extends Event
         return $this;
     }
     /**
-     * @return array
-     */
-    public function getAttachments()
-    {
-        return $this->attachments;
-    }
-    /**
      * @param array $attachments
      *
      * @return $this
@@ -114,13 +135,6 @@ class FaxEvent extends Event
         $this->attachments = $attachments;
 
         return $this;
-    }
-    /**
-     * @return array
-     */
-    public function getImages()
-    {
-        return $this->images;
     }
     /**
      * @param array $images
@@ -134,13 +148,6 @@ class FaxEvent extends Event
         return $this;
     }
     /**
-     * @return array
-     */
-    public function getSender()
-    {
-        return $this->sender;
-    }
-    /**
      * @param array $sender
      *
      * @return $this
@@ -150,13 +157,6 @@ class FaxEvent extends Event
         $this->sender = $sender;
 
         return $this;
-    }
-    /**
-     * @return array
-     */
-    public function getOptions()
-    {
-        return $this->options;
     }
     /**
      * @param array $options

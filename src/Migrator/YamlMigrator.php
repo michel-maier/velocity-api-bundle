@@ -15,9 +15,9 @@ use Exception;
 use Symfony\Component\Yaml\Yaml;
 use Psr\Log\LoggerAwareInterface;
 use Velocity\Bundle\ApiBundle\MigratorInterface;
-use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
-use Velocity\Bundle\ApiBundle\Traits\LoggerAwareTrait;
-use Velocity\Bundle\ApiBundle\Traits\ContainerAwareTrait;
+use Velocity\Core\Traits\ServiceTrait;
+use Velocity\Core\Traits\LoggerAwareTrait;
+use Velocity\Core\Traits\ContainerAwareTrait;
 use Symfony\Component\DependencyInjection\ContainerAwareInterface;
 
 /**

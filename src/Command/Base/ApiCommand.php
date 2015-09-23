@@ -11,8 +11,8 @@
 
 namespace Velocity\Bundle\ApiBundle\Command\Base;
 
+use Velocity\Core\Traits\ServiceTrait;
 use Symfony\Component\Console\Command\Command;
-use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
 use Symfony\Component\Console\Input\InputInterface;
 use Symfony\Component\Console\Output\OutputInterface;
 

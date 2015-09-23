@@ -96,7 +96,7 @@ abstract class AbstractSpreadSheetDocumentBuilder extends AbstractDocumentBuilde
      */
     protected function getWriterForExtension(\PHPExcel $excel, $extension)
     {
-        switch(strtolower(trim($extension))) {
+        switch (strtolower(trim($extension))) {
             case 'xlsx':
                 return [
                     new \PHPExcel_Writer_Excel2007($excel),

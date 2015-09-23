@@ -14,7 +14,7 @@ namespace Velocity\Bundle\ApiBundle\Service;
 use Symfony\Component\Form\FormInterface;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\Form\FormFactoryInterface;
-use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
+use Velocity\Core\Traits\ServiceTrait;
 use Velocity\Bundle\ApiBundle\Exception\FormValidationException;
 
 /**

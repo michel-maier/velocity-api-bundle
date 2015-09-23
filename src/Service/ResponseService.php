@@ -14,7 +14,7 @@ namespace Velocity\Bundle\ApiBundle\Service;
 use Symfony\Component\HttpFoundation\Response;
 use Velocity\Bundle\ApiBundle\DocumentInterface;
 use Velocity\Bundle\ApiBundle\Traits\ServiceAware;
-use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
+use Velocity\Core\Traits\ServiceTrait;
 
 /**
  * Response Service.
@@ -36,11 +36,11 @@ class ResponseService
         $this->setExceptionService($exceptionService);
     }
     /**
-     * @param array  $acceptableContentTypes
-     * @param mixed  $data
-     * @param int    $code
-     * @param array  $headers
-     * @param array  $options
+     * @param array $acceptableContentTypes
+     * @param mixed $data
+     * @param int   $code
+     * @param array $headers
+     * @param array $options
      *
      * @return Response
      *
@@ -102,12 +102,12 @@ class ResponseService
     protected function filterValidErrorContentTypes($contentTypes)
     {
         $valids = [
-            'text/json' => true,
-            'application/json' => true,
-            'text/xml' => true,
-            'application/xml' => true,
-            'text/plain' => true,
-            'text/yaml' => true,
+            'text/json'          => true,
+            'application/json'   => true,
+            'text/xml'           => true,
+            'application/xml'    => true,
+            'text/plain'         => true,
+            'text/yaml'          => true,
             'application/x-yaml' => true,
         ];
 

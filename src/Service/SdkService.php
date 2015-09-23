@@ -16,12 +16,11 @@ use Symfony\Component\Finder\Finder;
 use Symfony\Component\Finder\SplFileInfo;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Templating\EngineInterface;
-use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
+use Velocity\Core\Traits\ServiceTrait;
+use Velocity\Core\Traits\FilesystemAwareTrait;
 use Velocity\Bundle\ApiBundle\Traits\ServiceAware;
-use Velocity\Bundle\ApiBundle\Traits\LoggerAwareTrait;
-use Velocity\Bundle\ApiBundle\Traits\FilesystemAwareTrait;
-use Velocity\Bundle\ApiBundle\Traits\TemplatingAwareTrait;
-use Zend\Code\Generator\FileGenerator;
+use Velocity\Core\Traits\LoggerAwareTrait;
+use Velocity\Core\Traits\TemplatingAwareTrait;
 
 /**
  * Sdk Service.

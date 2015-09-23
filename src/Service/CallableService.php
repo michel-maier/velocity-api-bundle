@@ -12,7 +12,7 @@
 namespace Velocity\Bundle\ApiBundle\Service;
 
 use Velocity\Bundle\ApiBundle\Traits\ServiceAware;
-use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
+use Velocity\Core\Traits\ServiceTrait;
 
 /**
  * Callable Service.
@@ -177,9 +177,9 @@ class CallableService
         return call_user_func_array($callable, $params);
     }
     /**
-     * @param string          $type
-     * @param array           $callables
-     * @param array|\Closure  $params
+     * @param string         $type
+     * @param array          $callables
+     * @param array|\Closure $params
      *
      * @return $this
      *

@@ -11,11 +11,11 @@
 
 namespace Velocity\Bundle\ApiBundle\Service;
 
-use Velocity\Bundle\ApiBundle\Bag;
+use Velocity\Core\Bag;
 use Symfony\Component\Templating\EngineInterface;
 use Velocity\Bundle\ApiBundle\Traits\ServiceAware;
-use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
-use Velocity\Bundle\ApiBundle\Traits\TemplatingAwareTrait;
+use Velocity\Core\Traits\ServiceTrait;
+use Velocity\Core\Traits\TemplatingAwareTrait;
 
 /**
  * Action Service.
@@ -116,6 +116,7 @@ class ActionService
                 $p = clone $params;
                 $p->setDefault($callableParams);
                 $vars = $p->all() + $context->all();
+
                 return [new Bag($that->replaceVars($p->all(), $vars)), $context];
             }
         );

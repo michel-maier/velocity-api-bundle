@@ -15,7 +15,7 @@ use Psr\Log\LoggerInterface;
 use PHPUnit_Framework_TestCase;
 use PHPUnit_Framework_MockObject_MockObject;
 use Velocity\Bundle\ApiBundle\Action\LogAction;
-use Velocity\Bundle\ApiBundle\Bag;
+use Velocity\Core\Bag;
 
 /**
  * @author Olivier Hoareau <olivier@phppro.fr>

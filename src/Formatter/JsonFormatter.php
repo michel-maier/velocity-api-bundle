@@ -11,11 +11,11 @@
 
 namespace Velocity\Bundle\ApiBundle\Formatter;
 
+use Velocity\Core\Traits\ServiceTrait;
 use JMS\Serializer\SerializerInterface;
 use JMS\Serializer\SerializationContext;
-use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
+use Velocity\Core\Traits\SerializerAwareTrait;
 use Velocity\Bundle\ApiBundle\Annotation as Velocity;
-use Velocity\Bundle\ApiBundle\Traits\SerializerAwareTrait;
 
 /**
  * Json Formatter Action.

@@ -11,21 +11,20 @@
 
 namespace Velocity\Bundle\ApiBundle\Service;
 
+use Velocity\Core\Traits\ServiceTrait;
+use Zend\Code\Generator\FileGenerator;
 use Zend\Code\Generator\ClassGenerator;
-use Zend\Code\Generator\DocBlock\Tag\GenericTag;
+use Zend\Code\Generator\ValueGenerator;
+use Zend\Code\Generator\MethodGenerator;
+use Zend\Code\Generator\PropertyGenerator;
+use Zend\Code\Generator\DocBlockGenerator;
+use Zend\Code\Generator\ParameterGenerator;
 use Zend\Code\Generator\DocBlock\Tag\ParamTag;
-use Zend\Code\Generator\DocBlock\Tag\PropertyTag;
+use Zend\Code\Generator\PropertyValueGenerator;
 use Zend\Code\Generator\DocBlock\Tag\ReturnTag;
 use Zend\Code\Generator\DocBlock\Tag\ThrowsTag;
-use Zend\Code\Generator\DocBlockGenerator;
-use Zend\Code\Generator\FileGenerator;
-use Zend\Code\Generator\MethodGenerator;
-use Zend\Code\Generator\ParameterGenerator;
-use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
+use Zend\Code\Generator\DocBlock\Tag\GenericTag;
 use Velocity\Bundle\ApiBundle\Traits\ServiceAware;
-use Zend\Code\Generator\PropertyGenerator;
-use Zend\Code\Generator\PropertyValueGenerator;
-use Zend\Code\Generator\ValueGenerator;
 
 /**
  * Code Generator Service.
@@ -152,7 +151,7 @@ class CodeGeneratorService
     {
         $definition += ['type' => 'basic', 'visibility' => 'public'];
 
-        switch($definition['visibility']) {
+        switch ($definition['visibility']) {
             case 'private':
                 $visibility = PropertyGenerator::FLAG_PRIVATE;
                 break;
@@ -231,8 +230,7 @@ class CodeGeneratorService
         ));
         $zMethod->setParameters([]);
         $zMethod->setBody(
-            '$this->sdk = $this->getMock(\'Phppro\\\\Sdk\\\\Sdk\', [], [], \'\', false);' . "\n"
-            .sprintf('$this->assertNotNull(new %sService($this->sdk));', ucfirst($definition['serviceName']))
+            '$this->sdk = $this->getMock(\'Phppro\\\\Sdk\\\\Sdk\', [], [], \'\', false);'."\n".sprintf('$this->assertNotNull(new %sService($this->sdk));', ucfirst($definition['serviceName']))
         );
     }
     /**
@@ -455,6 +453,8 @@ class CodeGeneratorService
      */
     protected function buildGetMethod(MethodGenerator $zMethod, $definition = [])
     {
+        unset($definition);
+
         $zMethod->setParameters([]);
     }
     /**

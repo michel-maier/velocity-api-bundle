@@ -15,7 +15,7 @@ use MongoId;
 use Exception;
 use MongoClient;
 use MongoCollection;
-use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
+use Velocity\Core\Traits\ServiceTrait;
 
 /**
  * Database Service.

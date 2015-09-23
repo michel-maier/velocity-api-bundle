@@ -11,7 +11,7 @@
 
 namespace Velocity\Bundle\ApiBundle\Archiver;
 
-use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
+use Velocity\Core\Traits\ServiceTrait;
 
 /**
  * Abstract Archiver.

@@ -12,8 +12,8 @@
 namespace Velocity\Bundle\ApiBundle\Service;
 
 use DateTime;
-use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
-use Velocity\Bundle\ApiBundle\Traits\TokenStorageAwareTrait;
+use Velocity\Core\Traits\ServiceTrait;
+use Velocity\Core\Traits\TokenStorageAwareTrait;
 use Symfony\Component\Security\Core\Authentication\Token\TokenInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 

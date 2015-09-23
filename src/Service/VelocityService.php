@@ -18,7 +18,7 @@ use Symfony\Component\Finder\Finder;
 use Symfony\Component\Finder\SplFileInfo;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Doctrine\Common\Annotations\AnnotationReader;
-use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
+use Velocity\Core\Traits\ServiceTrait;
 use Symfony\Component\DependencyInjection\Reference;
 use Velocity\Bundle\ApiBundle\Annotation as Velocity;
 use Symfony\Component\DependencyInjection\Definition;
@@ -993,7 +993,7 @@ class VelocityService
     {
         foreach ($container->getParameter($this->getDefault('param.storages.key', $this->getDefault('param.storages'))) as $storageName => $storage) {
             $storage = (is_array($storage) ? ($storage) : []) + ['mount' => '/', 'type' => 'file'];
-            switch($storage['type']) {
+            switch ($storage['type']) {
                 case 'file':
                     $d = new Definition($this->getDefault('storage.file.class'), [$storage['root'], $this->ref('filesystem')]);
                     break;

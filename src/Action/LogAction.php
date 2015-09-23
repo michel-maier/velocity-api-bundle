@@ -12,9 +12,9 @@
 namespace Velocity\Bundle\ApiBundle\Action;
 
 use Psr\Log\LoggerInterface;
-use Velocity\Bundle\ApiBundle\Bag;
+use Velocity\Core\Bag;
+use Velocity\Core\Traits\LoggerAwareTrait;
 use Velocity\Bundle\ApiBundle\Annotation as Velocity;
-use Velocity\Bundle\ApiBundle\Traits\LoggerAwareTrait;
 use Velocity\Bundle\ApiBundle\Action\Base\AbstractAction;
 
 /**

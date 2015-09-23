@@ -13,6 +13,7 @@ namespace Velocity\Bundle\ApiBundle\Controller\Base;
 
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Velocity\Core\Controller\Base\AbstractController;
 use Velocity\Bundle\ApiBundle\Traits\ServiceAwareController;
 
 /**

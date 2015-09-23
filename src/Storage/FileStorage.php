@@ -14,8 +14,8 @@ namespace Velocity\Bundle\ApiBundle\Storage;
 use Symfony\Component\Finder\SplFileInfo;
 use Symfony\Component\Filesystem\Filesystem;
 use Velocity\Bundle\ApiBundle\StorageInterface;
-use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
-use Velocity\Bundle\ApiBundle\Traits\FilesystemAwareTrait;
+use Velocity\Core\Traits\ServiceTrait;
+use Velocity\Core\Traits\FilesystemAwareTrait;
 
 /**
  * File Storage
@@ -36,7 +36,7 @@ class FileStorage implements StorageInterface
         $this->setFilesystem($filesystem);
     }
     /**
-     * @param $root
+     * @param string $root
      *
      * @return $this
      */

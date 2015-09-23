@@ -11,11 +11,11 @@
 
 namespace Velocity\Bundle\ApiBundle\Action;
 
-use Velocity\Bundle\ApiBundle\Bag;
+use Velocity\Core\Bag;
 use Velocity\Bundle\ApiBundle\Event\AuditLogEvent;
 use Velocity\Bundle\ApiBundle\Annotation as Velocity;
 use Velocity\Bundle\ApiBundle\Action\Base\AbstractAction;
-use Velocity\Bundle\ApiBundle\Traits\TokenStorageAwareTrait;
+use Velocity\Core\Traits\TokenStorageAwareTrait;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 use Symfony\Component\Security\Core\Authentication\Token\Storage\TokenStorageInterface;
 

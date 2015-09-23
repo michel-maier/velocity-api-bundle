@@ -13,7 +13,7 @@ namespace Velocity\Bundle\ApiBundle\Service;
 
 use Symfony\Component\Form\Guess\Guess;
 use Symfony\Component\Form\Guess\TypeGuess;
-use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
+use Velocity\Core\Traits\ServiceTrait;
 
 /**
  * MetaData Service.

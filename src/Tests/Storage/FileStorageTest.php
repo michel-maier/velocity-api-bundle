@@ -41,7 +41,7 @@ class FileStorageTest extends PHPUnit_Framework_TestCase
     public function setUp()
     {
         $this->fs     = $this->getMock('Symfony\\Component\\Filesystem\\Filesystem', [], [], '', false);
-        $this->tmpDir = tempnam(sys_get_temp_dir(), 'test-' . uniqid());
+        $this->tmpDir = tempnam(sys_get_temp_dir(), 'test-'.uniqid());
         $this->s      = new FileStorage($this->tmpDir, $this->fs);
     }
     /**

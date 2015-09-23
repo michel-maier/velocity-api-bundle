@@ -14,7 +14,7 @@ namespace Velocity\Bundle\ApiBundle\Form\TypeGuesser;
 use Symfony\Component\Form\Guess\Guess;
 use Symfony\Component\Form\Guess\TypeGuess;
 use Symfony\Component\Form\Guess\ValueGuess;
-use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
+use Velocity\Core\Traits\ServiceTrait;
 use Velocity\Bundle\ApiBundle\Traits\ServiceAware;
 use Symfony\Component\Form\FormTypeGuesserInterface;
 use Velocity\Bundle\ApiBundle\Service\MetaDataService;

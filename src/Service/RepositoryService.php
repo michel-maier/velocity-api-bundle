@@ -16,9 +16,9 @@ use MongoCursor;
 use MongoDuplicateKeyException;
 use Velocity\Bundle\ApiBundle\Traits\ServiceAware;
 use Velocity\Bundle\ApiBundle\RepositoryInterface;
-use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
-use Velocity\Bundle\ApiBundle\Traits\LoggerAwareTrait;
-use Velocity\Bundle\ApiBundle\Traits\TranslatorAwareTrait;
+use Velocity\Core\Traits\ServiceTrait;
+use Velocity\Core\Traits\LoggerAwareTrait;
+use Velocity\Core\Traits\TranslatorAwareTrait;
 
 /**
  * Repository Service.

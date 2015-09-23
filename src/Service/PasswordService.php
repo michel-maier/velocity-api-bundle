@@ -12,7 +12,7 @@
 namespace Velocity\Bundle\ApiBundle\Service;
 
 use Exception;
-use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
+use Velocity\Core\Traits\ServiceTrait;
 
 /**
  * Password Service.

@@ -12,7 +12,7 @@
 namespace Velocity\Bundle\ApiBundle\Storage;
 
 use Velocity\Bundle\ApiBundle\StorageInterface;
-use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
+use Velocity\Core\Traits\ServiceTrait;
 
 /**
  * Local File Storage

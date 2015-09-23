@@ -11,17 +11,17 @@
 
 namespace Velocity\Bundle\ApiBundle\Service;
 
-use Velocity\Bundle\ApiBundle\Exception\UnsupportedAccountTypeException;
 use Exception;
-use Velocity\Bundle\ApiBundle\Traits\ArrayizerTrait;
-use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
+use Velocity\Core\Traits\ArrayizerTrait;
+use Velocity\Core\Traits\ServiceTrait;
 use Velocity\Bundle\ApiBundle\Traits\ServiceAware;
-use Velocity\Bundle\ApiBundle\Exception\FormValidationException;
 use Symfony\Component\HttpFoundation\RequestStack;
-use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
-use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
+use Velocity\Bundle\ApiBundle\Exception\FormValidationException;
 use Symfony\Component\HttpKernel\Exception\NotFoundHttpException;
+use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Symfony\Component\Security\Core\Exception\AuthenticationException;
+use Velocity\Bundle\ApiBundle\Exception\UnsupportedAccountTypeException;
+use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
 
 /**
  * Exception Service.

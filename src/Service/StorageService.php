@@ -13,7 +13,7 @@ namespace Velocity\Bundle\ApiBundle\Service;
 
 use Velocity\Bundle\ApiBundle\StorageInterface;
 use Velocity\Bundle\ApiBundle\Traits\ServiceAware;
-use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
+use Velocity\Core\Traits\ServiceTrait;
 use Symfony\Component\EventDispatcher\EventDispatcherInterface;
 
 /**
@@ -138,7 +138,7 @@ class StorageService
 
         if ($oldListened) {
             $this->dispatch(
-                $storageName . '_object_deleted_old',
+                $storageName.'_object_deleted_old',
                 ['key' => $location, 'relativeKey' => $relativePath, 'value' => $old]
             );
         }

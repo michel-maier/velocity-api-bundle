@@ -11,10 +11,10 @@
 
 namespace Velocity\Bundle\ApiBundle\Action;
 
-use Velocity\Bundle\ApiBundle\Bag;
+use Velocity\Core\Bag;
+use Velocity\Core\Traits\ContainerAwareTrait;
 use Velocity\Bundle\ApiBundle\Annotation as Velocity;
 use Velocity\Bundle\ApiBundle\Action\Base\AbstractAction;
-use Velocity\Bundle\ApiBundle\Traits\ContainerAwareTrait;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 
 /**

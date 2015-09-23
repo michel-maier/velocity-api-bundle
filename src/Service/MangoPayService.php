@@ -23,7 +23,7 @@ use MangoPay\BankAccountDetailsOTHER;
 use MangoPay\PayInPaymentDetailsCard;
 use MangoPay\PayInExecutionDetailsWeb;
 use MangoPay\Exception as MangoPayException;
-use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
+use Velocity\Core\Traits\ServiceTrait;
 use Velocity\Bundle\ApiBundle\Traits\MangoPayApiAwareTrait;
 
 /**

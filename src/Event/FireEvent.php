@@ -60,6 +60,20 @@ class FireEvent extends Event
         return $this->eventName;
     }
     /**
+     * @return Event
+     */
+    public function getEvent()
+    {
+        return $this->event;
+    }
+    /**
+     * @return mixed
+     */
+    public function getData()
+    {
+        return $this->data;
+    }
+    /**
      * @param string $eventName
      *
      * @return $this
@@ -71,13 +85,6 @@ class FireEvent extends Event
         return $this;
     }
     /**
-     * @return Event
-     */
-    public function getEvent()
-    {
-        return $this->event;
-    }
-    /**
      * @param Event $event
      *
      * @return $this
@@ -87,13 +94,6 @@ class FireEvent extends Event
         $this->event = $event;
 
         return $this;
-    }
-    /**
-     * @return mixed
-     */
-    public function getData()
-    {
-        return $this->data;
     }
     /**
      * @param mixed $data

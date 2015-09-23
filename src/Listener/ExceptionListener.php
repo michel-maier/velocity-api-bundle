@@ -11,11 +11,11 @@
 
 namespace Velocity\Bundle\ApiBundle\Listener;
 
+use Velocity\Core\Traits\ServiceTrait;
+use Velocity\Core\Traits\RequestStackAwareTrait;
 use Symfony\Component\HttpFoundation\RequestStack;
-use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
 use Velocity\Bundle\ApiBundle\Traits\ServiceAware;
 use Velocity\Bundle\ApiBundle\Service\ResponseService;
-use Velocity\Bundle\ApiBundle\Traits\RequestStackAwareTrait;
 use Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent;
 
 /**

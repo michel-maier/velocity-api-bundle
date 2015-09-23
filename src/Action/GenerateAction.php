@@ -11,7 +11,7 @@
 
 namespace Velocity\Bundle\ApiBundle\Action;
 
-use Velocity\Bundle\ApiBundle\Bag;
+use Velocity\Core\Bag;
 use Velocity\Bundle\ApiBundle\Service\StorageService;
 use Velocity\Bundle\ApiBundle\Traits\ServiceAware;
 use Velocity\Bundle\ApiBundle\Annotation as Velocity;
@@ -27,6 +27,7 @@ class GenerateAction extends AbstractAction
     use ServiceAware\GeneratorServiceAwareTrait;
     /**
      * @param GeneratorService $generatorService
+     * @param StorageService   $storageService
      */
     public function __construct(GeneratorService $generatorService, StorageService $storageService)
     {
@@ -51,9 +52,6 @@ class GenerateAction extends AbstractAction
             $this->getStorageService()->save($params->get('store'), $generated);
         }
 
-        $context->set(
-            $params->get('var'),
-            $generated
-        );
+        $context->set($params->get('var'), $generated);
     }
 }

@@ -11,6 +11,8 @@
 
 namespace Velocity\Bundle\ApiBundle\Traits;
 
+use Velocity\Core\Traits\ServiceTrait;
+use Velocity\Core\Traits\LoggerAwareTrait;
 use Velocity\Bundle\ApiBundle\Traits\ServiceAware;
 
 /**

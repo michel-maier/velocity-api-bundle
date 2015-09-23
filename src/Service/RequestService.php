@@ -12,8 +12,8 @@
 namespace Velocity\Bundle\ApiBundle\Service;
 
 use Symfony\Component\HttpFoundation\Request;
-use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
-use Velocity\Bundle\ApiBundle\Traits\LoggerAwareTrait;
+use Velocity\Core\Traits\ServiceTrait;
+use Velocity\Core\Traits\LoggerAwareTrait;
 use Velocity\Bundle\ApiBundle\Security\ApiUserProvider;
 use Velocity\Bundle\ApiBundle\Traits\ClientProviderAwareTrait;
 

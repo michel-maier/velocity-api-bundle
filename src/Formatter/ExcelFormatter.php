@@ -12,7 +12,7 @@
 namespace Velocity\Bundle\ApiBundle\Formatter;
 
 use Velocity\Bundle\ApiBundle\Traits\ServiceAware;
-use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
+use Velocity\Core\Traits\ServiceTrait;
 use Velocity\Bundle\ApiBundle\Annotation as Velocity;
 use Velocity\Bundle\ApiBundle\Service\DocumentBuilderService;
 

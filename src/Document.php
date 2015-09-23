@@ -49,6 +49,20 @@ class Document implements DocumentInterface
         return $this->content;
     }
     /**
+     * @return string
+     */
+    public function getContentType()
+    {
+        return $this->contentType;
+    }
+    /**
+     * @return string
+     */
+    public function getFileName()
+    {
+        return $this->fileName;
+    }
+    /**
      * @param mixed $content
      *
      * @return $this
@@ -60,13 +74,6 @@ class Document implements DocumentInterface
         return $this;
     }
     /**
-     * @return string
-     */
-    public function getContentType()
-    {
-        return $this->contentType;
-    }
-    /**
      * @param string $contentType
      *
      * @return $this
@@ -76,13 +83,6 @@ class Document implements DocumentInterface
         $this->contentType = $contentType;
 
         return $this;
-    }
-    /**
-     * @return string
-     */
-    public function getFileName()
-    {
-        return $this->fileName;
     }
     /**
      * @param string $fileName

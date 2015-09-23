@@ -15,7 +15,7 @@ use Exception;
 use Velocity\Bundle\ApiBundle\Exception\BusinessRuleException;
 use Velocity\Bundle\ApiBundle\Exception\NamedBusinessRuleException;
 use Velocity\Bundle\ApiBundle\Traits\ServiceAware;
-use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
+use Velocity\Core\Traits\ServiceTrait;
 
 /**
  * Business Rule Service.

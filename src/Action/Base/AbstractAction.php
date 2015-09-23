@@ -11,7 +11,7 @@
 
 namespace Velocity\Bundle\ApiBundle\Action\Base;
 
-use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
+use Velocity\Core\Traits\ServiceTrait;
 
 /**
  * Abstract Mail Event Action.

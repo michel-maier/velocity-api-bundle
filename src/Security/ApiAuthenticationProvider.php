@@ -13,7 +13,7 @@ namespace Velocity\Bundle\ApiBundle\Security;
 
 use DateTime;
 use Exception;
-use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
+use Velocity\Core\Traits\ServiceTrait;
 use Velocity\Bundle\ApiBundle\Traits\ServiceAware;
 use Velocity\Bundle\ApiBundle\Traits\ClientProviderAwareTrait;
 use Velocity\Bundle\ApiBundle\Exception\BadUserTokenException;
@@ -85,7 +85,7 @@ class ApiAuthenticationProvider implements AuthenticationProviderInterface
             /** @var ApiUser $sudoer */
             $sudoer = $this->getUserProvider()->loadUserByUsername($token->getUsername());
 
-            if (!$sudoer->isAllowedToSwitch()) {
+            if (!$sudoer->isAllowedToswitch()) {
                 throw new MissingSudoPrivilegeException();
             }
 
@@ -127,10 +127,7 @@ class ApiAuthenticationProvider implements AuthenticationProviderInterface
             throw new MissingClientIdentityException();
         }
 
-        if (false === (
-                $this->getRequestService()->buildClientToken($infos['id'], $infos['expire'], $this->getRequestService()->getClientSecret()) === $infos['token']
-                && false === $this->getRequestService()->isDateExpired($now, $this->getRequestService()->convertStringToDateTime($infos['expire']))
-            )) {
+        if (false === ($this->getRequestService()->buildClientToken($infos['id'], $infos['expire'], $this->getRequestService()->getClientSecret()) === $infos['token'] && false === $this->getRequestService()->isDateExpired($now, $this->getRequestService()->convertStringToDateTime($infos['expire'])))) {
             throw new BadClientTokenException();
         }
 
@@ -143,7 +140,7 @@ class ApiAuthenticationProvider implements AuthenticationProviderInterface
     /**
      * Validate the specified user token infos.
      *
-     * @param array     $infos
+     * @param array    $infos
      * @param DateTime $now
      *
      * @return array
@@ -156,10 +153,7 @@ class ApiAuthenticationProvider implements AuthenticationProviderInterface
             throw new MissingUserIdentityException();
         }
 
-        if (false === (
-                $this->getRequestService()->buildUserToken($infos['id'], $infos['expire'], $this->getRequestService()->getUserSecret()) === $infos['token']
-                && false === $this->getRequestService()->isDateExpired($now, $this->getRequestService()->convertStringToDateTime($infos['expire']))
-            )) {
+        if (false === ($this->getRequestService()->buildUserToken($infos['id'], $infos['expire'], $this->getRequestService()->getUserSecret()) === $infos['token'] && false === $this->getRequestService()->isDateExpired($now, $this->getRequestService()->convertStringToDateTime($infos['expire'])))) {
             throw new BadUserTokenException();
         }
 
