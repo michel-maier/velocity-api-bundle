@@ -11,12 +11,12 @@
 
 namespace Velocity\Bundle\ApiBundle\Twig;
 
-use Velocity\Core\Twig\Base\TwigBaseExtension;
+use Velocity\Core\Twig\Base\AbstractTwigExtension;
 
 /**
  * @author Olivier Hoareau <olivier@phppro.fr>
  */
-class ApiExtension extends TwigBaseExtension
+class ApiExtension extends AbstractTwigExtension
 {
     /**
      * @var array

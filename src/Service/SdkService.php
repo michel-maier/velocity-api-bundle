@@ -113,6 +113,8 @@ class SdkService
      */
     protected function generateStaticFiles($path, array &$exceptions, array $options = [])
     {
+        unset($options);
+
         $f = new Finder();
         $f->ignoreDotFiles(false);
         $rClass = new \ReflectionClass($this);
@@ -188,6 +190,8 @@ class SdkService
             $this->getCodeGeneratorService()->createClassFile($className, ['serviceName' => $serviceName] + $service)->generate()
         );
 
+        unset($options);
+
         return $this;
     }
     /**
@@ -230,6 +234,9 @@ class SdkService
             $path.'/src/'.str_replace('\\', '/', 'Tests\\Service\\'.ucfirst($serviceName).'ServiceTest').'.php',
             $this->getCodeGeneratorService()->createClassFile($className, ['serviceName' => $serviceName] + $testClass)->generate()
         );
+
+        unset($service);
+        unset($options);
 
         return $this;
     }

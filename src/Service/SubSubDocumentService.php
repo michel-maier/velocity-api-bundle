@@ -229,7 +229,7 @@ class SubSubDocumentService implements SubSubDocumentServiceInterface
 
         $this->callback($pParentId, $parentId, 'delete.pre_save', $old, $options);
 
-        $this->checkBusinessRules($pParentId, $parentId, 'delete', $old, $options);
+        $this->applyBusinessRules($pParentId, $parentId, 'delete', $old, $options);
 
         $this->callback($pParentId, $parentId, 'delete.pre_save_checked', $old, $options);
 
