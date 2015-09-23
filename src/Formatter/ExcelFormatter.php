@@ -66,7 +66,7 @@ class ExcelFormatter
      */
     public function formatXls($data, array $options = [])
     {
-        return $this->getDocumentBuilderService()->build('excel', $data, ['filename' => 'result.xsl'], $options);
+        return $this->getDocumentBuilderService()->build('excel', $data, ['filename' => 'result.xls'], $options);
     }
     /**
      * @param mixed $data
@@ -90,6 +90,6 @@ class ExcelFormatter
      */
     public function formatXlsx($data, array $options = [])
     {
-        return $this->getDocumentBuilderService()->build('excel', $data, ['filename' => 'result.xslx'], $options);
+        return $this->getDocumentBuilderService()->build('excel', $data, ['filename' => 'result.xlsx'], $options);
     }
 }

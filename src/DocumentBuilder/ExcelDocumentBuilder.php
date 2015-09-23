@@ -44,10 +44,17 @@ class ExcelDocumentBuilder extends AbstractSpreadSheetDocumentBuilder
      */
     protected function buildSheet(\PHPExcel_Worksheet $sheet, $data)
     {
+        if (!is_array($data)) {
+            $data = [];
+        }
+
         $headers = null;
 
         $row = 1;
         foreach($data as $k => $v) {
+            if (!is_array($v)) {
+                $v = [];
+            }
             if (null === $headers) {
                 $headers = array_keys($v);
                 foreach($headers as $kk => $vv) {
@@ -56,8 +63,25 @@ class ExcelDocumentBuilder extends AbstractSpreadSheetDocumentBuilder
             }
             $row++;
             foreach($headers as $kk => $vv) {
-                $sheet->setCellValueByColumnAndRow($kk, $row, isset($v[$vv]) ? $v[$vv] : null);
+                $sheet->setCellValueByColumnAndRow($kk, $row, isset($v[$vv]) ? $this->formatCellValue($v[$vv]) : null);
             }
         }
+    }
+    /**
+     * @param mixed $value
+     *
+     * @return string
+     */
+    protected function formatCellValue($value)
+    {
+        if (is_object($value)) {
+            $value = (array) $value;
+        }
+
+        if (is_array($value)) {
+            $value = json_encode($value);
+        }
+
+        return (string) $value;
     }
 }

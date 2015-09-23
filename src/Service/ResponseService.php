@@ -12,6 +12,7 @@
 namespace Velocity\Bundle\ApiBundle\Service;
 
 use Symfony\Component\HttpFoundation\Response;
+use Velocity\Bundle\ApiBundle\DocumentInterface;
 use Velocity\Bundle\ApiBundle\Traits\ServiceAware;
 use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
 
@@ -57,11 +58,20 @@ class ResponseService
             }
         }
 
-        return new Response(
-            $this->getFormatterService()->format($format, $data, $options),
-            $code,
-            ['Content-Type' => $format] + $headers
-        );
+        if ($data instanceof DocumentInterface) {
+            $content = $data->getContent();
+            $contentType = $data->getContentType();
+        } else {
+            $theData = json_decode($this->getFormatterService()->format('application/json', $data, $options), true);
+            $content = $this->getFormatterService()->format($format, $theData, $options);
+            $contentType = $format;
+            if ($content instanceof DocumentInterface) {
+                $contentType = $content->getContentType();
+                $content = $content->getContent();
+            }
+        }
+
+        return new Response($content, $code, ['Content-Type' => $contentType] + $headers);
     }
     /**
      * @param array      $acceptableContentTypes
@@ -76,10 +86,39 @@ class ResponseService
         $info = $this->getExceptionService()->describe($exception);
 
         return $this->create(
-            $acceptableContentTypes,
+            $this->filterValidErrorContentTypes($acceptableContentTypes),
             $info['data'],
             (100 < $info['code'] && 599 > $info['code']) ? $info['code'] : 500,
             $info['headers']
         );
+    }
+    /**
+     * @param array $contentTypes
+     *
+     * @return array
+     */
+    protected function filterValidErrorContentTypes($contentTypes)
+    {
+        $valids = [
+            'text/json' => true,
+            'application/json' => true,
+            'text/xml' => true,
+            'application/xml' => true,
+            'text/plain' => true,
+            'text/yaml' => true,
+            'application/x-yaml' => true,
+        ];
+
+        foreach ($contentTypes as $k => $contentType) {
+            if (!is_array($contentType)) {
+                $contentType = ['value' => $contentType];
+            }
+
+            if (!isset($valids[$contentType['value']])) {
+                unset($contentTypes[$k]);
+            }
+        }
+
+        return $contentTypes;
     }
 }
