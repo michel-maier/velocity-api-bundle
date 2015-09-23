@@ -62,9 +62,11 @@ class ResponseService
             $content = $data->getContent();
             $contentType = $data->getContentType();
         } else {
-            $theData = json_decode($this->getFormatterService()->format('application/json', $data, $options), true);
-            $content = $this->getFormatterService()->format($format, $theData, $options);
             $contentType = $format;
+            $content     = $this->getFormatterService()->format('application/json', $data, $options);
+            if ($format !== 'application/json' && $format === 'text/json') {
+                $content = $this->getFormatterService()->format($format, json_decode($content, true), $options);
+            }
             if ($content instanceof DocumentInterface) {
                 $contentType = $content->getContentType();
                 $content = $content->getContent();
