@@ -48,6 +48,7 @@ class VelocityService
             'documentBuilder.key'                 => 'velocity.documentBuilder',
             'event.key'                           => 'velocity.event',
             'storage.key'                         => 'velocity.storage',
+            'formatter.key'                       => 'velocity.formatter',
             'businessRule.key'                    => 'velocity.businessRule',
             'invitationEvent.key'                 => 'velocity.invitationEvent',
             'generator.key'                       => 'velocity.generator',
@@ -122,6 +123,7 @@ class VelocityService
             'archiver.tag'            => 'velocity.archiver',
             'job.tag'                 => 'velocity.job',
             'storage.tag'             => 'velocity.storage',
+            'formatter.tag'           => 'velocity.formatter',
             'document_builder.tag'    => 'velocity.document_builder',
 
         ];
@@ -372,6 +374,7 @@ class VelocityService
         $this->processInvitationEventTag($container);
         $this->processGeneratorTag($container);
         $this->processArchiverTag($container);
+        $this->processFormatterTag($container);
         $this->processJobTag($container);
         $this->processStorageTag($container);
         $this->processDocumentBuilderTag($container);
@@ -805,6 +808,36 @@ class VelocityService
                                 $type = $vars['value'];
                                 unset($vars['value']);
                                 $archiverDefinition->addMethodCall('register', [$type, [$this->ref($id), $method], $vars]);
+                                break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    /**
+     * Process formatter tags.
+     *
+     * @param ContainerBuilder $container
+     */
+    protected function processFormatterTag(ContainerBuilder $container)
+    {
+        $formatterDefinition = $container->getDefinition($this->getDefault('formatter.key'));
+
+        foreach ($this->findVelocityTaggedServiceIds($container, 'formatter') as $id => $attributes) {
+            $d = $container->getDefinition($id);
+            foreach ($attributes as $params) {
+                unset($params);
+                $rClass = new \ReflectionClass($d->getClass());
+                foreach ($rClass->getMethods(\ReflectionProperty::IS_PUBLIC) as $rMethod) {
+                    foreach ($this->getAnnotationReader()->getMethodAnnotations($rMethod) as $a) {
+                        $vars   = get_object_vars($a);
+                        $method = $rMethod->getName();
+                        switch (true) {
+                            case $a instanceof Velocity\Formatter:
+                                $type = $vars['value'];
+                                unset($vars['value']);
+                                $formatterDefinition->addMethodCall('register', [$type, [$this->ref($id), $method], $vars]);
                                 break;
                         }
                     }

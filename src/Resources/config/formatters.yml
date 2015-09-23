@@ -1,0 +1,23 @@
+services:
+  velocity.formatter.json:
+    class: Velocity\Bundle\ApiBundle\Formatter\JsonFormatter
+    arguments:
+      - @jms_serializer
+    tags:
+      - { name: velocity.formatter }
+  velocity.formatter.xml:
+    class: Velocity\Bundle\ApiBundle\Formatter\XmlFormatter
+    arguments:
+      - @jms_serializer
+    tags:
+      - { name: velocity.formatter }
+  velocity.formatter.excel:
+    class: Velocity\Bundle\ApiBundle\Formatter\ExcelFormatter
+    arguments:
+      - @velocity.documentBuilder
+    tags:
+      - { name: velocity.formatter }
+  velocity.formatter.yaml:
+    class: Velocity\Bundle\ApiBundle\Formatter\YamlFormatter
+    tags:
+      - { name: velocity.formatter }

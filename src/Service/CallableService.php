@@ -101,6 +101,18 @@ class CallableService
         return $this->getArrayParameterKey($type.'s', $name);
     }
     /**
+     * Test if the callable for the specified name exist
+     *
+     * @param string $type
+     * @param string $name
+     *
+     * @return bool
+     */
+    public function hasByType($type, $name)
+    {
+        return $this->hasArrayParameterKey($type.'s', $name);
+    }
+    /**
      * @param string $type
      *
      * @return mixed

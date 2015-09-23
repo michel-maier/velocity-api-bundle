@@ -11,6 +11,7 @@
 
 namespace Velocity\Bundle\ApiBundle\Controller;
 
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Velocity\Bundle\ApiBundle\Traits\ServiceAwareController;
 use Velocity\Bundle\ApiBundle\Controller\Base\AbstractRestController;
@@ -39,11 +40,13 @@ class SupervisionController extends AbstractRestController
      *  views = { "infra" }
      * )
      *
+     * @param Request $request
+     *
      * @return Response
      */
-    public function pingAction()
+    public function pingAction(Request $request)
     {
-        return $this->returnResponse($this->getSupervisionService()->ping());
+        return $this->returnResponse($this->getSupervisionService()->ping(), 200, [], [], $request);
     }
     /**
      * @Route("/supervision/whoami", name="api_supervision_whoami")
@@ -58,10 +61,12 @@ class SupervisionController extends AbstractRestController
      *  views = { "infra" }
      * )
      *
+     * @param Request $request
+     *
      * @return Response
      */
-    public function whoamiAction()
+    public function whoamiAction(Request $request)
     {
-        return $this->returnResponse($this->getSupervisionService()->getIdentity());
+        return $this->returnResponse($this->getSupervisionService()->getIdentity(), 200, [], [], $request);
     }
 }

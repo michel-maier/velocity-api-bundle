@@ -48,7 +48,9 @@ class SecurityController extends AbstractRestController
             null,
             204,
             $this->getRequestService()
-                ->createClientTokenFromRequestAndReturnHeaders($request)
+                ->createClientTokenFromRequestAndReturnHeaders($request),
+            [],
+            $request
         );
     }
     /**
@@ -74,7 +76,9 @@ class SecurityController extends AbstractRestController
             null,
             204,
             $this->getRequestService()
-                ->createUserTokenFromRequestAndReturnHeaders($request)
+                ->createUserTokenFromRequestAndReturnHeaders($request),
+            [],
+            $request
         );
     }
 }

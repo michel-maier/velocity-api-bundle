@@ -11,7 +11,7 @@
 
 namespace Velocity\Bundle\ApiBundle\Controller\Base;
 
-use JMS\Serializer\SerializationContext;
+use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Velocity\Bundle\ApiBundle\Traits\ServiceAwareController;
 
@@ -22,31 +22,27 @@ use Velocity\Bundle\ApiBundle\Traits\ServiceAwareController;
  */
 abstract class AbstractRestController extends AbstractController
 {
-    use ServiceAwareController\SerializerAwareControllerTrait;
     use ServiceAwareController\RequestServiceAwareControllerTrait;
     use ServiceAwareController\ExceptionServiceAwareControllerTrait;
     /**
      * Returns the http response.
      *
-     * @param mixed $data
-     * @param int   $code
-     * @param array $headers
-     * @param array $options
+     * @param mixed   $data
+     * @param int     $code
+     * @param array   $headers
+     * @param array   $options
+     * @param Request $request
      *
      * @return Response
      */
-    protected function returnResponse($data = null, $code = 200, $headers = [], $options = [])
+    protected function returnResponse($data = null, $code = 200, $headers = [], $options = [], Request $request = null)
     {
-        $context = SerializationContext::create();
-
-        if (isset($options['groups'])) {
-            $context->setGroups($options['groups']);
-        }
-
-        return new Response(
-            $this->getSerializer()->serialize($data, 'json', $context),
+        return $this->get('velocity.response')->create(
+            isset($request) && count($request->getAcceptableContentTypes()) ? $request->getAcceptableContentTypes() : [['value' => 'application/json']],
+            $data,
             $code,
-            $headers + ['Content-Type' => 'application/json; charset=UTF-8']
+            $headers,
+            $options
         );
     }
 }

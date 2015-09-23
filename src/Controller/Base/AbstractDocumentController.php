@@ -54,7 +54,8 @@ abstract class AbstractDocumentController extends AbstractRestController
             ),
             200,
             [],
-            ['groups' => ['Default', 'listed']]
+            ['groups' => ['Default', 'listed']],
+            $request
         );
     }
     /**
@@ -75,7 +76,8 @@ abstract class AbstractDocumentController extends AbstractRestController
             ),
             200,
             [],
-            ['groups' => ['Default', 'detailed']]
+            ['groups' => ['Default', 'detailed']],
+            $request
         );
     }
     /**
@@ -93,7 +95,7 @@ abstract class AbstractDocumentController extends AbstractRestController
             $options
         );
 
-        return $this->returnResponse(null, 204);
+        return $this->returnResponse(null, 204, [], [], $request);
     }
     /**
      * Purge (delete) all the documents.
@@ -105,12 +107,11 @@ abstract class AbstractDocumentController extends AbstractRestController
      */
     protected function handlePurge(Request $request, $options = [])
     {
-        unset($request);
         $this->getService()->purge(
             $options
         );
 
-        return $this->returnResponse(null, 204);
+        return $this->returnResponse(null, 204, [], [], $request);
     }
     /**
      * Update the specified document.
@@ -130,7 +131,8 @@ abstract class AbstractDocumentController extends AbstractRestController
             ),
             200,
             [],
-            ['groups' => ['Default', 'updated']]
+            ['groups' => ['Default', 'updated']],
+            $request
         );
     }
     /**
@@ -159,7 +161,8 @@ abstract class AbstractDocumentController extends AbstractRestController
             ),
             200,
             [],
-            ['groups' => ['Default', 'updated']]
+            ['groups' => ['Default', 'updated']],
+            $request
         );
     }
     /**
@@ -179,7 +182,8 @@ abstract class AbstractDocumentController extends AbstractRestController
             ),
             201,
             [],
-            ['groups' => ['Default', 'created']]
+            ['groups' => ['Default', 'created']],
+            $request
         );
     }
 }

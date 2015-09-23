@@ -13,10 +13,10 @@ namespace Velocity\Bundle\ApiBundle\Service;
 
 use Velocity\Bundle\ApiBundle\Exception\UnsupportedAccountTypeException;
 use Exception;
+use Velocity\Bundle\ApiBundle\Traits\ArrayizerTrait;
 use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
 use Velocity\Bundle\ApiBundle\Traits\ServiceAware;
 use Velocity\Bundle\ApiBundle\Exception\FormValidationException;
-use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\RequestStack;
 use Symfony\Component\HttpKernel\Exception\HttpExceptionInterface;
 use Symfony\Component\HttpKernel\Exception\MethodNotAllowedHttpException;
@@ -31,6 +31,7 @@ use Symfony\Component\Security\Core\Exception\AuthenticationException;
 class ExceptionService
 {
     use ServiceTrait;
+    use ArrayizerTrait;
     use ServiceAware\FormServiceAwareTrait;
     /**
      * @param RequestStack $requestStack
@@ -56,23 +57,6 @@ class ExceptionService
     public function getRequestStack()
     {
         return $this->getService('requestStack');
-    }
-    /**
-     * @param Exception $e
-     * @param int       $code
-     * @param array     $headers
-     *
-     * @return JsonResponse
-     */
-    public function convertToResponse(Exception $e, $code = null, $headers = [])
-    {
-        $info = $this->describe($e);
-
-        return new JsonResponse(
-            $info['data'],
-            null !== $code ? $code : $info['code'],
-            $headers + $info['headers']
-        );
     }
     /**
      * @param Exception $e
@@ -123,7 +107,7 @@ class ExceptionService
         }
 
         if ($this->isDebug()) {
-            $data['debug'] = $e->getTrace();
+            $data['debug'] = $this->arrayize($e->getTrace());
         }
 
         return [

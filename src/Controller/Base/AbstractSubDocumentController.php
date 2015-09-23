@@ -59,7 +59,8 @@ abstract class AbstractSubDocumentController extends AbstractRestController
             ),
             200,
             [],
-            ['groups' => ['Default', 'listed']]
+            ['groups' => ['Default', 'listed']],
+            $request
         );
     }
     /**
@@ -81,7 +82,8 @@ abstract class AbstractSubDocumentController extends AbstractRestController
             ),
             200,
             [],
-            ['groups' => ['Default', 'detailed']]
+            ['groups' => ['Default', 'detailed']],
+            $request
         );
     }
     /**
@@ -100,7 +102,7 @@ abstract class AbstractSubDocumentController extends AbstractRestController
             $options
         );
 
-        return $this->returnResponse(null, 204);
+        return $this->returnResponse(null, 204, [], [], $request);
     }
     /**
      * Purge (delete) all the documents.
@@ -117,7 +119,7 @@ abstract class AbstractSubDocumentController extends AbstractRestController
             $options
         );
 
-        return $this->returnResponse(null, 204);
+        return $this->returnResponse(null, 204, [], [], $request);
     }
     /**
      * Update the specified document.
@@ -138,7 +140,8 @@ abstract class AbstractSubDocumentController extends AbstractRestController
             ),
             200,
             [],
-            ['groups' => ['Default', 'updated']]
+            ['groups' => ['Default', 'updated']],
+            $request
         );
     }
     /**
@@ -168,7 +171,8 @@ abstract class AbstractSubDocumentController extends AbstractRestController
             ),
             200,
             [],
-            ['groups' => ['Default', 'updated']]
+            ['groups' => ['Default', 'updated']],
+            $request
         );
     }
     /**
@@ -189,7 +193,8 @@ abstract class AbstractSubDocumentController extends AbstractRestController
             ),
             200,
             [],
-            ['groups' => ['Default', 'created']]
+            ['groups' => ['Default', 'created']],
+            $request
         );
     }
 }

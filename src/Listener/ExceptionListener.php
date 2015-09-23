@@ -11,8 +11,11 @@
 
 namespace Velocity\Bundle\ApiBundle\Listener;
 
+use Symfony\Component\HttpFoundation\RequestStack;
 use Velocity\Bundle\ApiBundle\Traits\ServiceTrait;
 use Velocity\Bundle\ApiBundle\Traits\ServiceAware;
+use Velocity\Bundle\ApiBundle\Service\ResponseService;
+use Velocity\Bundle\ApiBundle\Traits\RequestStackAwareTrait;
 use Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent;
 
 /**
@@ -23,7 +26,17 @@ use Symfony\Component\HttpKernel\Event\GetResponseForExceptionEvent;
 class ExceptionListener
 {
     use ServiceTrait;
-    use ServiceAware\ExceptionServiceAwareTrait;
+    use RequestStackAwareTrait;
+    use ServiceAware\ResponseServiceAwareTrait;
+    /**
+     * @param ResponseService $responseService
+     * @param RequestStack    $requestStack
+     */
+    public function __construct(ResponseService $responseService, RequestStack $requestStack)
+    {
+        $this->setResponseService($responseService);
+        $this->setRequestStack($requestStack);
+    }
     /**
      * Kernel exception event callback.
      *
@@ -34,7 +47,10 @@ class ExceptionListener
     public function onKernelException(GetResponseForExceptionEvent $event)
     {
         $event->setResponse(
-            $this->getExceptionService()->convertToResponse($event->getException())
+            $this->getResponseService()->createFromException(
+                $this->getRequestStack()->getMasterRequest()->getAcceptableContentTypes(),
+                $event->getException()
+            )
         );
     }
 }
