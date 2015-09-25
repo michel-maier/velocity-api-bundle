@@ -8,3 +8,6 @@
 /bin/phpcs
 /bin/phpcbf
 /reports
+/.buildpath
+/.project
+/.settings/
