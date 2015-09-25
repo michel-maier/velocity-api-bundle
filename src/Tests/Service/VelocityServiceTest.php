@@ -77,6 +77,31 @@ class VelocityServiceTest extends PHPUnit_Framework_TestCase
     }
     /**
      * @group unit
+     * @group velocity
+     */
+    public function testModelClassesWithAnnotatedProperties()
+    {
+        $d = new Definition();
+
+        $this->s->loadClassesMetaData([
+            'Velocity\\Bundle\\ApiBundle\\Tests\\Model\\ModelWithAnnotatedProperties',
+        ], $d);
+        $addedMethods = $d->getMethodCalls();
+        $this->assertCount(3, $addedMethods);
+        $this->assertEquals(
+            ['addModel', ['Velocity\\Bundle\\ApiBundle\\Tests\\Model\\ModelWithAnnotatedProperties', []]],
+            $addedMethods[0]
+        );
+        list($sourceClass, $sourceProperty) = $addedMethods[1];
+        $this->assertEquals('addModelPropertyEmbeddedReference', $sourceClass);
+        $this->assertContains('embeddedReference', $sourceProperty);
+
+        list($sourceClass, $sourceProperty) = $addedMethods[2];
+        $this->assertEquals('addModelPropertyId', $sourceClass);
+        $this->assertContains('id', $sourceProperty);
+    }
+    /**
+     * @group unit
      */
     public function testIsVelocityAnnotatedClass()
     {
@@ -95,6 +120,7 @@ class VelocityServiceTest extends PHPUnit_Framework_TestCase
             'Velocity\\Bundle\\ApiBundle\\Tests\\Model\\Model1',
             'Velocity\\Bundle\\ApiBundle\\Tests\\Model\\Model2',
             'Velocity\\Bundle\\ApiBundle\\Tests\\Model\\ModelWithAnnotatedMethods',
+            'Velocity\\Bundle\\ApiBundle\\Tests\\Model\\ModelWithAnnotatedProperties',
         ];
 
         $this->assertEquals($expected, $classes);
