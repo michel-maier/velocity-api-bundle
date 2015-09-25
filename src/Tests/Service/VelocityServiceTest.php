@@ -36,7 +36,7 @@ class VelocityServiceTest extends PHPUnit_Framework_TestCase
      * @group unit
      * @group velocity
      */
-    public function testModelClasses()
+    public function testSimpleModelClasses()
     {
         $d = new Definition();
 
@@ -52,6 +52,28 @@ class VelocityServiceTest extends PHPUnit_Framework_TestCase
             ],
             $d->getMethodCalls()
         );
+    }
+    /**
+     * @group unit
+     * @group velocity
+     */
+    public function testModelClassesWithAnnotatedMethods()
+    {
+        $d = new Definition();
+
+        $this->s->loadClassesMetaData([
+            'Velocity\\Bundle\\ApiBundle\\Tests\\Model\\ModelWithAnnotatedMethods',
+        ], $d);
+        $addedMethods = $d->getMethodCalls();
+        $this->assertCount(2, $addedMethods);
+        $this->assertEquals(
+            ['addModel', ['Velocity\\Bundle\\ApiBundle\\Tests\\Model\\ModelWithAnnotatedMethods', []]],
+            $addedMethods[0]
+        );
+        list($sourceClass, $sourceMethod) = $addedMethods[1];
+        $this->assertEquals('addSdkMethod', $sourceClass);
+        $this->assertContains('sdkMethod', $sourceMethod);
+        $this->assertContains('Velocity\\Bundle\\ApiBundle\\Tests\\Model\\ModelWithAnnotatedMethods', $sourceMethod);
     }
     /**
      * @group unit
@@ -72,6 +94,7 @@ class VelocityServiceTest extends PHPUnit_Framework_TestCase
         $expected = [
             'Velocity\\Bundle\\ApiBundle\\Tests\\Model\\Model1',
             'Velocity\\Bundle\\ApiBundle\\Tests\\Model\\Model2',
+            'Velocity\\Bundle\\ApiBundle\\Tests\\Model\\ModelWithAnnotatedMethods',
         ];
 
         $this->assertEquals($expected, $classes);
