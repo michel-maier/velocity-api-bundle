@@ -36,6 +36,34 @@ class MetaDataService
      */
     protected $sdk = ['services' => []];
     /**
+     * @param string                                                                                    $name
+     * @param DocumentServiceInterface|SubDocumentServiceInterface|SubSubDocumentServiceInterface|mixed $service
+     *
+     * @return $this
+     */
+    public function addCrudService($name, $service)
+    {
+        return $this->setArrayParameterKey('crudServices', $name, $service);
+    }
+    /**
+     * @param string $name
+     *
+     * @return DocumentServiceInterface|SubDocumentServiceInterface|SubSubDocumentServiceInterface|mixed
+     *
+     * @throws \Exception
+     */
+    public function getCrudService($name)
+    {
+        return $this->getArrayParameterKey('crudServices', $name);
+    }
+    /**
+     * @return DocumentServiceInterface[]|SubDocumentServiceInterface[]|SubSubDocumentServiceInterface[]|array
+     */
+    public function getCrudServices()
+    {
+        return $this->getArrayParameter('crudServices');
+    }
+    /**
      * @param string $class
      *
      * @return $this
@@ -62,6 +90,7 @@ class MetaDataService
             $this->models[$class] = [
                 'embeddedReferences'     => [],
                 'embeddedReferenceLists' => [],
+                'referenceLists'         => [],
                 'refreshes'              => [],
                 'generateds'             => [],
                 'ids'                    => [],
@@ -110,11 +139,38 @@ class MetaDataService
      *
      * @return $this
      */
-    public function addClassPropertyEmbeddedReferenceList($class, $property, $definition)
+    public function addModelPropertyEmbeddedReferenceList($class, $property, $definition)
     {
         $this->checkModel($class);
 
         $this->models[$class]['embeddedReferenceLists'][$property] = $definition;
+
+        return $this;
+    }
+    /**
+     * @param string $class
+     * @param string $property
+     * @param array  $definition
+     *
+     * @return $this
+     */
+    public function addModelPropertyReferenceList($class, $property, $definition)
+    {
+        $this->checkModel($class);
+
+        $this->models[$class]['referenceLists'][$property] = $definition;
+
+        $values = $definition['value'];
+        if (!is_array($values)) {
+            $values = [];
+        }
+
+        if (!isset($this->models[$class]['types'][$property])) {
+            $this->models[$class]['types'][$property] = [];
+        }
+
+        $this->models[$class]['types'][$property]['type'] = 'referenceList';
+        $this->models[$class]['types'][$property]['values'] = $values;
 
         return $this;
     }
@@ -278,6 +334,43 @@ class MetaDataService
         return $this->models[$class]['embeddedReferences'];
     }
     /**
+     * @param string|Object $class
+     *
+     * @return array
+     */
+    public function getModelReferenceLists($class)
+    {
+        if (is_object($class)) {
+            $class = get_class($class);
+        }
+
+        $this->checkModel($class);
+
+        return $this->models[$class]['referenceLists'];
+    }
+    /**
+     * @param string|Object $class
+     * @param string        $property
+     *
+     * @return array
+     *
+     * @throws \Exception
+     */
+    public function getModelReferenceListByProperty($class, $property)
+    {
+        if (is_object($class)) {
+            $class = get_class($class);
+        }
+
+        $this->checkModel($class);
+
+        if (!isset($this->models[$class]['referenceLists'][$property])) {
+            throw $this->createRequiredException("Property '%s' is a not a reference list", $property);
+        }
+
+        return $this->models[$class]['referenceLists'][$property];
+    }
+    /**
      * @return array
      */
     public function getModels()
@@ -411,6 +504,16 @@ class MetaDataService
         switch ($propertyType['type']) {
             case 'enum':
                 return new TypeGuess('choice', ['choices' => $propertyType['values']], Guess::HIGH_CONFIDENCE);
+            case 'referenceList':
+                $referenceList = $this->getModelReferenceListByProperty($class, $property);
+                $choices = [];
+                foreach ($this->getCrudService($referenceList['type'])->find([], []) as $choice) {
+                    error_log(print_r($choice, true));
+                    $choice = (array)$choice;
+                    error_log(print_r($choice, true));
+                    $choices[$choice[$referenceList['key']]] = $choice[$referenceList['labelKey']];
+                }
+                return new TypeGuess('choice', ['multiple' => true, 'choices' => $choices], Guess::HIGH_CONFIDENCE);
             default:
                 return new TypeGuess(null, [], Guess::LOW_CONFIDENCE);
         }
@@ -583,7 +686,7 @@ class MetaDataService
         $model = $this->createModelInstance(['model' => $class]);
         $fields = array_keys(get_object_vars($model));
 
-        return $this->{'get'.ucfirst($type).'Service'}()->get($id, $fields, ['model' => $model]);
+        return $this->getCrudService($type)->get($id, $fields, ['model' => $model]);
     }
     /**
      * @param mixed $doc

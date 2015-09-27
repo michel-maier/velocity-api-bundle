@@ -120,6 +120,7 @@ class VelocityService
             'invitation_event.tag'    => 'velocity.invitation_event',
             'generator.tag'           => 'velocity.generator',
             'repositories_aware.tag'  => 'velocity.repositories_aware',
+            'cruds_aware.tag'         => 'velocity.cruds_aware',
             'archiver.tag'            => 'velocity.archiver',
             'job.tag'                 => 'velocity.job',
             'storage.tag'             => 'velocity.storage',
@@ -238,6 +239,12 @@ class VelocityService
                                 throw $this->createRequiredException('EmbeddedReferenceList annotation only allowed in models');
                             }
                             $m->addMethodCall('addModelPropertyEmbeddedReferenceList', [$class, $property, $vars]);
+                            break;
+                        case $a instanceof Velocity\ReferenceList:
+                            if (!$model) {
+                                throw $this->createRequiredException('ReferenceList annotation only allowed in models');
+                            }
+                            $m->addMethodCall('addModelPropertyReferenceList', [$class, $property, $vars]);
                             break;
                         case $a instanceof Velocity\Refresh:
                             if (!$model) {
@@ -379,6 +386,7 @@ class VelocityService
         $this->processStorageTag($container);
         $this->processDocumentBuilderTag($container);
         $this->processRepositoriesAwareTag($container);
+        $this->processCrudsAwareTag($container);
 
         return $this;
     }
@@ -474,9 +482,10 @@ class VelocityService
             $d = $container->getDefinition($id);
             $this->ensureDefinitionClassSet($d, 'crud');
             $d->addMethodCall('setTypes', [[$type]]);
-            $params = array_shift($attributes) + ['repo' => $type];
+            $params = array_shift($attributes) + ['id' => $type, 'repo' => $type];
             $this->addRepositorySetterCall($d, $this->getRepositoryId($params['repo']));
             $this->populateModelService($container, $id, $d, [$type]);
+            $this->setArrayParameterKey('crudServiceIds', strtolower($params['id']), $id);
         }
     }
     /**
@@ -507,9 +516,10 @@ class VelocityService
             $d = $container->getDefinition($id);
             $this->ensureDefinitionClassSet($d, 'crud.sub');
             $d->addMethodCall('setTypes', [[$type, $subType]]);
-            $params = array_shift($attrs) + ['repo' => $type];
+            $params = array_shift($attrs) + ['id' => $type.'.'.$subType, 'repo' => $type];
             $this->addRepositorySetterCall($d, $this->getRepositoryId($params['repo']));
             $this->populateModelService($container, $id, $d, [$type, $subType]);
+            $this->setArrayParameterKey('crudServiceIds', strtolower($params['id']), $id);
         }
     }
     /**
@@ -524,9 +534,10 @@ class VelocityService
             $d = $container->getDefinition($id);
             $this->ensureDefinitionClassSet($d, 'crud.sub.sub');
             $d->addMethodCall('setTypes', [[$type, $subType, $subSubType]]);
-            $params = array_shift($attrs) + ['repo' => $type];
+            $params = array_shift($attrs) + ['id' => $type.'.'.$subType.'.'.$subSubType, 'repo' => $type];
             $this->addRepositorySetterCall($d, $this->getRepositoryId($params['repo']));
             $this->populateModelService($container, $id, $d, [$type, $subType, $subSubType]);
+            $this->setArrayParameterKey('crudServiceIds', strtolower($params['id']), $id);
         }
     }
     /**
@@ -541,7 +552,9 @@ class VelocityService
             $d = $container->getDefinition($id);
             $this->ensureDefinitionClassSet($d, 'volatile');
             $d->addMethodCall('setTypes', [[$type]]);
+            $params = array_shift($attrs) + ['id' => $type];
             $this->populateModelService($container, $id, $d, [$type]);
+            $this->setArrayParameterKey('crudServiceIds', strtolower($params['id']), $id);
         }
     }
     /**
@@ -556,7 +569,9 @@ class VelocityService
             $d = $container->getDefinition($id);
             $this->ensureDefinitionClassSet($d, 'volatile.sub');
             $d->addMethodCall('setTypes', [[$type, $subType]]);
+            $params = array_shift($attrs) + ['id' => $type.'.'.$subType];
             $this->populateModelService($container, $id, $d, [$type, $subType]);
+            $this->setArrayParameterKey('crudServiceIds', strtolower($params['id']), $id);
         }
     }
     /**
@@ -571,7 +586,9 @@ class VelocityService
             $d = $container->getDefinition($id);
             $this->ensureDefinitionClassSet($d, 'volatile.sub.sub');
             $d->addMethodCall('setTypes', [[$type, $subType, $subSubType]]);
+            $params = array_shift($attrs) + ['id' => $type.'.'.$subType.'.'.$subSubType];
             $this->populateModelService($container, $id, $d, [$type, $subType, $subSubType]);
+            $this->setArrayParameterKey('crudServiceIds', strtolower($params['id']), $id);
         }
     }
     /**
@@ -904,6 +921,23 @@ class VelocityService
                 $params += ['method' => 'addRepository'];
                 foreach ($this->getArrayParameter('repositoryIds') as $repoAlias => $repoId) {
                     $d->addMethodCall($params['method'], [$repoAlias, new Reference($repoId)]);
+                }
+            }
+        }
+    }
+    /**
+     * Process cruds aware tags.
+     *
+     * @param ContainerBuilder $container
+     */
+    protected function processCrudsAwareTag(ContainerBuilder $container)
+    {
+        foreach ($this->findVelocityTaggedServiceIds($container, 'cruds_aware') as $id => $attributes) {
+            $d = $container->getDefinition($id);
+            foreach ($attributes as $params) {
+                $params += ['method' => 'addCrudService'];
+                foreach ($this->getArrayParameter('crudServiceIds') as $serviceAlias => $serviceId) {
+                    $d->addMethodCall($params['method'], [$serviceAlias, new Reference($serviceId)]);
                 }
             }
         }

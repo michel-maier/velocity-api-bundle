@@ -2,6 +2,8 @@ services:
   velocity.metadata:
     class: Velocity\Bundle\ApiBundle\Service\MetaDataService
     lazy: true
+    tags:
+      - {name: velocity.cruds_aware}
   velocity.exception:
     class: Velocity\Bundle\ApiBundle\Service\ExceptionService
     arguments:

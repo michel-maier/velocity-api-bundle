@@ -238,6 +238,30 @@ interface DocumentServiceInterface
      */
     public function checkExist($id, $options = []);
     /**
+     * Check if specified document exist by specified field and value.
+     *
+     * @param string $field
+     * @param mixed  $value
+     * @param array  $options
+     *
+     * @return $this
+     *
+     * @throws \Exception
+     */
+    public function checkExistBy($field, $value, $options = []);
+    /**
+     * Check if specified document exist by specified field and values.
+     *
+     * @param string $field
+     * @param array  $values
+     * @param array  $options
+     *
+     * @return $this
+     *
+     * @throws \Exception
+     */
+    public function checkExistByBulk($field, array $values, $options = []);
+    /**
      * Check is specified document does not exist.
      *
      * @param mixed $id

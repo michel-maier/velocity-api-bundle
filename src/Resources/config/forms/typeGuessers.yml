@@ -5,3 +5,9 @@ services:
       - @velocity.metaData
     tags:
       - { name: form.type_guesser }
+  velocity.typeGuesser.referenceList:
+    class: Velocity\Bundle\ApiBundle\Form\TypeGuesser\ReferenceListTypeGuesser
+    arguments:
+      - @velocity.metaData
+    tags:
+      - { name: form.type_guesser }

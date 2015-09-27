@@ -268,6 +268,50 @@ class RepositoryService implements RepositoryInterface
         return $this;
     }
     /**
+     * @param string $field
+     * @param mixed  $value
+     * @param array  $options
+     *
+     * @return $this
+     *
+     * @throws Exception
+     */
+    public function checkExistBy($field, $value, $options = [])
+    {
+        return $this->checkExistByBulk($field, [$value], $options);
+    }
+    /**
+     * @param string $field
+     * @param array  $values
+     * @param array  $options
+     *
+     * @return $this
+     *
+     * @throws Exception
+     */
+    public function checkExistByBulk($field, array $values, $options = [])
+    {
+        $docs = $this->find([$field => ['$in' => $values]], ['id', $field], null, 0, [], $options);
+
+        $found = [];
+
+        foreach ($docs as $doc) {
+            $found[$doc[$field]] = true;
+        }
+
+        $notFound = array_diff($values, array_values($found));
+
+        if (0 < count($notFound)) {
+            throw $this->createNotFoundException(
+                "Unknown %s %s",
+                $this->getCollectionName(),
+                join(', ', $notFound)
+            );
+        }
+
+        return $this;
+    }
+    /**
      * Check if specified document not exist.
      *
      * @param string|array $id

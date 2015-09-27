@@ -172,6 +172,40 @@ trait GetServiceTrait
         return $this;
     }
     /**
+     * Check if specified document exist by specified field and value.
+     *
+     * @param string $field
+     * @param mixed  $value
+     * @param array  $options
+     *
+     * @return $this
+     *
+     * @throws \Exception
+     */
+    public function checkExistBy($field, $value, $options = [])
+    {
+        $this->getRepository()->checkExistBy($field, $value, $options);
+
+        return $this;
+    }
+    /**
+     * Check if specified document exist by specified field and values.
+     *
+     * @param string $field
+     * @param array  $values
+     * @param array  $options
+     *
+     * @return $this
+     *
+     * @throws \Exception
+     */
+    public function checkExistByBulk($field, array $values, $options = [])
+    {
+        $this->getRepository()->checkExistByBulk($field, $values, $options);
+
+        return $this;
+    }
+    /**
      * Check is specified document does not exist.
      *
      * @param mixed $id
