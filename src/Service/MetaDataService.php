@@ -508,9 +508,7 @@ class MetaDataService
                 $referenceList = $this->getModelReferenceListByProperty($class, $property);
                 $choices = [];
                 foreach ($this->getCrudService($referenceList['type'])->find([], []) as $choice) {
-                    error_log(print_r($choice, true));
                     $choice = (array)$choice;
-                    error_log(print_r($choice, true));
                     $choices[$choice[$referenceList['key']]] = $choice[$referenceList['labelKey']];
                 }
                 return new TypeGuess('choice', ['multiple' => true, 'choices' => $choices], Guess::HIGH_CONFIDENCE);
