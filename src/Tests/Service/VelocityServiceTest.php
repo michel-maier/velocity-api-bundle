@@ -15,6 +15,9 @@ use PHPUnit_Framework_TestCase;
 use Doctrine\Common\Annotations\AnnotationReader;
 use Symfony\Component\DependencyInjection\Definition;
 use Velocity\Bundle\ApiBundle\Service\VelocityService;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Velocity\Bundle\ApiBundle\Tests\Mock\ContainerBuilderMock;
+
 
 /**
  * @author Olivier Hoareau <olivier@phppro.fr>
@@ -25,6 +28,10 @@ class VelocityServiceTest extends PHPUnit_Framework_TestCase
      * @var VelocityService
      */
     protected $s;
+    /**
+     * @var ContainerBuilder
+     */
+    protected $containerMock;
     /**
      *
      */
@@ -125,5 +132,13 @@ class VelocityServiceTest extends PHPUnit_Framework_TestCase
 
         $this->assertEquals($expected, $classes);
         $this->assertEquals(count($expected), count($classes));
+    }
+    /**
+     * @group unit
+     */
+    public function testAnalyzeTags()
+    {
+        $container = new ContainerBuilderMock();
+        $this->s->analyzeTags($container);
     }
 }
