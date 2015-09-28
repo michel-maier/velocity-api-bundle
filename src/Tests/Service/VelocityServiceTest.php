@@ -140,5 +140,6 @@ class VelocityServiceTest extends PHPUnit_Framework_TestCase
     {
         $container = new ContainerBuilderMock();
         $this->s->analyzeTags($container);
+        $this->assertGreaterThan(10, count($container->getDefinitions()));
     }
 }
