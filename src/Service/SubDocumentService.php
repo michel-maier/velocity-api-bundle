@@ -31,9 +31,22 @@ class SubDocumentService implements SubDocumentServiceInterface
     use SubDocument\UpdateServiceTrait;
     use SubDocument\DeleteServiceTrait;
     use SubDocument\ReplaceServiceTrait;
+    use SubDocument\CreateByServiceTrait;
     use SubDocument\TransitionAwareTrait;
     use SubDocument\CreateOrUpdateServiceTrait;
     use SubDocument\CreateOrDeleteServiceTrait;
+    /**
+     * Returns the parent id based on the specified field and value to select it.
+     *
+     * @param string $field
+     * @param mixed  $value
+     *
+     * @return string
+     */
+    protected function getParentIdBy($field, $value)
+    {
+        return (string) $this->getRepository()->get([$field => $value], ['_id'])['_id'];
+    }
     /**
      * @param mixed $parentId
      * @param array $array

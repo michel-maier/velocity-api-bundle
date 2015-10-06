@@ -21,6 +21,9 @@ use {{ velocity.sdk.namespace }}\{{ velocity.sdk.bundle_name }};
  */
 class {{ velocity.sdk.bundle_name }}Test extends PHPUnit_Framework_TestCase
 {
+    /**
+     * @group unit
+     */
     public function testConstruct()
     {
         $this->assertNotNull(new {{ velocity.sdk.bundle_name }}());

@@ -129,7 +129,8 @@ abstract class AbstractTextNotificationAction extends AbstractAction
         $cleanedRecipients = [];
 
         foreach ($recipients as $email => $recipient) {
-            $cleanedRecipients[$email] = isset($recipient['name']) ? $recipient['name'] : $email;
+            $recipient += ['email' => $email, 'name' => $email];
+            $cleanedRecipients[$recipient['email']] = $recipient['name'];
         }
 
         return $cleanedRecipients;

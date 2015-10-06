@@ -34,6 +34,20 @@ trait GetServiceTrait
         return $this->getRepository()->getProperty($id, $property, $options);
     }
     /**
+     * Return the property of the specified document.
+     *
+     * @param string $fieldName
+     * @param mixed  $fieldValue
+     * @param string $property
+     * @param array  $options
+     *
+     * @return mixed
+     */
+    public function getPropertyBy($fieldName, $fieldValue, $property, $options = [])
+    {
+        return $this->getRepository()->getProperty([$fieldName => $fieldValue], $property, $options);
+    }
+    /**
      * Return the property of the specified document if exist or default value otherwise.
      *
      * @param mixed  $id

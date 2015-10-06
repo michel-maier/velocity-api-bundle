@@ -81,6 +81,55 @@ abstract class AbstractDocumentController extends AbstractRestController
         );
     }
     /**
+     * Return the specified document by the specified field.
+     *
+     * @param Request $request
+     * @param string  $field
+     * @param array   $options
+     *
+     * @return Response
+     */
+    protected function handleGetBy(Request $request, $field, $options = [])
+    {
+        return $this->returnResponse(
+            $this->getService()->getBy(
+                $field,
+                $this->getRequestService()->fetchRouteParameter($request, $field),
+                $this->getRequestService()->fetchQueryFields($request),
+                $options
+            ),
+            200,
+            [],
+            ['groups' => ['Default', 'detailed']],
+            $request
+        );
+    }
+    /**
+     * Return the specified document property by the specified field.
+     *
+     * @param Request $request
+     * @param string  $field
+     * @param string  $property
+     * @param array   $options
+     *
+     * @return Response
+     */
+    protected function handleGetPropertyBy(Request $request, $field, $property, $options = [])
+    {
+        return $this->returnResponse(
+            $this->getService()->getPropertyBy(
+                $field,
+                $this->getRequestService()->fetchRouteParameter($request, $field),
+                $property,
+                $options
+            ),
+            200,
+            [],
+            ['groups' => ['Default', 'detailed']],
+            $request
+        );
+    }
+    /**
      * Delete the specified document.
      *
      * @param Request $request

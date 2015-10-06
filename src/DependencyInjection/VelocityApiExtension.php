@@ -64,6 +64,7 @@ class VelocityApiExtension extends Extension
         $loader->load('migrators.yml');
         $loader->load('listeners.yml');
         $loader->load('actions.yml');
+        $loader->load('generators.yml');
         $loader->load('documentBuilders.yml');
         $loader->load('formatters.yml');
         $loader->load('jobs.yml');

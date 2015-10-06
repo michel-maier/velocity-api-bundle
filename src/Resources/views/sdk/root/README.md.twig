@@ -1,3 +1,44 @@
-# {{ velocity.sdk.name }}
+# {{ velocity.sdk.bundle_name }}
 
-$ ./composer.phar install
+The **{{ velocity.sdk.bundle_name }}** bundle allows you to use the {{ velocity.sdk.name }} to integrate your
+application with the {{ velocity.sdk.company_name }} API platform.
+
+The source code of this project has been automatically generated on {{ "now"|date('c') }} based on the API project.
+
+Documentation
+-------------
+
+For documentation, see:
+
+src/Resources/doc/
+
+Running the Tests
+-----------------
+
+Install the [Composer](http://getcomposer.org/) `dev` dependencies:
+
+    composer install --dev
+    bin/phpcs --config-set installed_paths vendor/escapestudios/symfony2-coding-standard
+
+Then, run the test suite using a short shell script that uses
+[PHPUnit](https://github.com/sebastianbergmann/phpunit/):
+
+    bin/test
+
+Then, run the code sniffers using a short shell script:
+
+    bin/cs-summary
+
+Credits
+-------
+
+This bundle has been generated using PHPPRO's Velocity API Bundle SDK generator.
+
+
+License
+-------
+
+This bundle is property of {{ velocity.sdk.company_name }}. See the complete license in the
+bundle:
+
+LICENSE.md

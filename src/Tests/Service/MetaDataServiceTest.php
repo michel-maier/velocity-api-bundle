@@ -13,6 +13,7 @@ namespace Velocity\Bundle\ApiBundle\Tests\Service;
 
 use PHPUnit_Framework_TestCase;
 use Velocity\Bundle\ApiBundle\Service\MetaDataService;
+use Velocity\Bundle\ApiBundle\Service\StorageService;
 
 /**
  * @author Olivier Hoareau <olivier@phppro.fr>
@@ -24,11 +25,16 @@ class MetaDataServiceTest extends PHPUnit_Framework_TestCase
      */
     protected $s;
     /**
+     * @var StorageService|\PHPUnit_Framework_MockObject_MockObject
+     */
+    protected $storage;
+    /**
      *
      */
     public function setUp()
     {
-        $this->s = new MetaDataService();
+        $this->storage = $this->getMock('Velocity\\Bundle\\ApiBundle\\Service\\StorageService', [], [], '', false);
+        $this->s = new MetaDataService($this->storage);
     }
     /**
      * @group unit
@@ -43,6 +49,7 @@ class MetaDataServiceTest extends PHPUnit_Framework_TestCase
                 'embeddedReferenceLists' => [],
                 'refreshes' => [],
                 'generateds' => [],
+                'storages' => [],
                 'ids' => [],
                 'types' => [],
             ],

@@ -92,6 +92,17 @@ interface SubDocumentServiceInterface
      */
     public function create($parentId, $data, $options = []);
     /**
+     * Create a new document by selecting parent from a specific field.
+     *
+     * @param string $parentFieldName
+     * @param mixed  $parentFieldValue
+     * @param mixed  $data
+     * @param array  $options
+     *
+     * @return mixed
+     */
+    public function createBy($parentFieldName, $parentFieldValue, $data, $options = []);
+    /**
      * Create document if not exist or update it.
      *
      * @param mixed $parentId

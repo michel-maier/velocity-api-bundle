@@ -88,6 +88,17 @@ interface DocumentServiceInterface
      */
     public function getBy($fieldName, $fieldValue, $fields = [], $options = []);
     /**
+     * Return the property of the specified document.
+     *
+     * @param string $fieldName
+     * @param mixed  $fieldValue
+     * @param string $property
+     * @param array  $options
+     *
+     * @return mixed
+     */
+    public function getPropertyBy($fieldName, $fieldValue, $property, $options = []);
+    /**
      * Return a random document matching the specified criteria.
      *
      * @param array $fields

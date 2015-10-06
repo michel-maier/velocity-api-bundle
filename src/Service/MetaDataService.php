@@ -11,9 +11,10 @@
 
 namespace Velocity\Bundle\ApiBundle\Service;
 
+use Velocity\Core\Traits\ServiceTrait;
 use Symfony\Component\Form\Guess\Guess;
 use Symfony\Component\Form\Guess\TypeGuess;
-use Velocity\Core\Traits\ServiceTrait;
+use Velocity\Bundle\ApiBundle\Traits\ServiceAware;
 
 /**
  * MetaData Service.
@@ -23,6 +24,8 @@ use Velocity\Core\Traits\ServiceTrait;
 class MetaDataService
 {
     use ServiceTrait;
+    use ServiceAware\StorageServiceAwareTrait;
+    use ServiceAware\GeneratorServiceAwareTrait;
     /**
      * @var array
      */
@@ -36,6 +39,7 @@ class MetaDataService
      */
     protected $sdk = ['services' => []];
     /**
+<<<<<<< Updated upstream
      * @param string                                                                                    $name
      * @param DocumentServiceInterface|SubDocumentServiceInterface|SubSubDocumentServiceInterface|mixed $service
      *
@@ -62,6 +66,14 @@ class MetaDataService
     public function getCrudServices()
     {
         return $this->getArrayParameter('crudServices');
+    }
+    /**
+     * @param StorageService $storageService
+     */
+    public function __construct(StorageService $storageService, GeneratorService $generatorService)
+    {
+        $this->setStorageService($storageService);
+        $this->setGeneratorService($generatorService);
     }
     /**
      * @param string $class
@@ -93,6 +105,7 @@ class MetaDataService
                 'referenceLists'         => [],
                 'refreshes'              => [],
                 'generateds'             => [],
+                'storages'               => [],
                 'ids'                    => [],
                 'types'                  => [],
             ];
@@ -250,6 +263,24 @@ class MetaDataService
      *
      * @return $this
      */
+    public function addModelPropertyStorage($class, $property, $definition)
+    {
+        $this->checkModel($class);
+
+        $definition['key'] = $definition['value'];
+        unset($definition['value']);
+
+        $this->models[$class]['storages'][$property] = $definition;
+
+        return $this;
+    }
+    /**
+     * @param string $class
+     * @param string $property
+     * @param array  $definition
+     *
+     * @return $this
+     */
     public function addModelPropertyId($class, $property, $definition)
     {
         $this->checkModel($class);
@@ -282,6 +313,7 @@ class MetaDataService
     /**
      * @param string $sourceClass
      * @param string $sourceMethod
+     * @param string $route
      * @param string $service
      * @param string $method
      * @param string $type
@@ -292,7 +324,7 @@ class MetaDataService
      *
      * @throws \Exception
      */
-    public function addSdkMethod($sourceClass, $sourceMethod, $service, $method, $type, $params = [], $options = [])
+    public function addSdkMethod($sourceClass, $sourceMethod, $route, $service, $method, $type, $params = [], $options = [])
     {
         if (!isset($this->sdk['services'][$service])) {
             $this->sdk['services'][$service] = ['methods' => []];
@@ -305,6 +337,7 @@ class MetaDataService
             'sourceClass'  => $sourceClass,
             'sourceMethod' => $sourceMethod,
             'type'         => $type,
+            'route'        => $route,
             'params'       => $params,
             'options'      => $options,
         ];
@@ -425,6 +458,21 @@ class MetaDataService
      *
      * @return array
      */
+    public function getModelStorages($class)
+    {
+        if (is_object($class)) {
+            $class = get_class($class);
+        }
+
+        $this->checkModel($class);
+
+        return $this->models[$class]['storages'];
+    }
+    /**
+     * @param string|Object $class
+     *
+     * @return array
+     */
     public function getModelEmbeddedReferenceLists($class)
     {
         if (is_object($class)) {
@@ -528,6 +576,7 @@ class MetaDataService
         $doc   = $this->fetchEmbeddedReferences($doc, $options);
         $doc   = $this->triggerRefreshes($doc, $options);
         $doc   = $this->buildGenerateds($doc, $options);
+        $doc   = $this->saveStorages($doc, $options);
 
         return $doc;
     }
@@ -647,6 +696,8 @@ class MetaDataService
             }
         }
 
+        $doc = $this->populateStorages($doc);
+
         unset($options);
 
         return $doc;
@@ -704,6 +755,53 @@ class MetaDataService
 
         foreach ($generateds as $k => $v) {
             $doc->$k = $this->generateValue($v, $doc);
+        }
+
+        return $doc;
+    }
+    /**
+     * @param mixed $doc
+     * @param array $options
+     *
+     * @return mixed
+     */
+    protected function saveStorages($doc, $options = [])
+    {
+        if (!is_object($doc)) {
+            return $doc;
+        }
+
+        unset($options);
+
+        $storages = $this->getModelStorages($doc);
+
+        foreach ($storages as $k => $definition) {
+            $doc->$k = $this->saveStorageValue($doc->$k, $definition, $doc);
+        }
+
+        return $doc;
+    }
+    /**
+     * @param mixed $doc
+     * @param array $options
+     *
+     * @return mixed
+     */
+    protected function populateStorages($doc, $options = [])
+    {
+        if (!is_object($doc)) {
+            return $doc;
+        }
+
+        unset($options);
+
+        $storages = $this->getModelStorages($doc);
+
+        foreach ($storages as $k => $definition) {
+            if (isset($doc->$k)) {
+                $doc->$k = $this->readStorageValue($doc->$k);
+            }
+            unset($definition);
         }
 
         return $doc;
@@ -778,14 +876,42 @@ class MetaDataService
      */
     protected function generateValue($definition, $entireDoc)
     {
-        unset($entireDoc);
+        return $this->getGeneratorService()->generate($definition['type'], (array) $entireDoc);
+    }
+    /**
+     * @param mixed $value
+     * @param array $definition
+     * @param mixed $entireDoc
+     *
+     * @return string
+     *
+     * @throws \Exception
+     */
+    protected function saveStorageValue($value, $definition, $entireDoc)
+    {
+        $key = $definition['key'];
+        $data = (array) $entireDoc;
 
-        switch ($definition['type']) {
-            case 'sha1':
-                return sha1(md5(rand(0, 1000).microtime(true).rand(rand(0, 100), 10000)));
-            default:
-                throw $this->createUnexpectedException("Unsupported generate type '%s'", $definition['type']);
+        if (0 < preg_match_all('/\{([^\}]+)\}/', $key, $matches)) {
+            foreach ($matches[1] as $i => $match) {
+                $key = str_replace($matches[0][$i], isset($data[$match]) ? $data[$match] : null, $key);
+            }
         }
+
+        $this->getStorageService()->save($key, $value);
+
+        return $key;
+    }
+    /**
+     * @param mixed $key
+     *
+     * @return mixed
+     *
+     * @throws \Exception
+     */
+    protected function readStorageValue($key)
+    {
+        return $this->getStorageService()->read($key);
     }
     /**
      * @param array $data

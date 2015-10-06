@@ -197,4 +197,28 @@ abstract class AbstractSubDocumentController extends AbstractRestController
             $request
         );
     }
+    /**
+     * Create a new document.
+     *
+     * @param Request $request
+     * @param string  $field
+     * @param array   $options
+     *
+     * @return Response
+     */
+    protected function handleCreateBy(Request $request, $field, $options = [])
+    {
+        return $this->returnResponse(
+            $this->getService()->createBy(
+                $field,
+                $this->getRequestService()->fetchRouteParameter($request, 'field'),
+                $this->getRequestService()->fetchRequestData($request),
+                $options
+            ),
+            200,
+            [],
+            ['groups' => ['Default', 'created']],
+            $request
+        );
+    }
 }

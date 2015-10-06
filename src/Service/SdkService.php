@@ -16,6 +16,7 @@ use Symfony\Component\Finder\Finder;
 use Symfony\Component\Finder\SplFileInfo;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\Templating\EngineInterface;
+use Symfony\Component\Yaml\Yaml;
 use Velocity\Core\Traits\ServiceTrait;
 use Velocity\Core\Traits\FilesystemAwareTrait;
 use Velocity\Bundle\ApiBundle\Traits\ServiceAware;
@@ -94,6 +95,7 @@ class SdkService
         $this
             ->generateStaticFiles($path, $exceptions, $options)
             ->generateServices($path, $exceptions, $options)
+            ->generateContainer($path, $exceptions, $options)
         ;
 
         if (count($exceptions)) {
@@ -160,6 +162,55 @@ class SdkService
     }
     /**
      * @param string $path
+     * @param array  $exceptions
+     * @param array  $options
+     *
+     * @return $this
+     */
+    protected function generateContainer($path, array &$exceptions, array $options = [])
+    {
+        $d = ['parameters' => [], 'services' => []];
+
+        $prefix = $this->getSdkConfigValue('bundle_key');
+        foreach ($this->getMetaDataService()->getSdkServices() as $serviceName => $service) {
+            $d['parameters'][$prefix.'.'.$serviceName.'.class'] = $this->getServiceClass($serviceName);
+            $d['services'][$prefix.'.'.$serviceName] = [
+                'class' => '%'.$prefix.'.'.$serviceName.'.class%',
+                'arguments' => ['@sdk'],
+            ];
+        }
+
+        $this->getFilesystem()->dumpFile($path.'/src/Resources/config/services/sdk.yml', Yaml::dump($d, 5));
+
+        return $this;
+    }
+    /**
+     * @param string $key
+     * @param mixed  $defaultValue
+     *
+     * @return mixed
+     */
+    protected function getSdkConfigValue($key, $defaultValue = null)
+    {
+        $sdkConfig = $this->getArrayParameterKey('variables', 'sdk');
+
+        if (isset($sdkConfig[$key])) {
+            return $sdkConfig[$key];
+        }
+
+        return $defaultValue;
+    }
+    /**
+     * @param string $serviceName
+     *
+     * @return string
+     */
+    protected function getServiceClass($serviceName)
+    {
+        return $this->getSdkConfigValue('namespace').'\\Service\\'.ucfirst($serviceName).'Service';
+    }
+    /**
+     * @param string $path
      * @param string $serviceName
      * @param array  $service
      * @param array  $exceptions
@@ -171,9 +222,7 @@ class SdkService
      */
     protected function generateService($path, $serviceName, array $service, array &$exceptions, array $options = [])
     {
-        $sdkConfig = $this->getArrayParameterKey('variables', 'sdk');
-
-        $className = $sdkConfig['namespace'].'\\Service\\'.ucfirst($serviceName).'Service';
+        $className = $this->getServiceClass($serviceName);
 
         $service += ['methods' => [], 'uses' => [], 'traits' => []];
         $service['methods']['__construct'] = ['type' => 'sdk.construct'];

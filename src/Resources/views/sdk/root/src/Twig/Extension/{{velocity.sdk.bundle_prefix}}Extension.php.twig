@@ -51,6 +51,9 @@ class {{ velocity.sdk.bundle_prefix }}Extension extends \Twig_Extension
     {
         return [];
     }
+    /**
+     * @return mixed
+     */
     public function getUser()
     {
         /** @var TokenInterface $token */

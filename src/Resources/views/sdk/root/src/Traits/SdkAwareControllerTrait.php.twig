@@ -1,0 +1,145 @@
+<?php
+
+/*
+ * This file is part of the SDK package.
+ *
+ * (c) {{ velocity.sdk.company_name }} <{{ velocity.sdk.company_email }}>
+ *
+ * For the full copyright and license information, please view the LICENSE
+ * file that was distributed with this source code.
+ */
+
+namespace {{ velocity.sdk.namespace }}\Traits;
+
+use Phppro\Sdk\Security\User;
+use Symfony\Component\Form\FormError;
+use Symfony\Component\Form\FormInterface;
+use Phppro\Sdk\Error\ValidationException;
+use Symfony\Component\HttpFoundation\RedirectResponse;
+
+/**
+ * Useful helper methods for all app controllers.
+ *
+ * @author {{ velocity.sdk.company_author_name }} <{{ velocity.sdk.company_author_email }}>
+ */
+trait SdkAwareControllerTrait
+{
+    /**
+     * Gets a service by id.
+     *
+     * @param string $id The service id
+     *
+     * @return object The service
+     */
+    public abstract function get($id);
+    /**
+     * Returns the current logged in user (or anonymous) which is an API user.
+     *
+     * @return User
+     */
+    public function getUser()
+    {
+        return $this->getSdkUser();
+    }
+    /**
+     * Returns a RedirectResponse to the given route with the given parameters.
+     *
+     * @param string $route      The name of the route
+     * @param array  $parameters An array of parameters
+     * @param int    $status     The status code to use for the Response
+     *
+     * @return RedirectResponse
+     */
+    protected abstract function redirectToRoute($route, array $parameters = array(), $status = 302);
+    /**
+     * Returns the current logged in user (or anonymous) which is an API user.
+     *
+     * @return User
+     */
+    protected function getSdkUser()
+    {
+        return $this->get('security.context')->getToken()->getUser();
+    }
+    /**
+     * @param string $id
+     *
+     * @return mixed
+     */
+    protected function getSdkService($id)
+    {
+        return $this->get('{{velocity.sdk.bundle_key}}.'.$id);
+    }
+    /**
+     * @param ValidationException $exception
+     * @param FormInterface       $form
+     * @param array               $mapping
+     *
+     * @return $this
+     */
+    protected function populateErrors(FormInterface $form, ValidationException $exception, $mapping = [])
+    {
+        if (null !== $exception->getForm()) {
+            // errors should already have been populated by the ValidationException constructor.
+            return $this;
+        }
+
+        $hasAtLeastOneError = false;
+
+        foreach($exception->getErrors() as $field => $_errors) {
+            foreach($_errors as $error) {
+                $errorModel = new FormError($error);
+                $this->getField($form, explode('.', $this->mapErrorField($field, $mapping)))->addError($errorModel);
+                $hasAtLeastOneError = true;
+            }
+        }
+
+        if (!$hasAtLeastOneError) {
+            // @todo translate
+            $form->addError(new FormError("Une erreur inattendu est survenue, vérifiez votre saisie ou contactez l'administrateur."));
+        }
+        
+        return $this;
+    }
+    /**
+     * @param string $name
+     * @param array  $mapping
+     *
+     * @return string
+     */
+    protected function mapErrorField($name, $mapping = [])
+    {
+        foreach($mapping as $k => $v) {
+            $name = preg_replace('/^' . str_replace('.', '\\.', $k) . '/', $v, $name);
+        }
+
+        return $name;
+    }
+    /**
+     * @param FormInterface $form
+     * @param string        $error
+     *
+     * @return $this
+     */
+    protected function populateCustomError(FormInterface $form, $error)
+    {
+        $form->addError(new FormError($error));
+
+        return $this;
+    }
+    /**
+     * @param FormInterface $form
+     * @param array         $path
+     *
+     * @return FormInterface
+     */
+    protected function getField($form, array $path)
+    {
+        $property = array_shift($path);
+
+        if ($form->has($property)) {
+            return $this->getField($form->get($property), $path);
+        }
+
+        return $form;
+    }
+}

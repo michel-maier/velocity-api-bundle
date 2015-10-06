@@ -14,6 +14,7 @@ namespace Velocity\Bundle\ApiBundle\Service;
 use ReflectionClass;
 use ReflectionProperty;
 use JMS\Serializer\Annotation\Type;
+use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Component\Finder\Finder;
 use Symfony\Component\Finder\SplFileInfo;
 use Symfony\Component\HttpKernel\KernelInterface;
@@ -217,8 +218,13 @@ class VelocityService
                     $method = $rMethod->getName();
                     switch (true) {
                         case $a instanceof Velocity\Sdk:
+                            /** @var Route $routeAnnotation */
+                            $routeAnnotation = $this->getAnnotationReader()->getMethodAnnotation($rMethod, 'Sensio\\Bundle\\FrameworkExtraBundle\\Configuration\\Route');
+                            if (null === $routeAnnotation) {
+                                throw $this->createRequiredException('Sdk annotation require route annotation in controller');
+                            }
                             unset($vars['service'], $vars['method'], $vars['type'], $vars['params'], $vars['value']);
-                            $m->addMethodCall('addSdkMethod', [$class, $method, $a->service, $a->method, $a->type, $a->params, $vars]);
+                            $m->addMethodCall('addSdkMethod', [$class, $method, $routeAnnotation->getPath(), $a->service, $a->method, $a->type, $a->params, $vars]);
                             break;
                     }
                 }
@@ -263,6 +269,12 @@ class VelocityService
                                 throw $this->createRequiredException('Generated annotation only allowed in models');
                             }
                             $m->addMethodCall('addModelPropertyGenerated', [$class, $property, $vars]);
+                            break;
+                        case $a instanceof Velocity\Storage:
+                            if (!$model) {
+                                throw $this->createRequiredException('Storage annotation only allowed in models');
+                            }
+                            $m->addMethodCall('addModelPropertyStorage', [$class, $property, $vars]);
                             break;
                         case $a instanceof Velocity\Id:
                             if (!$model) {
