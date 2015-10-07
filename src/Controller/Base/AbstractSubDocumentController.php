@@ -30,11 +30,7 @@ abstract class AbstractSubDocumentController extends AbstractRestController
     protected function getService()
     {
         return $this->get(
-            'app.'.preg_replace(
-                '/controller$/',
-                '',
-                strtolower(str_replace('\\', '.', substr(get_class($this), strrpos(get_class($this), '\\', 2) + 1)))
-            )
+            'app.'.preg_replace('/controller$/', '', join('.', array_slice(explode('.', str_replace('\\', '.', strtolower(get_class($this)))), -2)))
         );
     }
     /**

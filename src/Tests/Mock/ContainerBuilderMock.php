@@ -26,7 +26,7 @@ class ContainerBuilderMock extends ContainerBuilder
      * @param string $id
      *
      * @return Definition
-     * 
+     *
      * @see \Symfony\Component\DependencyInjection\ContainerBuilder::getDefinition()
      */
     public function getDefinition($id)
