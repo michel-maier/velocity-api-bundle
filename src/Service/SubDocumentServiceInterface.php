@@ -49,6 +49,30 @@ interface SubDocumentServiceInterface
         $options = []
     );
     /**
+     * Retrieve the documents matching the specified criteria.
+     *
+     * @param mixed    $fieldName
+     * @param mixed    $fieldValue
+     * @param array    $criteria
+     * @param array    $fields
+     * @param null|int $limit
+     * @param int      $offset
+     * @param array    $sorts
+     * @param array    $options
+     *
+     * @return mixed
+     */
+    public function findBy(
+        $fieldName,
+        $fieldValue,
+        $criteria = [],
+        $fields = [],
+        $limit = null,
+        $offset = 0,
+        $sorts = [],
+        $options = []
+    );
+    /**
      * Retrieve the documents matching the specified criteria and return a page with total count.
      *
      * @param mixed    $parentId

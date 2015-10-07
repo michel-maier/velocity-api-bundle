@@ -516,6 +516,42 @@ class CodeGeneratorService
      * @param MethodGenerator $zMethod
      * @param array           $definition
      */
+    protected function buildCrudSubFindByMethod(MethodGenerator $zMethod, $definition = [])
+    {
+        $definition['route'] = str_replace('{'.$definition['field'].'}', '%s', $definition['route']);
+
+        $zMethod->setDocBlock(new DocBlockGenerator(
+            sprintf('Find %s %ss by %s', $definition['type'], $definition['subType'], $definition['field']),
+            null,
+            [
+                new ParamTag($definition['field'], ['mixed'], sprintf(ucfirst($definition['field']).' of the %s', $definition['type'])),
+                new ParamTag('criteria', ['array'], sprintf('Optional criteria to filter %ss', $definition['type'])),
+                new ParamTag('fields', ['array'], 'Optional fields to retrieve'),
+                new ParamTag('limit', ['int'], 'Optional limit'),
+                new ParamTag('offset', ['int'], 'Optional offset'),
+                new ParamTag('sorts', ['array'], 'Optional sorts'),
+                new ParamTag('options', ['array'], 'Options'),
+                new ReturnTag(['array']),
+                new ThrowsTag(['\\Exception'], 'if an error occured'),
+            ]
+        ));
+        $zMethod->setParameters([
+            new ParameterGenerator($definition['field'], 'mixed'),
+            new ParameterGenerator('criteria', 'array', []),
+            new ParameterGenerator('fields', 'array', []),
+            new ParameterGenerator('limit', 'int', new ValueGenerator(null)),
+            new ParameterGenerator('offset', 'int', 0),
+            new ParameterGenerator('sorts', 'array', []),
+            new ParameterGenerator('options', 'array', []),
+        ]);
+        $zMethod->setBody(
+            sprintf('return $this->getSdk()->find(sprintf(\'%s\', $%s), $criteria, $fields, $limit, $offset, $sorts, $options);', $definition['route'], $definition['field'])
+        );
+    }
+    /**
+     * @param MethodGenerator $zMethod
+     * @param array           $definition
+     */
     protected function buildCrudFindPageMethod(MethodGenerator $zMethod, $definition = [])
     {
         $zMethod->setDocBlock(new DocBlockGenerator(

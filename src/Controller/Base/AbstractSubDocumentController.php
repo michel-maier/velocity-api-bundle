@@ -60,6 +60,34 @@ abstract class AbstractSubDocumentController extends AbstractRestController
         );
     }
     /**
+     * Retrieve the documents matching the specified criteria.
+     *
+     * @param Request $request
+     * @param string  $field
+     * @param array   $options
+     *
+     * @return Response
+     */
+    protected function handleFindBy(Request $request, $field, $options = [])
+    {
+        return $this->returnResponse(
+            $this->getService()->findBy(
+                $field,
+                $this->getRequestService()->fetchRouteParameter($request, $field),
+                $this->getRequestService()->fetchQueryCriteria($request),
+                $this->getRequestService()->fetchQueryFields($request),
+                $this->getRequestService()->fetchQueryLimit($request),
+                $this->getRequestService()->fetchQueryOffset($request),
+                $this->getRequestService()->fetchQuerySorts($request),
+                $options
+            ),
+            200,
+            [],
+            ['groups' => ['Default', 'listed']],
+            $request
+        );
+    }
+    /**
      * Return the specified document.
      *
      * @param Request $request
