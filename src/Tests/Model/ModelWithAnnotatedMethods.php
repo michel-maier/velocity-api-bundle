@@ -12,6 +12,7 @@
 namespace Velocity\Bundle\ApiBundle\Tests\Model;
 
 use Velocity\Bundle\ApiBundle\Annotation as Velocity;
+use /** @noinspection PhpUnusedAliasInspection */ Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 
 /**
  * @author Olivier Hoareau <olivier@phppro.fr>
@@ -20,6 +21,8 @@ use Velocity\Bundle\ApiBundle\Annotation as Velocity;
 class ModelWithAnnotatedMethods
 {
     /**
+     * @Route("/test-route")
+     *
      * @Velocity\Sdk
      */
     public function sdkMethod()
