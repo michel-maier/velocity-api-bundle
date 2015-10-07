@@ -24,6 +24,55 @@ class RequestListener
 {
     use ServiceTrait;
     /**
+     * @param array  $allowedLocales
+     * @param string $defaultLocale
+     */
+    public function __construct(array $allowedLocales, $defaultLocale)
+    {
+        $this->allowLocales($allowedLocales);
+        $this->setDefaultLocale($defaultLocale);
+    }
+    /**
+     * @param string $defaultLocale
+     *
+     * @return $this
+     */
+    public function setDefaultLocale($defaultLocale)
+    {
+        return $this->setParameter('defaultLocale', $defaultLocale);
+    }
+    /**
+     * @return string
+     *
+     * @throws \Exception
+     */
+    public function getDefaultLocale()
+    {
+        return $this->getParameter('defaultLocale');
+    }
+    /**
+     * @param array $locales
+     *
+     * @return $this
+     */
+    public function allowLocales(array $locales)
+    {
+        foreach ($locales as $locale) {
+            $this->pushArrayParameterKeyItem('allowedLocales', strtolower($locale), true);
+        }
+
+        return $this;
+    }
+    /**
+     * @param string $locale
+     *
+     * @return bool
+     */
+    public function isAllowedLocale($locale)
+    {
+        return $this->hasArrayParameterKey('allowedLocales', strtolower($locale));
+    }
+    /**
      * Kernel request event callback.
      *
      * @param GetResponseEvent $event
@@ -33,6 +82,17 @@ class RequestListener
     public function onKernelRequest(GetResponseEvent $event)
     {
         $request = $event->getRequest();
+
+        if ($event->isMasterRequest()) {
+            $request->setLocale($this->getDefaultLocale());
+
+            foreach ($request->getLanguages() as $locale) {
+                if ($this->isAllowedLocale($locale)) {
+                    $request->setLocale($locale);
+                    break;
+                }
+            }
+        }
 
         if ('json' !== $request->getContentType()) {
             return;

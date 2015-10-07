@@ -41,6 +41,8 @@ class MailAction extends AbstractTextNotificationAction
     public function sendUserMail(Bag $params, Bag $context)
     {
         $params->setDefault('sender', $this->getDefaultSenderByTypeAndNature('mail_user', $params->get('template')));
+        $params->setDefault('_locale', $this->getCurrentLocale());
+        $params->setDefault('_tenant', $this->getTenant());
         $this->sendMailByType('user', $params, $context);
     }
     /**
@@ -53,6 +55,7 @@ class MailAction extends AbstractTextNotificationAction
     {
         $params->setDefault('recipients', $this->getDefaultRecipientsByTypeAndNature('mail_admins', $params->get('template')));
         $params->setDefault('sender', $this->getDefaultSenderByTypeAndNature('mail_admin', $params->get('template')));
+        $params->setDefault('_tenant', $this->getTenant());
         $this->sendMailByType('admin', $params, $context);
     }
     /**

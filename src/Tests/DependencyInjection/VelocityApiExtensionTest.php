@@ -45,7 +45,7 @@ class VelocityApiExtensionTest extends PHPUnit_Framework_TestCase
     {
         $this->setExpectedException(
             'Symfony\\Component\\Config\\Definition\\Exception\\InvalidConfigurationException',
-            'The child node "front" at path "velocity_api" must be configured.'
+            'The child node "tenant" at path "velocity_api" must be configured.'
         );
         $this->assertNotNull($this->load([]));
     }
@@ -54,7 +54,7 @@ class VelocityApiExtensionTest extends PHPUnit_Framework_TestCase
      */
     public function testLoadForModelsSectionSetAppropriateParameters()
     {
-        $c = $this->load([['front' => ['name' => 'a', 'url' => 'b'], 'bundles' => ['AppBundle']]]);
+        $c = $this->load([['tenant' => 'test', 'front' => ['name' => 'a', 'url' => 'b'], 'bundles' => ['AppBundle']]]);
 
         $this->assertTrue($c->hasParameter('app_bundles'));
         $this->assertEquals(['AppBundle'], $c->getParameter('app_bundles'));
@@ -66,6 +66,7 @@ class VelocityApiExtensionTest extends PHPUnit_Framework_TestCase
     {
         $c = $this->load([
             [
+                'tenant' => 'test',
                 'front' => ['name' => 'a', 'url' => 'b'],
                 'recipients' => [
                     'admins' => [
@@ -88,6 +89,7 @@ class VelocityApiExtensionTest extends PHPUnit_Framework_TestCase
     public function testLoadForEventsSectionSetAppropriateEvents()
     {
         $c = $this->load([[
+            'tenant' => 'test',
             'front' => ['name' => 'a', 'url' => 'b'],
             'events' => [
                 'user_created' => [

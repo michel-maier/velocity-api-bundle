@@ -11,8 +11,10 @@
 
 namespace Velocity\Bundle\ApiBundle\Action\Base;
 
+use Symfony\Component\HttpFoundation\RequestStack;
 use Velocity\Core\Bag;
 use Velocity\Core\Traits\ParameterAware;
+use Velocity\Core\Traits\RequestStackAwareTrait;
 use Velocity\Core\Traits\TemplatingAwareTrait;
 use Velocity\Core\Traits\TranslatorAwareTrait;
 use Symfony\Component\Templating\EngineInterface;
@@ -29,6 +31,7 @@ abstract class AbstractTextNotificationAction extends AbstractAction
 {
     use TemplatingAwareTrait;
     use TranslatorAwareTrait;
+    use RequestStackAwareTrait;
     use ServiceAware\AttachmentServiceAwareTrait;
     use ParameterAware\EnvironmentParameterAwareTrait;
     /**
@@ -39,8 +42,10 @@ abstract class AbstractTextNotificationAction extends AbstractAction
      * @param array                    $defaultSenders
      * @param array                    $defaultRecipients
      * @param string                   $env
+     * @param RequestStack             $requestStack
+     * @param string                   $tenant
      */
-    public function __construct(EngineInterface $templating, TranslatorInterface $translator, AttachmentService $attachmentService, EventDispatcherInterface $eventDispatcher, array $defaultSenders, array $defaultRecipients, $env)
+    public function __construct(EngineInterface $templating, TranslatorInterface $translator, AttachmentService $attachmentService, EventDispatcherInterface $eventDispatcher, array $defaultSenders, array $defaultRecipients, $env, RequestStack $requestStack, $tenant)
     {
         $this->setTemplating($templating);
         $this->setTranslator($translator);
@@ -49,6 +54,31 @@ abstract class AbstractTextNotificationAction extends AbstractAction
         $this->setDefaultSenders($defaultSenders);
         $this->setDefaultRecipients($defaultRecipients);
         $this->setEnvironment($env);
+        $this->setRequestStack($requestStack);
+        $this->setTenant($tenant);
+    }
+    /**
+     * @return string
+     */
+    public function getCurrentLocale()
+    {
+        return $this->getRequestStack()->getMasterRequest()->getLocale();
+    }
+    /**
+     * @param string $tenant
+     *
+     * @return $this
+     */
+    public function setTenant($tenant)
+    {
+        return $this->setParameter('tenant', $tenant);
+    }
+    /**
+     * @return string
+     */
+    public function getTenant()
+    {
+        return $this->getParameter('tenant');
     }
     /**
      * @param array $defaultSenders
@@ -179,7 +209,10 @@ abstract class AbstractTextNotificationAction extends AbstractAction
      */
     protected function renderTemplate($name, Bag $vars)
     {
-        return $this->getTemplating()->render($name, $vars->all());
+        return $this->getTemplating()->render(
+            ($vars->has('_tenant') ? ('tenants/'.$vars->get('_tenant').'/') : '').($vars->has('_locale') ? ('locales/'.$vars->get('_locale').'/') : '').$name,
+            $vars->all()
+        );
     }
     /**
      * @param string $expression

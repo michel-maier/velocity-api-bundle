@@ -41,6 +41,8 @@ class SmsAction extends AbstractTextNotificationAction
     public function sendUserSms(Bag $params, Bag $context)
     {
         $params->setDefault('sender', $this->getDefaultSenderByTypeAndNature('sms_user', $params->get('template')));
+        $params->setDefault('_locale', $this->getCurrentLocale());
+        $params->setDefault('_tenant', $this->getTenant());
         $this->sendSmsByType('user', $params, $context);
     }
     /**
@@ -53,6 +55,7 @@ class SmsAction extends AbstractTextNotificationAction
     {
         $params->setDefault('recipients', $this->getDefaultRecipientsByTypeAndNature('sms_admins', $params->get('template')));
         $params->setDefault('sender', $this->getDefaultSenderByTypeAndNature('sms_admin', $params->get('template')));
+        $params->setDefault('_tenant', $this->getTenant());
         $this->sendSmsByType('admin', $params, $context);
     }
     /**

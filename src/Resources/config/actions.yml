@@ -71,6 +71,8 @@ services:
       - %app_senders%
       - %app_recipients%
       - %app_env%
+      - @request_stack
+      - %app_tenant%
     tags:
       - { name: velocity.action }
   velocity.action.sms:
@@ -83,6 +85,8 @@ services:
       - %app_senders%
       - %app_recipients%
       - %app_env%
+      - @request_stack
+      - %app_tenant%
     tags:
       - { name: velocity.action }
   velocity.action.fax:
@@ -95,6 +99,8 @@ services:
       - %app_senders%
       - %app_recipients%
       - %app_env%
+      - @request_stack
+      - %app_tenant%
     tags:
       - { name: velocity.action }
   velocity.action.fire:

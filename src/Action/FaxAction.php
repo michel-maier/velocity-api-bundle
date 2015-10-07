@@ -41,6 +41,8 @@ class FaxAction extends AbstractTextNotificationAction
     public function sendUserFax(Bag $params, Bag $context)
     {
         $params->setDefault('sender', $this->getDefaultSenderByTypeAndNature('fax_user', $params->get('template')));
+        $params->setDefault('_locale', $this->getCurrentLocale());
+        $params->setDefault('_tenant', $this->getTenant());
         $this->sendFaxByType('user', $params, $context);
     }
     /**
@@ -53,6 +55,7 @@ class FaxAction extends AbstractTextNotificationAction
     {
         $params->setDefault('recipients', $this->getDefaultRecipientsByTypeAndNature('fax_admins', $params->get('template')));
         $params->setDefault('sender', $this->getDefaultSenderByTypeAndNature('fax_admin', $params->get('template')));
+        $params->setDefault('_tenant', $this->getTenant());
         $this->sendFaxByType('admin', $params, $context);
     }
     /**

@@ -31,6 +31,7 @@ class Configuration implements ConfigurationInterface
         $rootNode = $treeBuilder->root('velocity_api');
 
         $this
+            ->addRootSection($rootNode)
             ->addFrontSection($rootNode)
             ->addSdkSection($rootNode)
             ->addSendersSection($rootNode)
@@ -42,6 +43,21 @@ class Configuration implements ConfigurationInterface
         ;
 
         return $treeBuilder;
+    }
+    /**
+     * @param ArrayNodeDefinition $rootNode
+     *
+     * @return $this
+     */
+    protected function addRootSection(ArrayNodeDefinition $rootNode)
+    {
+        $rootNode
+            ->children()
+                ->scalarNode('tenant')->isRequired()->end()
+            ->end()
+        ;
+
+        return $this;
     }
     /**
      * @param ArrayNodeDefinition $rootNode
