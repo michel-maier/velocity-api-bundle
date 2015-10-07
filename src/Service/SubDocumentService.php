@@ -54,7 +54,7 @@ class SubDocumentService implements SubDocumentServiceInterface
      */
     protected function saveCreate($parentId, array $array, array $options = [])
     {
-        $this->getRepository()->setHashProperty($parentId, $this->getRepoKey([$array['_id']]), $array, $options);
+        $this->getRepository()->setHashProperty($parentId, $this->getRepoKey([$array['id']]), $array, $options);
     }
     /**
      * @param mixed $parentId
@@ -73,7 +73,7 @@ class SubDocumentService implements SubDocumentServiceInterface
      */
     protected function pushCreateInBulk(&$arrays, $array)
     {
-        $arrays[$this->mutateKeyToRepoChangesKey('', [$array['_id']])] = $array;
+        $arrays[$this->mutateKeyToRepoChangesKey('', [$array['id']])] = $array;
     }
     /**
      * @param mixed $parentId

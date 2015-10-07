@@ -679,6 +679,10 @@ class MetaDataService
         if (isset($data['_id']) && !isset($data['id'])) {
             $data['id'] = (string) $data['_id'];
             unset($data['_id']);
+        } else {
+            if (isset($data['id'])) {
+                $data['id'] = (string) $data['id'];
+            }
         }
 
         foreach ($data as $k => $v) {

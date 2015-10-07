@@ -71,7 +71,12 @@ services:
     lazy: true
     arguments:
       - @velocity.callable
+      - @velocity.expression
+  velocity.expression:
+    class: Velocity\Bundle\ApiBundle\Service\ExpressionService
+    arguments:
       - @templating
+      - @velocity.expression_language
   velocity.event:
     class: Velocity\Bundle\ApiBundle\Service\EventService
     lazy: true
@@ -143,6 +148,8 @@ services:
       - %app_variables%
     tags:
       - {name: twig.extension}
+  velocity.expression_language:
+    class: Symfony\Component\ExpressionLanguage\ExpressionLanguage
 
   twig.loader.string:
     class: Twig_Extension_StringLoader

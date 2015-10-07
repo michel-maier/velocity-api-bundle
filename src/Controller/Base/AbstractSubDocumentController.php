@@ -33,7 +33,7 @@ abstract class AbstractSubDocumentController extends AbstractRestController
             'app.'.preg_replace(
                 '/controller$/',
                 '',
-                strtolower(str_replace('\\', '.', substr(get_class($this), strrpos(get_class($this), '\\', 1) + 1)))
+                strtolower(str_replace('\\', '.', substr(get_class($this), strrpos(get_class($this), '\\', 2) + 1)))
             )
         );
     }
@@ -211,7 +211,7 @@ abstract class AbstractSubDocumentController extends AbstractRestController
         return $this->returnResponse(
             $this->getService()->createBy(
                 $field,
-                $this->getRequestService()->fetchRouteParameter($request, 'field'),
+                $this->getRequestService()->fetchRouteParameter($request, $field),
                 $this->getRequestService()->fetchRequestData($request),
                 $options
             ),

@@ -13,9 +13,9 @@ namespace Velocity\Bundle\ApiBundle\Tests\Service;
 
 use PHPUnit_Framework_TestCase;
 use PHPUnit_Framework_MockObject_MockObject;
-use Symfony\Component\Templating\EngineInterface;
 use Velocity\Bundle\ApiBundle\Service\ActionService;
 use Velocity\Bundle\ApiBundle\Service\CallableService;
+use Velocity\Bundle\ApiBundle\Service\ExpressionService;
 
 /**
  * @author Olivier Hoareau <olivier@phppro.fr>
@@ -33,17 +33,17 @@ class ActionServiceTest extends PHPUnit_Framework_TestCase
      */
     protected $callableService;
     /**
-     * @var EngineInterface|PHPUnit_Framework_MockObject_MockObject
+     * @var ExpressionService|PHPUnit_Framework_MockObject_MockObject
      */
-    protected $templatingService;
+    protected $expressionService;
     /**
      *
      */
     public function setUp()
     {
         $this->callableService   = $this->getMock("Velocity\\Bundle\\ApiBundle\\Service\\CallableService", [], [], '', false);
-        $this->templatingService = $this->getMock("Symfony\\Component\\Templating\\EngineInterface", [], [], '', false);
-        $this->s = new ActionService($this->callableService, $this->templatingService);
+        $this->expressionService = $this->getMock("Velocity\\Bundle\\ApiBundle\\Service\\ExpressionService", [], [], '', false);
+        $this->s = new ActionService($this->callableService, $this->expressionService);
     }
     /**
      * @group unit
