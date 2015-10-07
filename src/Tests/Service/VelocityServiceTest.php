@@ -18,7 +18,6 @@ use Velocity\Bundle\ApiBundle\Service\VelocityService;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Velocity\Bundle\ApiBundle\Tests\Mock\ContainerBuilderMock;
 
-
 /**
  * @author Olivier Hoareau <olivier@phppro.fr>
  */
