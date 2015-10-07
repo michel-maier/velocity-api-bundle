@@ -15,6 +15,8 @@ use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
 /**
+ * Mock for easy velocity definition creation.
+ *
  * @author Olivier Hoareau <olivier@phppro.fr>
  * @author Gabriele Santini <gab.santini@gmail.com>
  */
@@ -24,6 +26,8 @@ class ContainerBuilderMock extends ContainerBuilder
      * @param string $id
      *
      * @return Definition
+     * 
+     * @see \Symfony\Component\DependencyInjection\ContainerBuilder::getDefinition()
      */
     public function getDefinition($id)
     {
