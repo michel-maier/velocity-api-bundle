@@ -218,7 +218,7 @@ trait CreateServiceTrait
         $array = $this->callback($pParentId, $parentId, 'create.saved_array', $array, $options);
 
         if (property_exists($doc, 'id') && isset($array['id'])) {
-            $doc->id = (string)$array['id'];
+            $doc->id = (string) $array['id'];
         }
 
         $doc = $this->callback($pParentId, $parentId, 'create.saved', $doc, $options);

@@ -37,8 +37,8 @@ class ExpressionService
         $this->setExpressionLanguage($expressionLanguage);
     }
     /**
-     * @param $raw
-     * @param $vars
+     * @param mixed $raw
+     * @param mixed $vars
      *
      * @return mixed
      */
