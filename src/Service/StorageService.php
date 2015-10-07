@@ -83,12 +83,14 @@ class StorageService
             return $this;
         }
 
-        list($storageName, $backend, $relativePath) = $this->getBackendForLocation($location);
+        list($storage, $relativePath) = $this->getBackendForLocation($location);
+
+        $backend = $storage['backend'];
 
         /** @var StorageInterface $backend */
         $backend->set($relativePath, $content);
 
-        $this->dispatch($storageName.'_object_saved', ['key' => $location, 'relativeKey' => $relativePath, 'value' => $content]);
+        $this->dispatch($storage['name'].'_object_saved', ['key' => $location, 'relativeKey' => $relativePath, 'value' => $content]);
 
         return $this;
     }
@@ -102,12 +104,14 @@ class StorageService
     {
         $this->checkLocation($location);
 
-        list($storageName, $backend, $relativePath) = $this->getBackendForLocation($location);
+        list($storage, $relativePath) = $this->getBackendForLocation($location);
+
+        $backend = $storage['backend'];
 
         /** @var StorageInterface $backend */
         $content = $backend->get($relativePath, $options);
 
-        $this->dispatch($storageName.'_object_read', ['key' => $location, 'relativeKey' => $relativePath, 'value' => $content]);
+        $this->dispatch($storage['name'].'_object_read', ['key' => $location, 'relativeKey' => $relativePath, 'value' => $content]);
 
         return $content;
     }
@@ -121,12 +125,14 @@ class StorageService
     {
         $this->checkLocation($location);
 
-        list($storageName, $backend, $relativePath) = $this->getBackendForLocation($location);
+        list($storage, $relativePath) = $this->getBackendForLocation($location);
 
         $old = null;
         $oldListened = false;
 
-        if ($this->hasListeners($storageName.'_object_deleted_old')) {
+        $backend = $storage['backend'];
+
+        if ($this->hasListeners($storage['name'].'_object_deleted_old')) {
             $old = $this->read($location, $options);
             $oldListened = true;
         }
@@ -134,11 +140,11 @@ class StorageService
         /** @var StorageInterface $backend */
         $backend->clear($relativePath);
 
-        $this->dispatch($storageName.'_object_deleted', ['key' => $location, 'relativeKey' => $relativePath]);
+        $this->dispatch($storage['name'].'_object_deleted', ['key' => $location, 'relativeKey' => $relativePath]);
 
         if ($oldListened) {
             $this->dispatch(
-                $storageName.'_object_deleted_old',
+                $storage['name'].'_object_deleted_old',
                 ['key' => $location, 'relativeKey' => $relativePath, 'value' => $old]
             );
         }

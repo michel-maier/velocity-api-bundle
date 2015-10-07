@@ -1,0 +1,11 @@
+parameters:
+  {{ velocity.sdk.bundle_key }}.twig.extension.class:              {{ velocity.sdk.namespace }}\Twig\Extension\{{ velocity.sdk.bundle_prefix }}Extension
+
+services:
+  {{ velocity.sdk.bundle_key }}.twig.extension:
+    class:     %{{ velocity.sdk.bundle_key }}.twig.extension.class%
+    public:    false
+    tags:      [{name: twig.extension}]
+    arguments: [@twig.loader]
+    calls:
+      - [setContainer, [@service_container]]

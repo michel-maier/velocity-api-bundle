@@ -34,6 +34,20 @@ trait GetServiceTrait
         return $this->getRepository()->getProperty($id, $property, $options);
     }
     /**
+     * Return the property of the specified document.
+     *
+     * @param string $fieldName
+     * @param mixed  $fieldValue
+     * @param string $property
+     * @param array  $options
+     *
+     * @return mixed
+     */
+    public function getPropertyBy($fieldName, $fieldValue, $property, $options = [])
+    {
+        return $this->getRepository()->getProperty([$fieldName => $fieldValue], $property, $options);
+    }
+    /**
      * Return the property of the specified document if exist or default value otherwise.
      *
      * @param mixed  $id
@@ -168,6 +182,40 @@ trait GetServiceTrait
     public function checkExist($id, $options = [])
     {
         $this->getRepository()->checkExist($id, $options);
+
+        return $this;
+    }
+    /**
+     * Check if specified document exist by specified field and value.
+     *
+     * @param string $field
+     * @param mixed  $value
+     * @param array  $options
+     *
+     * @return $this
+     *
+     * @throws \Exception
+     */
+    public function checkExistBy($field, $value, $options = [])
+    {
+        $this->getRepository()->checkExistBy($field, $value, $options);
+
+        return $this;
+    }
+    /**
+     * Check if specified document exist by specified field and values.
+     *
+     * @param string $field
+     * @param array  $values
+     * @param array  $options
+     *
+     * @return $this
+     *
+     * @throws \Exception
+     */
+    public function checkExistByBulk($field, array $values, $options = [])
+    {
+        $this->getRepository()->checkExistByBulk($field, $values, $options);
 
         return $this;
     }

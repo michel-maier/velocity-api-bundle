@@ -82,9 +82,7 @@ class CodeGeneratorService
         $zProperties = [];
 
         foreach ($definition['methods'] as $methodName => $method) {
-            $params = isset($method['params']) ? $method['params'] : [];
-            unset($method['params']);
-            $zMethods[] = $this->createMethod($methodName, $method + $params + $definition);
+            $zMethods[] = $this->createMethod($methodName, $method + $definition);
         }
 
         foreach ($definition['properties'] as $propertyName => $property) {
@@ -134,6 +132,12 @@ class CodeGeneratorService
         }
 
         unset($definition['type']);
+
+        if (isset($definition['params'])) {
+            $definition += $definition['params'];
+        }
+
+        unset($definition['params']);
 
         $this->$buildTypeMethod($zMethod, $definition);
 
@@ -239,11 +243,13 @@ class CodeGeneratorService
      */
     protected function buildCrudGetMethod(MethodGenerator $zMethod, $definition = [])
     {
+        $definition['route'] = str_replace('{id}', '%s', $definition['route']);
+
         $zMethod->setDocBlock(new DocBlockGenerator(
-            sprintf('Return the specified %s', $definition['serviceName']),
+            sprintf('Return the specified %s', $definition['type']),
             null,
             [
-                new ParamTag('id', ['mixed'], sprintf('ID of the %s', $definition['serviceName'])),
+                new ParamTag('id', ['mixed'], sprintf('ID of the %s', $definition['type'])),
                 new ParamTag('fields', ['array'], 'List of fields to retrieve'),
                 new ParamTag('options', ['array'], 'Options'),
                 new ReturnTag(['array']),
@@ -256,7 +262,63 @@ class CodeGeneratorService
             new ParameterGenerator('options', 'array', []),
         ]);
         $zMethod->setBody(
-            sprintf('return $this->getSdk()->get(sprintf(\'/%ss/%%s\', $id), $fields, $options);', $definition['serviceName'])
+            sprintf('return $this->getSdk()->get(sprintf(\'%s\', $id), $fields, $options);', $definition['route'])
+        );
+    }
+    /**
+     * @param MethodGenerator $zMethod
+     * @param array           $definition
+     */
+    protected function buildCrudGetByMethod(MethodGenerator $zMethod, $definition = [])
+    {
+        $definition += ['field' => 'id'];
+        $definition['route'] = str_replace('{'.$definition['field'].'}', '%s', $definition['route']);
+
+        $zMethod->setDocBlock(new DocBlockGenerator(
+            sprintf('Return the specified %s by %s', $definition['type'], $definition['field']),
+            null,
+            [
+                new ParamTag($definition['field'], ['mixed'], sprintf(ucfirst($definition['field']).' of the %s', $definition['type'])),
+                new ParamTag('fields', ['array'], 'List of fields to retrieve'),
+                new ParamTag('options', ['array'], 'Options'),
+                new ReturnTag(['array']),
+                new ThrowsTag(['\\Exception'], 'if an error occured'),
+            ]
+        ));
+        $zMethod->setParameters([
+            new ParameterGenerator($definition['field'], 'string'),
+            new ParameterGenerator('fields', 'array', []),
+            new ParameterGenerator('options', 'array', []),
+        ]);
+        $zMethod->setBody(
+            sprintf('return $this->getSdk()->get(sprintf(\'%s\', $%s), $fields, $options);', $definition['route'], $definition['field'])
+        );
+    }
+    /**
+     * @param MethodGenerator $zMethod
+     * @param array           $definition
+     */
+    protected function buildCrudGetPropertyByMethod(MethodGenerator $zMethod, $definition = [])
+    {
+        $definition += ['field' => 'id', 'property' => 'id'];
+        $definition['route'] = str_replace(['{'.$definition['field'].'}', '{'.$definition['property'].'}'], '%s', $definition['route']);
+
+        $zMethod->setDocBlock(new DocBlockGenerator(
+            sprintf('Return the specified %s %s by %s', $definition['type'], $definition['property'], $definition['field']),
+            null,
+            [
+                new ParamTag($definition['field'], ['mixed'], sprintf(ucfirst($definition['field']).' of the %s', $definition['type'])),
+                new ParamTag('options', ['array'], 'Options'),
+                new ReturnTag(['mixed']),
+                new ThrowsTag(['\\Exception'], 'if an error occured'),
+            ]
+        ));
+        $zMethod->setParameters([
+            new ParameterGenerator($definition['field'], 'string'),
+            new ParameterGenerator('options', 'array', []),
+        ]);
+        $zMethod->setBody(
+            sprintf('return $this->getSdk()->get(sprintf(\'%s\', $%s), [], $options);', $definition['route'], $definition['field'])
         );
     }
     /**
@@ -266,7 +328,7 @@ class CodeGeneratorService
     protected function buildCrudCreateMethod(MethodGenerator $zMethod, $definition = [])
     {
         $zMethod->setDocBlock(new DocBlockGenerator(
-            sprintf('Create a new %s', $definition['serviceName']),
+            sprintf('Create a new %s', $definition['type']),
             null,
             [
                 new ParamTag('data', ['array'], 'Data to store'),
@@ -280,7 +342,36 @@ class CodeGeneratorService
             new ParameterGenerator('options', 'array', []),
         ]);
         $zMethod->setBody(
-            sprintf('return $this->getSdk()->create(\'/%ss\', $data, $options);', $definition['serviceName'])
+            sprintf('return $this->getSdk()->create(\'%s\', $data, $options);', $definition['route'])
+        );
+    }
+    /**
+     * @param MethodGenerator $zMethod
+     * @param array           $definition
+     */
+    protected function buildCrudSubCreateByMethod(MethodGenerator $zMethod, $definition = [])
+    {
+        $definition += ['field' => 'id', 'subType' => 'subType'];
+        $definition['route'] = str_replace('{'.$definition['field'].'}', '%s', $definition['route']);
+
+        $zMethod->setDocBlock(new DocBlockGenerator(
+            sprintf('Create a new %s %s by %s', $definition['type'], $definition['subType'], $definition['field']),
+            null,
+            [
+                new ParamTag($definition['field'], ['mixed'], sprintf('%s of the %s', ucfirst($definition['field']), $definition['type'])),
+                new ParamTag('data', ['array'], 'Data to store'),
+                new ParamTag('options', ['array'], 'Options'),
+                new ReturnTag(['array']),
+                new ThrowsTag(['\\Exception'], 'if an error occured'),
+            ]
+        ));
+        $zMethod->setParameters([
+            new ParameterGenerator($definition['field'], 'mixed'),
+            new ParameterGenerator('data', 'array', []),
+            new ParameterGenerator('options', 'array', []),
+        ]);
+        $zMethod->setBody(
+            sprintf('return $this->getSdk()->create(sprintf(\'%s\', $%s), $data, $options);', $definition['route'], $definition['field'])
         );
     }
     /**
@@ -289,11 +380,13 @@ class CodeGeneratorService
      */
     protected function buildCrudDeleteMethod(MethodGenerator $zMethod, $definition = [])
     {
+        $definition['route'] = str_replace('{id}', '%s', $definition['route']);
+
         $zMethod->setDocBlock(new DocBlockGenerator(
-            sprintf('Delete the specified %s', $definition['serviceName']),
+            sprintf('Delete the specified %s', $definition['type']),
             null,
             [
-                new ParamTag('id', ['mixed'], sprintf('ID of the %s', $definition['serviceName'])),
+                new ParamTag('id', ['mixed'], sprintf('ID of the %s', $definition['type'])),
                 new ParamTag('options', ['array'], 'Options'),
                 new ReturnTag(['array']),
                 new ThrowsTag(['\\Exception'], 'if an error occured'),
@@ -304,7 +397,7 @@ class CodeGeneratorService
             new ParameterGenerator('options', 'array', []),
         ]);
         $zMethod->setBody(
-            sprintf('return $this->getSdk()->delete(sprintf(\'/%ss/%%s\', $id), $options);', $definition['serviceName'])
+            sprintf('return $this->getSdk()->delete(sprintf(\'%s\', $id), $options);', $definition['route'])
         );
     }
     /**
@@ -314,7 +407,7 @@ class CodeGeneratorService
     protected function buildCrudPurgeMethod(MethodGenerator $zMethod, $definition = [])
     {
         $zMethod->setDocBlock(new DocBlockGenerator(
-            sprintf('Purge all %ss', $definition['serviceName']),
+            sprintf('Purge all %ss', $definition['type']),
             null,
             [
                 new ParamTag('criteria', ['array'], 'Optional criteria to filter deleteds'),
@@ -328,7 +421,7 @@ class CodeGeneratorService
             new ParameterGenerator('options', 'array', []),
         ]);
         $zMethod->setBody(
-            sprintf('return $this->getSdk()->purge(\'/%ss\', $criteria, $options);', $definition['serviceName'])
+            sprintf('return $this->getSdk()->purge(\'%s\', $criteria, $options);', $definition['route'])
         );
     }
     /**
@@ -337,11 +430,13 @@ class CodeGeneratorService
      */
     protected function buildCrudUpdateMethod(MethodGenerator $zMethod, $definition = [])
     {
+        $definition['route'] = str_replace('{id}', '%s', $definition['route']);
+
         $zMethod->setDocBlock(new DocBlockGenerator(
-            sprintf('Update the specified %s', $definition['serviceName']),
+            sprintf('Update the specified %s', $definition['type']),
             null,
             [
-                new ParamTag('id', ['mixed'], sprintf('ID of the %s', $definition['serviceName'])),
+                new ParamTag('id', ['mixed'], sprintf('ID of the %s', $definition['type'])),
                 new ParamTag('data', ['array'], 'Data to update'),
                 new ParamTag('options', ['array'], 'Options'),
                 new ReturnTag(['array']),
@@ -354,7 +449,7 @@ class CodeGeneratorService
             new ParameterGenerator('options', 'array', []),
         ]);
         $zMethod->setBody(
-            sprintf('return $this->getSdk()->update(sprintf(\'/%ss/%%s\', $id), $data, $options);', $definition['serviceName'])
+            sprintf('return $this->getSdk()->update(sprintf(\'%s\', $id), $data, $options);', $definition['route'])
         );
     }
     /**
@@ -363,11 +458,13 @@ class CodeGeneratorService
      */
     protected function buildCrudUpdatePropertyMethod(MethodGenerator $zMethod, $definition = [])
     {
+        $definition['route'] = str_replace('{id}', '%s', $definition['route']);
+
         $zMethod->setDocBlock(new DocBlockGenerator(
-            sprintf('Update %s of the specified %s', $definition['property'], $definition['serviceName']),
+            sprintf('Update %s of the specified %s', $definition['property'], $definition['type']),
             null,
             [
-                new ParamTag('id', ['mixed'], sprintf('ID of the %s', $definition['serviceName'])),
+                new ParamTag('id', ['mixed'], sprintf('ID of the %s', $definition['type'])),
                 new ParamTag('data', ['mixed'], sprintf('Value for the %s', $definition['property'])),
                 new ParamTag('options', ['array'], 'Options'),
                 new ReturnTag(['array']),
@@ -380,7 +477,7 @@ class CodeGeneratorService
             new ParameterGenerator('options', 'array', []),
         ]);
         $zMethod->setBody(
-            sprintf('return $this->getSdk()->update(sprintf(\'/%ss/%%s/%s\', $id), $data, $options);', $definition['serviceName'], $definition['property'])
+            sprintf('return $this->getSdk()->update(sprintf(\'%s\', $id), $data, $options);', $definition['route'])
         );
     }
     /**
@@ -390,10 +487,10 @@ class CodeGeneratorService
     protected function buildCrudFindMethod(MethodGenerator $zMethod, $definition = [])
     {
         $zMethod->setDocBlock(new DocBlockGenerator(
-            sprintf('Find %ss', $definition['serviceName']),
+            sprintf('Find %ss', $definition['type']),
             null,
             [
-                new ParamTag('criteria', ['array'], sprintf('Optional criteria to filter %ss', $definition['serviceName'])),
+                new ParamTag('criteria', ['array'], sprintf('Optional criteria to filter %ss', $definition['type'])),
                 new ParamTag('fields', ['array'], 'Optional fields to retrieve'),
                 new ParamTag('limit', ['int'], 'Optional limit'),
                 new ParamTag('offset', ['int'], 'Optional offset'),
@@ -412,7 +509,7 @@ class CodeGeneratorService
             new ParameterGenerator('options', 'array', []),
         ]);
         $zMethod->setBody(
-            sprintf('return $this->getSdk()->find(\'/%ss\', $criteria, $fields, $limit, $offset, $sorts, $options);', $definition['serviceName'])
+            sprintf('return $this->getSdk()->find(\'%s\', $criteria, $fields, $limit, $offset, $sorts, $options);', $definition['route'])
         );
     }
     /**
@@ -422,10 +519,10 @@ class CodeGeneratorService
     protected function buildCrudFindPageMethod(MethodGenerator $zMethod, $definition = [])
     {
         $zMethod->setDocBlock(new DocBlockGenerator(
-            sprintf('Find a page of %ss', $definition['serviceName']),
+            sprintf('Find a page of %ss', $definition['type']),
             null,
             [
-                new ParamTag('criteria', ['array'], sprintf('Optional criteria to filter %ss', $definition['serviceName'])),
+                new ParamTag('criteria', ['array'], sprintf('Optional criteria to filter %ss', $definition['type'])),
                 new ParamTag('fields', ['array'], 'Optional fields to retrieve'),
                 new ParamTag('page', ['int'], 'Rank of the page to retrieve'),
                 new ParamTag('size', ['int'], 'Size of pages'),
@@ -444,7 +541,7 @@ class CodeGeneratorService
             new ParameterGenerator('options', 'array', []),
         ]);
         $zMethod->setBody(
-            sprintf('return $this->getSdk()->findPage(\'/%ss\', $criteria, $fields, $page, $size, $sorts, $options);', $definition['serviceName'])
+            sprintf('return $this->getSdk()->findPage(\'%s\', $criteria, $fields, $page, $size, $sorts, $options);', $definition['route'])
         );
     }
     /**

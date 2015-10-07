@@ -1,0 +1,5 @@
+services:
+  velocity.generator.string:
+    class: Velocity\Bundle\ApiBundle\Generator\StringGenerator
+    tags:
+      - {name: velocity.generator}

@@ -114,6 +114,26 @@ interface RepositoryInterface
      */
     public function checkExist($id, $options = []);
     /**
+     * @param string $field
+     * @param mixed  $value
+     * @param array  $options
+     *
+     * @return $this
+     *
+     * @throws Exception
+     */
+    public function checkExistBy($field, $value, $options = []);
+    /**
+     * @param string $field
+     * @param array  $values
+     * @param array  $options
+     *
+     * @return $this
+     *
+     * @throws Exception
+     */
+    public function checkExistByBulk($field, array $values, $options = []);
+    /**
      * Check if specified document not exist.
      *
      * @param string $id

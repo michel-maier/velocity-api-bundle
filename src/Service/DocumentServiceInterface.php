@@ -88,6 +88,17 @@ interface DocumentServiceInterface
      */
     public function getBy($fieldName, $fieldValue, $fields = [], $options = []);
     /**
+     * Return the property of the specified document.
+     *
+     * @param string $fieldName
+     * @param mixed  $fieldValue
+     * @param string $property
+     * @param array  $options
+     *
+     * @return mixed
+     */
+    public function getPropertyBy($fieldName, $fieldValue, $property, $options = []);
+    /**
      * Return a random document matching the specified criteria.
      *
      * @param array $fields
@@ -237,6 +248,30 @@ interface DocumentServiceInterface
      * @throws Exception
      */
     public function checkExist($id, $options = []);
+    /**
+     * Check if specified document exist by specified field and value.
+     *
+     * @param string $field
+     * @param mixed  $value
+     * @param array  $options
+     *
+     * @return $this
+     *
+     * @throws \Exception
+     */
+    public function checkExistBy($field, $value, $options = []);
+    /**
+     * Check if specified document exist by specified field and values.
+     *
+     * @param string $field
+     * @param array  $values
+     * @param array  $options
+     *
+     * @return $this
+     *
+     * @throws \Exception
+     */
+    public function checkExistByBulk($field, array $values, $options = []);
     /**
      * Check is specified document does not exist.
      *

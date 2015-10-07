@@ -2,6 +2,11 @@ services:
   velocity.metadata:
     class: Velocity\Bundle\ApiBundle\Service\MetaDataService
     lazy: true
+    arguments:
+      - @velocity.storage
+      - @velocity.generator
+    tags:
+      - {name: velocity.cruds_aware}
   velocity.exception:
     class: Velocity\Bundle\ApiBundle\Service\ExceptionService
     arguments:
@@ -112,7 +117,7 @@ services:
       - @filesystem
       - @logger
       - @templating
-      - @velocity.metaData
+      - @velocity.metadata
       - @velocity.codeGenerator
       - %app_variables%
   velocity.codeGenerator:
