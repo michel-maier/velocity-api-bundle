@@ -12,6 +12,7 @@
 namespace Velocity\Bundle\ApiBundle\Tests\Service;
 
 use PHPUnit_Framework_TestCase;
+use Velocity\Bundle\ApiBundle\Service\GeneratorService;
 use Velocity\Bundle\ApiBundle\Service\MetaDataService;
 use Velocity\Bundle\ApiBundle\Service\StorageService;
 
@@ -29,12 +30,17 @@ class MetaDataServiceTest extends PHPUnit_Framework_TestCase
      */
     protected $storage;
     /**
+     * @var GeneratorService|\PHPUnit_Framework_MockObject_MockObject
+     */
+    protected $generator;
+    /**
      *
      */
     public function setUp()
     {
-        $this->storage = $this->getMock('Velocity\\Bundle\\ApiBundle\\Service\\StorageService', [], [], '', false);
-        $this->s = new MetaDataService($this->storage);
+        $this->storage   = $this->getMock('Velocity\\Bundle\\ApiBundle\\Service\\StorageService', [], [], '', false);
+        $this->generator = $this->getMock('Velocity\\Bundle\\ApiBundle\\Service\\GeneratorService', [], [], '', false);
+        $this->s = new MetaDataService($this->storage, $this->generator);
     }
     /**
      * @group unit
@@ -52,6 +58,7 @@ class MetaDataServiceTest extends PHPUnit_Framework_TestCase
                 'storages' => [],
                 'ids' => [],
                 'types' => [],
+                'referenceLists' => [],
             ],
         ], $this->s->getModels());
     }

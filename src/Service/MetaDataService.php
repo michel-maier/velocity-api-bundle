@@ -68,7 +68,8 @@ class MetaDataService
         return $this->getArrayParameter('crudServices');
     }
     /**
-     * @param StorageService $storageService
+     * @param StorageService   $storageService
+     * @param GeneratorService $generatorService
      */
     public function __construct(StorageService $storageService, GeneratorService $generatorService)
     {
@@ -556,9 +557,10 @@ class MetaDataService
                 $referenceList = $this->getModelReferenceListByProperty($class, $property);
                 $choices = [];
                 foreach ($this->getCrudService($referenceList['type'])->find([], []) as $choice) {
-                    $choice = (array)$choice;
+                    $choice = (array) $choice;
                     $choices[$choice[$referenceList['key']]] = $choice[$referenceList['labelKey']];
                 }
+
                 return new TypeGuess('choice', ['multiple' => true, 'choices' => $choices], Guess::HIGH_CONFIDENCE);
             default:
                 return new TypeGuess(null, [], Guess::LOW_CONFIDENCE);
