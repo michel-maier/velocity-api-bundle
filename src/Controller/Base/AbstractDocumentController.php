@@ -125,7 +125,7 @@ abstract class AbstractDocumentController extends AbstractRestController
             ),
             200,
             [],
-            ['groups' => ['Default', 'detailed']],
+            ['groups' => ['Default', 'detailed']] + $options,
             $request
         );
     }

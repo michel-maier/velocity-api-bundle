@@ -14,6 +14,7 @@ namespace Velocity\Bundle\ApiBundle\Service;
 use Symfony\Component\HttpFoundation\Response;
 use Velocity\Bundle\ApiBundle\DocumentInterface;
 use Velocity\Bundle\ApiBundle\Traits\ServiceAware;
+use Velocity\Bundle\ApiBundle\GenericDocument;
 use Velocity\Core\Traits\ServiceTrait;
 
 /**
@@ -58,6 +59,9 @@ class ResponseService
             }
         }
 
+        if (isset($options['format']) && is_string($data)) {
+            $data = new GenericDocument($data, $options['format']);
+        }
         if ($data instanceof DocumentInterface) {
             $content = $data->getContent();
             $contentType = $data->getContentType();

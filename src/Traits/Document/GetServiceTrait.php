@@ -31,7 +31,7 @@ trait GetServiceTrait
      */
     public function getProperty($id, $property, $options = [])
     {
-        return $this->getRepository()->getProperty($id, $property, $options);
+        return $this->convertToModelProperty($this->getRepository()->getProperty($id, $property, $options), $property);
     }
     /**
      * Return the property of the specified document.
@@ -45,7 +45,7 @@ trait GetServiceTrait
      */
     public function getPropertyBy($fieldName, $fieldValue, $property, $options = [])
     {
-        return $this->convertToModelProperty($this->getRepository()->getProperty([$fieldName => $fieldValue], $property, $options), $fieldName);
+        return $this->convertToModelProperty($this->getRepository()->getProperty([$fieldName => $fieldValue], $property, $options), $property);
     }
     /**
      * Return the property of the specified document if exist or default value otherwise.

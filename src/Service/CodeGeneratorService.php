@@ -345,7 +345,7 @@ class CodeGeneratorService
             new ParameterGenerator('options', 'array', []),
         ]);
         $zMethod->setBody(
-            sprintf('return $this->getSdk()->getPath(sprintf(\'%s\', $%s), [], [\'raw\' => true] + $options);', $definition['route'], $definition['field'])
+            sprintf('return $this->getSdk()->getPath(sprintf(\'%s\', $%s), [], [\'format\' => \'%s\'] + $options);', $definition['route'], $definition['field'], $definition['format'])
         );
     }
     /**
