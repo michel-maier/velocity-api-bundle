@@ -325,6 +325,33 @@ class CodeGeneratorService
      * @param MethodGenerator $zMethod
      * @param array           $definition
      */
+    protected function buildCrudGetPropertyPathByMethod(MethodGenerator $zMethod, $definition = [])
+    {
+        $definition += ['field' => 'id', 'property' => 'id'];
+        $definition['route'] = str_replace(['{'.$definition['field'].'}', '{'.$definition['property'].'}'], '%s', $definition['route']);
+
+        $zMethod->setDocBlock(new DocBlockGenerator(
+            sprintf('Return the local path of the file containing the specified %s %s by %s', $definition['type'], $definition['property'], $definition['field']),
+            null,
+            [
+                new ParamTag($definition['field'], ['mixed'], sprintf(ucfirst($definition['field']).' of the %s', $definition['type'])),
+                new ParamTag('options', ['array'], 'Options'),
+                new ReturnTag(['mixed']),
+                new ThrowsTag(['\\Exception'], 'if an error occured'),
+            ]
+        ));
+        $zMethod->setParameters([
+            new ParameterGenerator($definition['field'], 'string'),
+            new ParameterGenerator('options', 'array', []),
+        ]);
+        $zMethod->setBody(
+            sprintf('return $this->getSdk()->getPath(sprintf(\'%s\', $%s), [], [\'raw\' => true] + $options);', $definition['route'], $definition['field'])
+        );
+    }
+    /**
+     * @param MethodGenerator $zMethod
+     * @param array           $definition
+     */
     protected function buildCrudCreateMethod(MethodGenerator $zMethod, $definition = [])
     {
         $zMethod->setDocBlock(new DocBlockGenerator(

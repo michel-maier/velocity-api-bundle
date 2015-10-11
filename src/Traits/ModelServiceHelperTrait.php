@@ -220,6 +220,19 @@ trait ModelServiceHelperTrait
         return $this->getMetaDataService()->populateObject($this->createModelInstance($options), $data, $options);
     }
     /**
+     * Convert provided data (mixed) to a model property.
+     *
+     * @param array $data
+     * @param array $propertyName
+     * @param array $options
+     *
+     * @return mixed
+     */
+    protected function convertToModelProperty($data, $propertyName, $options = [])
+    {
+        return $this->getMetaDataService()->populateObjectProperty($this->createModelInstance($options), $data, $propertyName, $options);
+    }
+    /**
      * @return string
      */
     protected function getModelName()

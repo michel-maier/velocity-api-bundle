@@ -45,7 +45,7 @@ trait GetServiceTrait
      */
     public function getPropertyBy($fieldName, $fieldValue, $property, $options = [])
     {
-        return $this->getRepository()->getProperty([$fieldName => $fieldValue], $property, $options);
+        return $this->convertToModelProperty($this->getRepository()->getProperty([$fieldName => $fieldValue], $property, $options), $fieldName);
     }
     /**
      * Return the property of the specified document if exist or default value otherwise.
@@ -258,4 +258,14 @@ trait GetServiceTrait
      * @return mixed
      */
     protected abstract function convertToModel(array $data, $options = []);
+    /**
+     * Convert provided data (mixed) to a model property.
+     *
+     * @param array $data
+     * @param array $propertyName
+     * @param array $options
+     *
+     * @return mixed
+     */
+    protected abstract function convertToModelProperty($data, $propertyName, $options = []);
 }

@@ -709,6 +709,28 @@ class MetaDataService
         return $doc;
     }
     /**
+     * @param mixed  $doc
+     * @param mixed  $data
+     * @param string $propertyName
+     * @param array  $options
+     *
+     * @return mixed
+     *
+     * @throws \Exception
+     */
+    public function populateObjectProperty($doc, $data, $propertyName, $options = [])
+    {
+        if (!property_exists($doc, $propertyName)) {
+            throw $this->createRequiredException("Property '%s' does not exist on %s", $propertyName, get_class($doc));
+        }
+
+        $doc->$propertyName = $data;
+
+        $this->populateStorages($doc, $options);
+
+        return $doc->$propertyName;
+    }
+    /**
      * @param mixed $doc
      * @param array $options
      *
