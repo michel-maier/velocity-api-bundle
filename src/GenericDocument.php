@@ -19,7 +19,7 @@ namespace Velocity\Bundle\ApiBundle;
 class GenericDocument extends Document
 {
     /**
-     * @param mixed $content
+     * @param mixed  $content
      * @param string $format
      */
     public function __construct($content, $format)

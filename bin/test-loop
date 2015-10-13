@@ -1,0 +1,7 @@
+#!/bin/bash
+
+while [ 1 ]; do
+	clear
+	bin/phpunit -c phpunit-basic.xml.dist $*
+	sleep 3
+done;

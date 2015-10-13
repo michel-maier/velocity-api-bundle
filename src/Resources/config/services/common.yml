@@ -127,6 +127,8 @@ services:
       - %app_variables%
   velocity.codeGenerator:
     class: Velocity\Bundle\ApiBundle\Service\CodeGeneratorService
+    arguments:
+      - @velocity.callable
   velocity.formatter:
     class: Velocity\Bundle\ApiBundle\Service\FormatterService
     arguments:

@@ -1,0 +1,9 @@
+services:
+  velocity.codeGenerator.basicMethods:
+    class: Velocity\Bundle\ApiBundle\CodeGenerator\BasicMethodsCodeGenerator
+    tags:
+      - {name: velocity.codeGenerator}
+  velocity.codeGenerator.sdkMethods:
+    class: Velocity\Bundle\ApiBundle\CodeGenerator\SdkMethodsCodeGenerator
+    tags:
+      - {name: velocity.codeGenerator}
