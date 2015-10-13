@@ -53,6 +53,7 @@ class VelocityService
             'businessRule.key'                    => 'velocity.businessRule',
             'invitationEvent.key'                 => 'velocity.invitationEvent',
             'generator.key'                       => 'velocity.generator',
+            'codeGenerator.key'                   => 'velocity.codeGenerator',
             'archiver.key'                        => 'velocity.archiver',
             'job.key'                             => 'velocity.job',
             'db.key'                              => 'velocity.database',
@@ -120,6 +121,7 @@ class VelocityService
             'business_rule.tag'       => 'velocity.business_rule',
             'invitation_event.tag'    => 'velocity.invitation_event',
             'generator.tag'           => 'velocity.generator',
+            'codeGenerator.tag'       => 'velocity.codeGenerator',
             'repositories_aware.tag'  => 'velocity.repositories_aware',
             'cruds_aware.tag'         => 'velocity.cruds_aware',
             'archiver.tag'            => 'velocity.archiver',
@@ -392,6 +394,7 @@ class VelocityService
         $this->processBusinessRuleTag($container);
         $this->processInvitationEventTag($container);
         $this->processGeneratorTag($container);
+        $this->processCodeGeneratorTag($container);
         $this->processArchiverTag($container);
         $this->processFormatterTag($container);
         $this->processJobTag($container);
@@ -790,6 +793,36 @@ class VelocityService
                                 $name = $vars['value'];
                                 unset($vars['value']);
                                 $generatorDefinition->addMethodCall('register', [$name, [$this->ref($id), $method], $vars]);
+                                break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    /**
+     * Process codeGenerator tags.
+     *
+     * @param ContainerBuilder $container
+     */
+    protected function processCodeGeneratorTag(ContainerBuilder $container)
+    {
+        $codeGeneratorDefinition = $container->getDefinition($this->getDefault('codeGenerator.key'));
+
+        foreach ($this->findVelocityTaggedServiceIds($container, 'codeGenerator') as $id => $attributes) {
+            $d = $container->getDefinition($id);
+            foreach ($attributes as $params) {
+                unset($params);
+                $rClass = new \ReflectionClass($d->getClass());
+                foreach ($rClass->getMethods(\ReflectionProperty::IS_PUBLIC) as $rMethod) {
+                    foreach ($this->getAnnotationReader()->getMethodAnnotations($rMethod) as $a) {
+                        $vars   = get_object_vars($a);
+                        $method = $rMethod->getName();
+                        switch (true) {
+                            case $a instanceof Velocity\CodeGeneratorMethodType:
+                                $name = $vars['value'];
+                                unset($vars['value']);
+                                $codeGeneratorDefinition->addMethodCall('registerMethodType', [$name, [$this->ref($id), $method], $vars]);
                                 break;
                         }
                     }
