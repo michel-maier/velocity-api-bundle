@@ -39,7 +39,6 @@ class MetaDataService
      */
     protected $sdk = ['services' => []];
     /**
-<<<<<<< Updated upstream
      * @param string                                                                                    $name
      * @param DocumentServiceInterface|SubDocumentServiceInterface|SubSubDocumentServiceInterface|mixed $service
      *
@@ -576,6 +575,7 @@ class MetaDataService
     {
         $doc   = $this->convertScalarProperties($doc, $options);
         $doc   = $this->fetchEmbeddedReferences($doc, $options);
+        $doc   = $this->fetchEmbeddedReferenceLists($doc, $options);
         $doc   = $this->triggerRefreshes($doc, $options);
         $doc   = $this->buildGenerateds($doc, $options);
         $doc   = $this->saveStorages($doc, $options);
@@ -686,11 +686,21 @@ class MetaDataService
         }
 
         foreach ($data as $k => $v) {
+            if (!property_exists($doc, $k)) {
+                continue;
+            }
             if (isset($embeddedReferences[$k])) {
                 $v = $this->mutateArrayToObject($v, $embeddedReferences[$k]['class']);
             }
             if (isset($embeddedReferenceLists[$k])) {
-                $v = []; // @todo
+                if (!is_array($v)) {
+                    $v = [];
+                }
+                $subDocs = [];
+                foreach ($v as $kk => $vv) {
+                    $subDocs[$kk] = $this->mutateArrayToObject($vv, preg_replace('/^array<([^>]+)>$/', '\\1', $embeddedReferenceLists[$k]['class']));
+                }
+                $v = $subDocs;
             }
             if (isset($types[$k])) {
                 switch (true) {
@@ -698,6 +708,8 @@ class MetaDataService
                         $data = $this->revertDocumentMongoDateWithTimeZoneFieldToDateTime($data, $k);
                         $v = $data[$k];
                 }
+                $doc->$k = $v;
+            } else {
                 $doc->$k = $v;
             }
         }
@@ -747,6 +759,45 @@ class MetaDataService
         foreach ($this->getModelEmbeddedReferences($doc) as $property => $embeddedReference) {
             $type = $this->getModelPropertyType($doc, $property);
             $doc->$property = $this->convertIdToObject($doc->$property, isset($embeddedReference['class']) ? $embeddedReference['class'] : ($type ? $type['type'] : null), $embeddedReference['type']);
+        }
+
+        return $doc;
+    }
+    /**
+     * @param mixed $doc
+     * @param array $options
+     *
+     * @return mixed
+     *
+     * @throws \Exception
+     */
+    protected function fetchEmbeddedReferenceLists($doc, $options = [])
+    {
+        if (!is_object($doc)) {
+            return $doc;
+        }
+
+        unset($options);
+
+        foreach ($this->getModelEmbeddedReferenceLists($doc) as $property => $embeddedReferenceList) {
+            $type = $this->getModelPropertyType($doc, $property);
+            if (!is_array($doc->$property)) {
+                $doc->$property = [];
+            }
+            $subDocs = [];
+            foreach ($doc->$property as $kk => $subDocKey) {
+                $tt = isset($embeddedReferenceList['class']) ? $embeddedReferenceList['class'] : ($type ? $type['type'] : null);
+                if (null !== $tt) {
+                    $tt = preg_replace('/^array<([^>]+)>$/', '\\1', $tt);
+                }
+                $subDoc = $this->convertIdToObject($subDocKey, $tt, $embeddedReferenceList['type']);
+                unset($doc->$property[$kk]);
+                if (!isset($subDoc->id)) {
+                    throw $this->createRequiredException('Property id is empty for embedded reference', 500);
+                }
+                $subDocs[$subDoc->id] = $subDoc;
+            }
+            $doc->$property = $subDocs;
         }
 
         return $doc;
@@ -942,6 +993,17 @@ class MetaDataService
         return $this->getStorageService()->read($key);
     }
     /**
+     * @param array $options
+     *
+     * @return object
+     */
+    protected function createModelInstance(array $options)
+    {
+        $class = $options['model'];
+
+        return new $class();
+    }
+    /**
      * @param array $data
      * @param string $class
      *
@@ -953,7 +1015,7 @@ class MetaDataService
             $class = get_class($class);
         }
 
-        $doc = new $class();
+        $doc = $this->createModelInstance(['model' => $class]);
 
         foreach ($data as $k => $v) {
             $doc->$k = $v;
