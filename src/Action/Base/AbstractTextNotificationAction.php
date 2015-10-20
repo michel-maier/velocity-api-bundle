@@ -44,8 +44,9 @@ abstract class AbstractTextNotificationAction extends AbstractAction
      * @param string                   $env
      * @param RequestStack             $requestStack
      * @param string                   $tenant
+     * @param string                   $locale
      */
-    public function __construct(EngineInterface $templating, TranslatorInterface $translator, AttachmentService $attachmentService, EventDispatcherInterface $eventDispatcher, array $defaultSenders, array $defaultRecipients, $env, RequestStack $requestStack, $tenant)
+    public function __construct(EngineInterface $templating, TranslatorInterface $translator, AttachmentService $attachmentService, EventDispatcherInterface $eventDispatcher, array $defaultSenders, array $defaultRecipients, $env, RequestStack $requestStack, $tenant, $locale)
     {
         $this->setTemplating($templating);
         $this->setTranslator($translator);
@@ -56,13 +57,14 @@ abstract class AbstractTextNotificationAction extends AbstractAction
         $this->setEnvironment($env);
         $this->setRequestStack($requestStack);
         $this->setTenant($tenant);
+        $this->setDefaultLocale($locale);
     }
     /**
      * @return string
      */
     public function getCurrentLocale()
     {
-        return $this->getRequestStack()->getMasterRequest()->getLocale();
+        return (null === $this->getRequestStack() || null === $this->getRequestStack()->getMasterRequest()) ? $this->getDefaultLocale() : $this->getRequestStack()->getMasterRequest()->getLocale();
     }
     /**
      * @param string $tenant
@@ -226,5 +228,21 @@ abstract class AbstractTextNotificationAction extends AbstractAction
             'VelocityApiBundle::expression.txt.twig',
             ['_expression' => $expression] + $vars->all()
         );
+    }
+    /**
+     * @param string $locale
+     *
+     * @return $this
+     */
+    protected function setDefaultLocale($locale)
+    {
+        return $this->setParameter('defaultLocale', $locale);
+    }
+    /**
+     * @return string
+     */
+    protected function getDefaultLocale()
+    {
+        return $this->getParameter('defaultLocale');
     }
 }
