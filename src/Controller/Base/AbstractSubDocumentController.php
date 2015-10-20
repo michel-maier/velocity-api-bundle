@@ -215,7 +215,7 @@ abstract class AbstractSubDocumentController extends AbstractRestController
                 $this->getRequestService()->fetchRequestData($request),
                 $options
             ),
-            200,
+            201,
             [],
             ['groups' => ['Default', 'created']],
             $request
@@ -239,7 +239,7 @@ abstract class AbstractSubDocumentController extends AbstractRestController
                 $this->getRequestService()->fetchRequestData($request),
                 $options
             ),
-            200,
+            201,
             [],
             ['groups' => ['Default', 'created']],
             $request
