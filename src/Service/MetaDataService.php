@@ -11,6 +11,7 @@
 
 namespace Velocity\Bundle\ApiBundle\Service;
 
+use Doctrine\Common\Collections\ArrayCollection;
 use Velocity\Core\Traits\ServiceTrait;
 use Symfony\Component\Form\Guess\Guess;
 use Symfony\Component\Form\Guess\TypeGuess;
@@ -618,6 +619,10 @@ class MetaDataService
             $class = get_class($class);
         }
 
+        if ('stdClass' === $class) {
+            // bypass check if stdClass (used for array to object cast)
+            return [];
+        }
         $this->checkModel($class);
 
         return $this->models[$class];
