@@ -806,7 +806,7 @@ class MetaDataService
                 }
                 $subDocs[$subDoc->id] = $subDoc;
             }
-            $doc->$property = $subDocs;
+            $doc->$property = (object) $subDocs;
         }
 
         return $doc;
