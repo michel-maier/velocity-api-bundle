@@ -693,12 +693,16 @@ class MetaDataService
                 $v = $this->mutateArrayToObject($v, $embeddedReferences[$k]['class']);
             }
             if (isset($embeddedReferenceLists[$k])) {
+                $tt = isset($embeddedReferenceLists[$k]['class']) ? $embeddedReferenceLists[$k]['class'] : (isset($types[$k]) ? $types[$k]['type'] : null);
+                if (null !== $tt) {
+                    $tt = preg_replace('/^array<([^>]+)>$/', '\\1', $tt);
+                }
                 if (!is_array($v)) {
                     $v = [];
                 }
                 $subDocs = [];
                 foreach ($v as $kk => $vv) {
-                    $subDocs[$kk] = $this->mutateArrayToObject($vv, preg_replace('/^array<([^>]+)>$/', '\\1', $embeddedReferenceLists[$k]['class']));
+                    $subDocs[$kk] = $this->mutateArrayToObject($vv, $tt);
                 }
                 $v = $subDocs;
             }
