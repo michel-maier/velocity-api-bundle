@@ -648,6 +648,10 @@ class MetaDataService
         $meta = $this->getModel($doc);
         $data = get_object_vars($doc);
 
+        $globalObjectCast = false;
+        if (get_class($doc) === 'stdClass') {
+            $globalObjectCast = true;
+        }
         foreach ($data as $k => $v) {
             if ($removeNulls && null === $v) {
                 unset($data[$k]);
@@ -661,9 +665,20 @@ class MetaDataService
                 }
             }
             if (is_object($v)) {
+                $objectCast = false;
+                if ('stdClass' === get_class($v)) {
+                    $objectCast = true;
+                }
                 $v = $this->convertObjectToArray($v, $options);
+                if (true === $objectCast) {
+                    $v = (object) $v;
+                }
             }
             $data[$k] = $v;
+        }
+
+        if (true === $globalObjectCast) {
+            $data = (object) $data;
         }
 
         return $data;
@@ -806,7 +821,7 @@ class MetaDataService
                 }
                 $subDocs[$subDoc->id] = $subDoc;
             }
-            $doc->$property = $subDocs;
+            $doc->$property = (object) $subDocs;
         }
 
         return $doc;
