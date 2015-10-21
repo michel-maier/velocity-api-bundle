@@ -192,7 +192,7 @@ trait CreateServiceTrait
         unset($data);
 
         $doc = $this->callback($pParentId, $parentId, 'create.validated', $doc, $options);
-        $doc = $this->refreshModel($doc, $options);
+        $doc = $this->refreshModel($doc, ['operation' => 'create'] + $options);
         $doc = $this->callback($pParentId, $parentId, 'pre_save', $doc, $options);
         $doc = $this->callback($pParentId, $parentId, 'create.pre_save', $doc, $options);
 
