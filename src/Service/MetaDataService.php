@@ -11,7 +11,6 @@
 
 namespace Velocity\Bundle\ApiBundle\Service;
 
-use Doctrine\Common\Collections\ArrayCollection;
 use Velocity\Core\Traits\ServiceTrait;
 use Symfony\Component\Form\Guess\Guess;
 use Symfony\Component\Form\Guess\TypeGuess;
@@ -778,14 +777,26 @@ class MetaDataService
             return $doc;
         }
 
-        unset($options);
-
         foreach ($this->getModelEmbeddedReferences($doc) as $property => $embeddedReference) {
+            if (!$this->isPopulableModelProperty($doc, $property, $options)) {
+                continue;
+            }
             $type = $this->getModelPropertyType($doc, $property);
             $doc->$property = $this->convertIdToObject($doc->$property, isset($embeddedReference['class']) ? $embeddedReference['class'] : ($type ? $type['type'] : null), $embeddedReference['type']);
         }
 
         return $doc;
+    }
+    /**
+     * @param mixed  $doc
+     * @param string $property
+     * @param array  $options
+     *
+     * @return bool
+     */
+    protected function isPopulableModelProperty($doc, $property, array $options = [])
+    {
+        return property_exists($doc, $property) && (!isset($options['populateNulls']) || (false === $options['populateNulls'] && null === $doc->$property));
     }
     /**
      * @param mixed $doc
@@ -801,9 +812,10 @@ class MetaDataService
             return $doc;
         }
 
-        unset($options);
-
         foreach ($this->getModelEmbeddedReferenceLists($doc) as $property => $embeddedReferenceList) {
+            if (!$this->isPopulableModelProperty($doc, $property, $options)) {
+                continue;
+            }
             $type = $this->getModelPropertyType($doc, $property);
             if (!is_array($doc->$property)) {
                 $doc->$property = [];
@@ -852,11 +864,12 @@ class MetaDataService
             return $doc;
         }
 
-        unset($options);
-
         $generateds = $this->getModelGenerateds($doc);
 
         foreach ($generateds as $k => $v) {
+            if (!$this->isPopulableModelProperty($doc, $k, $options)) {
+                continue;
+            }
             $doc->$k = $this->generateValue($v, $doc);
         }
 
@@ -874,11 +887,12 @@ class MetaDataService
             return $doc;
         }
 
-        unset($options);
-
         $storages = $this->getModelStorages($doc);
 
         foreach ($storages as $k => $definition) {
+            if (!$this->isPopulableModelProperty($doc, $k, $options)) {
+                continue;
+            }
             $doc->$k = $this->saveStorageValue($doc->$k, $definition, $doc);
         }
 
@@ -923,9 +937,11 @@ class MetaDataService
             return $doc;
         }
 
-        unset($options);
+        if (!isset($options['operation'])) {
+            return $doc;
+        }
 
-        foreach ($this->getModelRefreshablePropertiesByOperation($doc, 'create') as $property) {
+        foreach ($this->getModelRefreshablePropertiesByOperation($doc, $options['operation']) as $property) {
             $type = $this->getModelPropertyType($doc, $property);
             switch ($type['type']) {
                 case "DateTime<'c'>":
@@ -950,12 +966,10 @@ class MetaDataService
             return $doc;
         }
 
-        unset($options);
-
         $types = $this->getModelTypes($doc);
 
         foreach ($types as $property => $type) {
-            if (property_exists($doc, $property) && null === $doc->$property) {
+            if (!$this->isPopulableModelProperty($doc, $property, ['populateNulls' => false] + $options)) {
                 continue;
             }
             switch ($type['type']) {
@@ -1043,44 +1057,6 @@ class MetaDataService
 
         foreach ($data as $k => $v) {
             $doc->$k = $v;
-        }
-
-        return $doc;
-    }
-
-
-    /**
-     * @move
-     */
-    protected function convert2($data)
-    {
-        foreach ($data as $k => $v) {
-            if (null === $v) {
-                unset($data[$k]);
-                continue;
-            }
-            if ('Date' === substr($k, -4)) {
-                $data = $this->convertDataDateTimeFieldToMongoDateWithTimeZone($data, $k);
-            } elseif (is_array($data[$k])) {
-                $data[$k] = $this->convert($data[$k]);
-            }
-        }
-
-        return $data;
-    }
-    /**
-     * @move
-     */
-    protected function revert($doc)
-    {
-        foreach (array_keys($doc) as $k) {
-            if (!isset($doc[$k])) {
-                continue; // if key was removed by previous iteration
-            }            if ('Date' === substr($k, -4)) {
-                $doc = $this->revertDocumentMongoDateWithTimeZoneFieldToDateTime($doc, $k);
-            } elseif (is_array($doc[$k])) {
-                $doc[$k] = $this->revert($doc[$k]);
-            }
         }
 
         return $doc;
