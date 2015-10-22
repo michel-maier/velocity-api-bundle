@@ -73,6 +73,7 @@ services:
       - %app_env%
       - @request_stack
       - %app_tenant%
+      - %locale%
     tags:
       - { name: velocity.action }
   velocity.action.sms:
@@ -87,6 +88,7 @@ services:
       - %app_env%
       - @request_stack
       - %app_tenant%
+      - %locale%
     tags:
       - { name: velocity.action }
   velocity.action.fax:
@@ -101,6 +103,7 @@ services:
       - %app_env%
       - @request_stack
       - %app_tenant%
+      - %locale%
     tags:
       - { name: velocity.action }
   velocity.action.fire:

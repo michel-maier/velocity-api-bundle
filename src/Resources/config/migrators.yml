@@ -1,6 +1,8 @@
 services:
   velocity.migrator.php:
     class: Velocity\Bundle\ApiBundle\Migrator\PhpMigrator
+    calls:
+      - [setEventDispatcher, [@event_dispatcher]]
     tags:
       - {name: velocity.migrator, extension: php}
   velocity.migrator.yaml:

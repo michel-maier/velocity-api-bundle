@@ -194,7 +194,7 @@ abstract class AbstractSubSubDocumentController extends AbstractRestController
                 $this->getRequestService()->fetchRequestData($request),
                 $options
             ),
-            200,
+            201,
             [],
             ['groups' => ['Default', 'created']],
             $request

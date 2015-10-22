@@ -39,7 +39,6 @@ class MetaDataService
      */
     protected $sdk = ['services' => []];
     /**
-<<<<<<< Updated upstream
      * @param string                                                                                    $name
      * @param DocumentServiceInterface|SubDocumentServiceInterface|SubSubDocumentServiceInterface|mixed $service
      *
@@ -576,6 +575,7 @@ class MetaDataService
     {
         $doc   = $this->convertScalarProperties($doc, $options);
         $doc   = $this->fetchEmbeddedReferences($doc, $options);
+        $doc   = $this->fetchEmbeddedReferenceLists($doc, $options);
         $doc   = $this->triggerRefreshes($doc, $options);
         $doc   = $this->buildGenerateds($doc, $options);
         $doc   = $this->saveStorages($doc, $options);
@@ -618,6 +618,10 @@ class MetaDataService
             $class = get_class($class);
         }
 
+        if ('stdClass' === $class) {
+            // bypass check if stdClass (used for array to object cast)
+            return [];
+        }
         $this->checkModel($class);
 
         return $this->models[$class];
@@ -643,6 +647,10 @@ class MetaDataService
         $meta = $this->getModel($doc);
         $data = get_object_vars($doc);
 
+        $globalObjectCast = false;
+        if (get_class($doc) === 'stdClass') {
+            $globalObjectCast = true;
+        }
         foreach ($data as $k => $v) {
             if ($removeNulls && null === $v) {
                 unset($data[$k]);
@@ -656,9 +664,20 @@ class MetaDataService
                 }
             }
             if (is_object($v)) {
+                $objectCast = false;
+                if ('stdClass' === get_class($v)) {
+                    $objectCast = true;
+                }
                 $v = $this->convertObjectToArray($v, $options);
+                if (true === $objectCast) {
+                    $v = (object) $v;
+                }
             }
             $data[$k] = $v;
+        }
+
+        if (true === $globalObjectCast) {
+            $data = (object) $data;
         }
 
         return $data;
@@ -686,11 +705,25 @@ class MetaDataService
         }
 
         foreach ($data as $k => $v) {
+            if (!property_exists($doc, $k)) {
+                continue;
+            }
             if (isset($embeddedReferences[$k])) {
                 $v = $this->mutateArrayToObject($v, $embeddedReferences[$k]['class']);
             }
             if (isset($embeddedReferenceLists[$k])) {
-                $v = []; // @todo
+                $tt = isset($embeddedReferenceLists[$k]['class']) ? $embeddedReferenceLists[$k]['class'] : (isset($types[$k]) ? $types[$k]['type'] : null);
+                if (null !== $tt) {
+                    $tt = preg_replace('/^array<([^>]+)>$/', '\\1', $tt);
+                }
+                if (!is_array($v)) {
+                    $v = [];
+                }
+                $subDocs = [];
+                foreach ($v as $kk => $vv) {
+                    $subDocs[$kk] = $this->mutateArrayToObject($vv, $tt);
+                }
+                $v = $subDocs;
             }
             if (isset($types[$k])) {
                 switch (true) {
@@ -698,6 +731,8 @@ class MetaDataService
                         $data = $this->revertDocumentMongoDateWithTimeZoneFieldToDateTime($data, $k);
                         $v = $data[$k];
                 }
+                $doc->$k = $v;
+            } else {
                 $doc->$k = $v;
             }
         }
@@ -742,11 +777,63 @@ class MetaDataService
             return $doc;
         }
 
-        unset($options);
-
         foreach ($this->getModelEmbeddedReferences($doc) as $property => $embeddedReference) {
+            if (!$this->isPopulableModelProperty($doc, $property, $options)) {
+                continue;
+            }
             $type = $this->getModelPropertyType($doc, $property);
             $doc->$property = $this->convertIdToObject($doc->$property, isset($embeddedReference['class']) ? $embeddedReference['class'] : ($type ? $type['type'] : null), $embeddedReference['type']);
+        }
+
+        return $doc;
+    }
+    /**
+     * @param mixed  $doc
+     * @param string $property
+     * @param array  $options
+     *
+     * @return bool
+     */
+    protected function isPopulableModelProperty($doc, $property, array $options = [])
+    {
+        return property_exists($doc, $property) && (!isset($options['populateNulls']) || (false === $options['populateNulls'] && null === $doc->$property));
+    }
+    /**
+     * @param mixed $doc
+     * @param array $options
+     *
+     * @return mixed
+     *
+     * @throws \Exception
+     */
+    protected function fetchEmbeddedReferenceLists($doc, $options = [])
+    {
+        if (!is_object($doc)) {
+            return $doc;
+        }
+
+        foreach ($this->getModelEmbeddedReferenceLists($doc) as $property => $embeddedReferenceList) {
+            if (!$this->isPopulableModelProperty($doc, $property, $options)) {
+                continue;
+            }
+            $type = $this->getModelPropertyType($doc, $property);
+            if (!is_array($doc->$property)) {
+                $doc->$property = [];
+            }
+            $subDocs = [];
+            foreach ($doc->$property as $kk => $subDocKey) {
+                $tt = isset($embeddedReferenceList['class']) ? $embeddedReferenceList['class'] : ($type ? $type['type'] : null);
+                if (null !== $tt) {
+                    $tt = preg_replace('/^array<([^>]+)>$/', '\\1', $tt);
+                }
+                $subDoc = $this->convertIdToObject($subDocKey, $tt, $embeddedReferenceList['type']);
+                unset($doc->$property[$kk]);
+                if (!isset($subDoc->id)) {
+                    throw $this->createRequiredException('Property id is empty for embedded reference', 500);
+                }
+                $subDocs[$subDoc->id] = $subDoc;
+            }
+            $doc->$property = (object) $subDocs;
         }
 
         return $doc;
@@ -777,11 +864,12 @@ class MetaDataService
             return $doc;
         }
 
-        unset($options);
-
         $generateds = $this->getModelGenerateds($doc);
 
         foreach ($generateds as $k => $v) {
+            if (!$this->isPopulableModelProperty($doc, $k, $options)) {
+                continue;
+            }
             $doc->$k = $this->generateValue($v, $doc);
         }
 
@@ -799,11 +887,12 @@ class MetaDataService
             return $doc;
         }
 
-        unset($options);
-
         $storages = $this->getModelStorages($doc);
 
         foreach ($storages as $k => $definition) {
+            if (!$this->isPopulableModelProperty($doc, $k, $options)) {
+                continue;
+            }
             $doc->$k = $this->saveStorageValue($doc->$k, $definition, $doc);
         }
 
@@ -848,9 +937,11 @@ class MetaDataService
             return $doc;
         }
 
-        unset($options);
+        if (!isset($options['operation'])) {
+            return $doc;
+        }
 
-        foreach ($this->getModelRefreshablePropertiesByOperation($doc, 'create') as $property) {
+        foreach ($this->getModelRefreshablePropertiesByOperation($doc, $options['operation']) as $property) {
             $type = $this->getModelPropertyType($doc, $property);
             switch ($type['type']) {
                 case "DateTime<'c'>":
@@ -875,12 +966,10 @@ class MetaDataService
             return $doc;
         }
 
-        unset($options);
-
         $types = $this->getModelTypes($doc);
 
         foreach ($types as $property => $type) {
-            if (property_exists($doc, $property) && null === $doc->$property) {
+            if (!$this->isPopulableModelProperty($doc, $property, ['populateNulls' => false] + $options)) {
                 continue;
             }
             switch ($type['type']) {
@@ -942,6 +1031,17 @@ class MetaDataService
         return $this->getStorageService()->read($key);
     }
     /**
+     * @param array $options
+     *
+     * @return object
+     */
+    protected function createModelInstance(array $options)
+    {
+        $class = $options['model'];
+
+        return new $class();
+    }
+    /**
      * @param array $data
      * @param string $class
      *
@@ -953,48 +1053,10 @@ class MetaDataService
             $class = get_class($class);
         }
 
-        $doc = new $class();
+        $doc = $this->createModelInstance(['model' => $class]);
 
         foreach ($data as $k => $v) {
             $doc->$k = $v;
-        }
-
-        return $doc;
-    }
-
-
-    /**
-     * @move
-     */
-    protected function convert2($data)
-    {
-        foreach ($data as $k => $v) {
-            if (null === $v) {
-                unset($data[$k]);
-                continue;
-            }
-            if ('Date' === substr($k, -4)) {
-                $data = $this->convertDataDateTimeFieldToMongoDateWithTimeZone($data, $k);
-            } elseif (is_array($data[$k])) {
-                $data[$k] = $this->convert($data[$k]);
-            }
-        }
-
-        return $data;
-    }
-    /**
-     * @move
-     */
-    protected function revert($doc)
-    {
-        foreach (array_keys($doc) as $k) {
-            if (!isset($doc[$k])) {
-                continue; // if key was removed by previous iteration
-            }            if ('Date' === substr($k, -4)) {
-                $doc = $this->revertDocumentMongoDateWithTimeZoneFieldToDateTime($doc, $k);
-            } elseif (is_array($doc[$k])) {
-                $doc[$k] = $this->revert($doc[$k]);
-            }
         }
 
         return $doc;
