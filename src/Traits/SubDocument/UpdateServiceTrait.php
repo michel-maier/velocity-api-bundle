@@ -314,7 +314,7 @@ trait UpdateServiceTrait
         unset($data);
 
         $doc = $this->callback($parentId, 'update.validated', $doc, $options);
-        $doc = $this->refreshModel($doc, ['operation' => 'update', 'populateNulls' => false] + $options);
+        $doc = $this->refreshModel($doc, ['operation' => 'update', 'populateNulls' => false, 'parentId' => $parentId, 'id' => $id] + $options);
         $doc = $this->callback($parentId, 'pre_save', $doc, $options);
         $doc = $this->callback($parentId, 'update.pre_save', $doc, $options);
 

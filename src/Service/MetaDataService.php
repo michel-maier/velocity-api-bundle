@@ -887,13 +887,15 @@ class MetaDataService
             return $doc;
         }
 
+        $vars = ((array)$doc) + $options;
+
         $storages = $this->getModelStorages($doc);
 
         foreach ($storages as $k => $definition) {
             if (!$this->isPopulableModelProperty($doc, $k, $options)) {
                 continue;
             }
-            $doc->$k = $this->saveStorageValue($doc->$k, $definition, $doc);
+            $doc->$k = $this->saveStorageValue($doc->$k, $definition, $vars);
         }
 
         return $doc;
@@ -998,20 +1000,19 @@ class MetaDataService
     /**
      * @param mixed $value
      * @param array $definition
-     * @param mixed $entireDoc
+     * @param mixed $vars
      *
      * @return string
      *
      * @throws \Exception
      */
-    protected function saveStorageValue($value, $definition, $entireDoc)
+    protected function saveStorageValue($value, $definition, $vars)
     {
         $key = $definition['key'];
-        $data = (array) $entireDoc;
 
         if (0 < preg_match_all('/\{([^\}]+)\}/', $key, $matches)) {
             foreach ($matches[1] as $i => $match) {
-                $key = str_replace($matches[0][$i], isset($data[$match]) ? $data[$match] : null, $key);
+                $key = str_replace($matches[0][$i], isset($vars[$match]) ? $vars[$match] : null, $key);
             }
         }
 
