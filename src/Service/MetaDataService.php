@@ -887,7 +887,13 @@ class MetaDataService
             return $doc;
         }
 
-        $vars = ((array)$doc) + $options;
+        $vars = ((array) $doc);
+
+        foreach ($options as $k => $v) {
+            if (!isset($vars[$k])) {
+                $vars[$k] = $v;
+            }
+        }
 
         $storages = $this->getModelStorages($doc);
 
