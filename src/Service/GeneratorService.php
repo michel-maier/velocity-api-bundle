@@ -62,15 +62,15 @@ class GeneratorService
     }
     /**
      * @param string $name
-     * @param array  $params
+     * @param mixed  $data
      * @param array  $options
      *
      * @return mixed
      *
      * @throws \Exception
      */
-    public function generate($name, array $params = [], array $options = [])
+    public function generate($name, $data = null, array $options = [])
     {
-        return $this->getCallableService()->executeByType('generator', $name, [$params, $options]);
+        return $this->getCallableService()->executeByType('generator', $name, [$data, $options]);
     }
 }

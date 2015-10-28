@@ -108,6 +108,7 @@ class MetaDataService
                 'storages'               => [],
                 'ids'                    => [],
                 'types'                  => [],
+                'fingerPrints'           => [],
             ];
         }
 
@@ -269,8 +270,12 @@ class MetaDataService
 
         unset($definition['value']);
 
-        if (!isset($definition['of']) || !is_array($definition['of'])) {
+        if (!isset($definition['of'])) {
             $definition['of'] = [];
+        }
+
+        if (!is_array($definition['of'])) {
+            $definition['of'] = [$definition['of']];
         }
 
         $this->models[$class]['fingerPrints'][$property] = $definition;
@@ -904,10 +909,19 @@ class MetaDataService
         $generateds = $this->getModelGenerateds($doc);
 
         foreach ($generateds as $k => $v) {
-            if (!$this->isPopulableModelProperty($doc, $k, $options)) {
-                continue;
+            $generate = false;
+            if (isset($v['trigger'])) {
+                if (isset($doc->{$v['trigger']})) {
+                    $generate = true;
+                }
+            } else {
+                if ($this->isPopulableModelProperty($doc, $k, $options)) {
+                    $generate = true;
+                }
             }
-            $doc->$k = $this->generateValue($v, $doc);
+            if (true === $generate) {
+                $doc->$k = $this->generateValue($v, $doc);
+            }
         }
 
         return $doc;

@@ -23,4 +23,8 @@ use Velocity\Bundle\ApiBundle\Annotation\Base\Annotation;
  */
 final class Generated extends Annotation
 {
+    /**
+     * @var string
+     */
+    public $trigger = null;
 }
