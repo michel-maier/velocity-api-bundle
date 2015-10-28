@@ -36,17 +36,65 @@ class StringGenerator
      *
      * @Velocity\Generator("random_sha1")
      */
-    public function generateSha1String()
+    public function generateRandomSha1String()
     {
-        return sha1($this->generateMd5String());
+        return $this->generateSha1String($this->generateRandomMd5String());
+    }
+    /**
+     * @param string $string
+     *
+     * @return string
+     *
+     * @Velocity\Generator("sha1")
+     */
+    public function generateSha1String($string)
+    {
+        return sha1($string);
     }
     /**
      * @return string
      *
      * @Velocity\Generator("random_md5")
      */
-    public function generateMd5String()
+    public function generateRandomMd5String()
     {
-        return md5($this->generateString());
+        return $this->generateMd5String($this->generateString());
+    }
+    /**
+     * @param string $string
+     *
+     * @return string
+     *
+     * @Velocity\Generator("md5")
+     */
+    public function generateMd5String($string)
+    {
+        return md5($string);
+    }
+    /**
+     * @param mixed $data
+     *
+     * @return string
+     *
+     * @Velocity\Generator("serialized")
+     */
+    public function generateSerializedString($data)
+    {
+        return serialize($data);
+    }
+    /**
+     * @param mixed $data
+     *
+     * @return string
+     *
+     * @Velocity\Generator("fingerprint")
+     */
+    public function generateFingerPrintString($data)
+    {
+        if (is_string($data)) {
+            return $this->generateMd5String($data);
+        }
+
+        return $this->generateMd5String($this->generateSerializedString($data));
     }
 }

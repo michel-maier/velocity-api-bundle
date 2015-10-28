@@ -272,6 +272,12 @@ class VelocityService
                             }
                             $m->addMethodCall('addModelPropertyGenerated', [$class, $property, $vars]);
                             break;
+                        case $a instanceof Velocity\FingerPrint:
+                            if (!$model) {
+                                throw $this->createRequiredException('Finger Print annotation only allowed in models');
+                            }
+                            $m->addMethodCall('addModelPropertyFingerPrint', [$class, $property, $vars]);
+                            break;
                         case $a instanceof Velocity\Storage:
                             if (!$model) {
                                 throw $this->createRequiredException('Storage annotation only allowed in models');

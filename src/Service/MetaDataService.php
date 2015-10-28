@@ -263,6 +263,27 @@ class MetaDataService
      *
      * @return $this
      */
+    public function addModelPropertyFingerPrint($class, $property, $definition)
+    {
+        $this->checkModel($class);
+
+        unset($definition['value']);
+
+        if (!isset($definition['of']) || !is_array($definition['of'])) {
+            $definition['of'] = [];
+        }
+
+        $this->models[$class]['fingerPrints'][$property] = $definition;
+
+        return $this;
+    }
+    /**
+     * @param string $class
+     * @param string $property
+     * @param array  $definition
+     *
+     * @return $this
+     */
     public function addModelPropertyStorage($class, $property, $definition)
     {
         $this->checkModel($class);
@@ -458,6 +479,21 @@ class MetaDataService
      *
      * @return array
      */
+    public function getModelFingerPrints($class)
+    {
+        if (is_object($class)) {
+            $class = get_class($class);
+        }
+
+        $this->checkModel($class);
+
+        return $this->models[$class]['fingerPrints'];
+    }
+    /**
+     * @param string|Object $class
+     *
+     * @return array
+     */
     public function getModelStorages($class)
     {
         if (is_object($class)) {
@@ -578,6 +614,7 @@ class MetaDataService
         $doc   = $this->fetchEmbeddedReferenceLists($doc, $options);
         $doc   = $this->triggerRefreshes($doc, $options);
         $doc   = $this->buildGenerateds($doc, $options);
+        $doc   = $this->computeFingerPrints($doc, $options);
         $doc   = $this->saveStorages($doc, $options);
 
         return $doc;
@@ -881,6 +918,46 @@ class MetaDataService
      *
      * @return mixed
      */
+    protected function computeFingerPrints($doc, $options = [])
+    {
+        if (!is_object($doc)) {
+            return $doc;
+        }
+
+        $fingerPrints = $this->getModelFingerPrints($doc);
+
+        foreach ($fingerPrints as $k => $v) {
+            $values = [];
+
+            $found = false;
+
+            foreach ($v['of'] as $p) {
+                if (!isset($doc->$p)) {
+                    $values[$p] = null;
+                    continue;
+                } else {
+                    $values[$p] = $doc->$p;
+                    $found = true;
+                }
+            }
+
+            unset($v['of']);
+
+            if (true === $found) {
+                $doc->$k = $this->generateValue(['type' => 'fingerprint'], count($values) > 1 ? $values : array_shift($values));
+            }
+        }
+
+        unset($options);
+
+        return $doc;
+    }
+    /**
+     * @param mixed $doc
+     * @param array $options
+     *
+     * @return mixed
+     */
     protected function saveStorages($doc, $options = [])
     {
         if (!is_object($doc)) {
@@ -993,15 +1070,15 @@ class MetaDataService
     }
     /**
      * @param array $definition
-     * @param mixed $entireDoc
+     * @param mixed $data
      *
      * @return string
      *
      * @throws \Exception
      */
-    protected function generateValue($definition, $entireDoc)
+    protected function generateValue($definition, $data)
     {
-        return $this->getGeneratorService()->generate($definition['type'], (array) $entireDoc);
+        return $this->getGeneratorService()->generate($definition['type'], is_object($data) ? (array) $data : $data);
     }
     /**
      * @param mixed $value

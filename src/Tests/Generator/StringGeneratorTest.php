@@ -37,14 +37,14 @@ class StringGeneratorTest extends PHPUnit_Framework_TestCase
      */
     public function testGenerateMd5()
     {
-        $this->assertEquals(32, strlen($this->g->generateMd5String()));
-        $this->assertTrue(0 < preg_match('/^[a-f0-9]+$/', $g = $this->g->generateMd5String()), sprintf("string '%s' is not valid md5 string", $g));
+        $this->assertEquals(32, strlen($this->g->generateRandomMd5String()));
+        $this->assertTrue(0 < preg_match('/^[a-f0-9]+$/', $g = $this->g->generateRandomMd5String()), sprintf("string '%s' is not valid md5 string", $g));
     }
     /**
      * @group unit
      */
     public function testGenerateSha1()
     {
-        $this->assertEquals(40, strlen($this->g->generateSha1String()));
+        $this->assertEquals(40, strlen($this->g->generateRandomSha1String()));
     }
 }
