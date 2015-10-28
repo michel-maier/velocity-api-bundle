@@ -796,7 +796,7 @@ class MetaDataService
      */
     protected function isPopulableModelProperty($doc, $property, array $options = [])
     {
-        return property_exists($doc, $property) && (!isset($options['populateNulls']) || (false === $options['populateNulls'] && null === $doc->$property));
+        return property_exists($doc, $property) && (!isset($options['populateNulls']) || (false === $options['populateNulls'] && null !== $doc->$property));
     }
     /**
      * @param mixed $doc
