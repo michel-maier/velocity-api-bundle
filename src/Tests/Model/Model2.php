@@ -15,7 +15,7 @@ use Velocity\Bundle\ApiBundle\Annotation as Velocity;
 
 /**
  * @author Olivier Hoareau <olivier@phppro.fr>
- * @Velocity\Model
+ * @Velocity\Model("m2")
  */
 class Model2
 {

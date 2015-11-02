@@ -207,9 +207,17 @@ class VelocityService
             $rClass = new \ReflectionClass($class);
             $model = false;
             foreach ($this->getAnnotationReader()->getClassAnnotations($rClass) as $a) {
+                $vars = get_object_vars($a);
+                if (!isset($vars['id'])) {
+                    $vars['id'] = $vars['value'];
+                }
+                unset($vars['value']);
+                if (!isset($vars['id'])) {
+                    throw $this->createRequiredException("No id specified for model '%s'", $class);
+                }
                 switch (true) {
                     case $a instanceof Velocity\Model:
-                        $m->addMethodCall('addModel', [$class, []]);
+                        $m->addMethodCall('addModel', [$class, $vars]);
                         $model = true;
                         break;
                 }

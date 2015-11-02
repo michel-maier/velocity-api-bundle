@@ -53,8 +53,8 @@ class VelocityServiceTest extends PHPUnit_Framework_TestCase
 
         $this->assertEquals(
             [
-                ['addModel', ['Velocity\\Bundle\\ApiBundle\\Tests\\Model\\Model1', []]],
-                ['addModel', ['Velocity\\Bundle\\ApiBundle\\Tests\\Model\\Model2', []]],
+                ['addModel', ['Velocity\\Bundle\\ApiBundle\\Tests\\Model\\Model1', ['id' => 'm1']]],
+                ['addModel', ['Velocity\\Bundle\\ApiBundle\\Tests\\Model\\Model2', ['id' => 'm2']]],
             ],
             $d->getMethodCalls()
         );
@@ -73,7 +73,7 @@ class VelocityServiceTest extends PHPUnit_Framework_TestCase
         $addedMethods = $d->getMethodCalls();
         $this->assertCount(2, $addedMethods);
         $this->assertEquals(
-            ['addModel', ['Velocity\\Bundle\\ApiBundle\\Tests\\Model\\ModelWithAnnotatedMethods', []]],
+            ['addModel', ['Velocity\\Bundle\\ApiBundle\\Tests\\Model\\ModelWithAnnotatedMethods', ['id' => 'modelWithAnnotatedMethods']]],
             $addedMethods[0]
         );
         list($sourceClass, $sourceMethod) = $addedMethods[1];
@@ -95,7 +95,7 @@ class VelocityServiceTest extends PHPUnit_Framework_TestCase
         $addedMethods = $d->getMethodCalls();
         $this->assertCount(3, $addedMethods);
         $this->assertEquals(
-            ['addModel', ['Velocity\\Bundle\\ApiBundle\\Tests\\Model\\ModelWithAnnotatedProperties', []]],
+            ['addModel', ['Velocity\\Bundle\\ApiBundle\\Tests\\Model\\ModelWithAnnotatedProperties', ['id' => 'modelWithAnnotatedProperties']]],
             $addedMethods[0]
         );
         list($sourceClass, $sourceProperty) = $addedMethods[1];

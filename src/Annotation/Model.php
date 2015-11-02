@@ -23,4 +23,5 @@ use Velocity\Bundle\ApiBundle\Annotation\Base\Annotation;
  */
 final class Model extends Annotation
 {
+    public $id;
 }

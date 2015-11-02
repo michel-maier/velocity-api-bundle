@@ -48,7 +48,7 @@ class MetaDataServiceTest extends PHPUnit_Framework_TestCase
     public function testModelClasses()
     {
         $this->assertEquals([], $this->s->getModels());
-        $this->s->addModel('Model1', []);
+        $this->s->addModel('Model1', ['id' => 'm1']);
         $this->assertEquals([
             'Model1' => [
                 'embeddedReferences' => [],
@@ -60,6 +60,7 @@ class MetaDataServiceTest extends PHPUnit_Framework_TestCase
                 'types' => [],
                 'referenceLists' => [],
                 'fingerPrints' => [],
+                'id' => 'm1',
             ],
         ], $this->s->getModels());
     }

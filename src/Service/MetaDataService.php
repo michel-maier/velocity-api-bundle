@@ -37,6 +37,10 @@ class MetaDataService
     /**
      * @var array
      */
+    protected $modelIds = [];
+    /**
+     * @var array
+     */
     protected $sdk = ['services' => []];
     /**
      * @param string                                                                                    $name
@@ -113,6 +117,8 @@ class MetaDataService
         }
 
         $this->models[$class] += $definition;
+
+        $this->modelIds[$definition['id']] = $class;
 
         return $this;
     }
@@ -376,6 +382,21 @@ class MetaDataService
     public function getSdkServices()
     {
         return $this->sdk['services'];
+    }
+    /**
+     * @param string $id
+     *
+     * @return string
+     *
+     * @throws \Exception
+     */
+    public function getModelClassForId($id)
+    {
+        if (!isset($this->modelIds[$id])) {
+            throw $this->createRequiredException("Unknown model '%s'", $id);
+        }
+
+        return $this->modelIds[$id];
     }
     /**
      * @param string|Object $class

@@ -16,7 +16,7 @@ use /** @noinspection PhpUnusedAliasInspection */ Sensio\Bundle\FrameworkExtraBu
 
 /**
  * @author Olivier Hoareau <olivier@phppro.fr>
- * @Velocity\Model
+ * @Velocity\Model("modelWithAnnotatedMethods")
  */
 class ModelWithAnnotatedMethods
 {

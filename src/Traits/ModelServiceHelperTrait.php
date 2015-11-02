@@ -129,7 +129,7 @@ trait ModelServiceHelperTrait
             return $alias;
         }
 
-        return sprintf('AppBundle\\Model\\%s', str_replace(' ', '\\', ucwords(join(' ', $this->getTypes()))));
+        return $this->getMetaDataService()->getModelClassForId(join('.', $this->getTypes()));
     }
     /**
      * Return a new instance of the model.
