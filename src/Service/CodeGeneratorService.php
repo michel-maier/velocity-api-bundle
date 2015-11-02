@@ -48,7 +48,7 @@ class CodeGeneratorService
         list($namespace) = $this->explodeClassNamespace($name);
 
         $zFile = $this->createFile(['namespace' => $namespace] + $definition);
-        $zFile->setClass($this->createClass($name, ['namespace' => false] + $definition));
+        $zFile->setClass($this->createClass($name, ['zFile' => $zFile, 'namespace' => false] + $definition));
 
         return $zFile;
     }
