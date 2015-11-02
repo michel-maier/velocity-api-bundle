@@ -185,6 +185,30 @@ abstract class AbstractDocumentController extends AbstractRestController
         );
     }
     /**
+     * Update the specified document.
+     *
+     * @param Request $request
+     * @param string  $field
+     * @param array   $options
+     *
+     * @return Response
+     */
+    protected function handleUpdateBy(Request $request, $field, $options = [])
+    {
+        return $this->returnResponse(
+            $this->getService()->updateBy(
+                $field,
+                $this->getRequestService()->fetchRouteParameter($request, $field),
+                $this->getRequestService()->fetchRequestData($request),
+                $options
+            ),
+            200,
+            [],
+            ['groups' => ['Default', 'updated']],
+            $request
+        );
+    }
+    /**
      * Update the specified document property.
      *
      * @param Request $request

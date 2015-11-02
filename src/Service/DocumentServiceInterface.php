@@ -183,6 +183,17 @@ interface DocumentServiceInterface
      */
     public function update($id, $data, $options = []);
     /**
+     * Update the specified document by the specified field.
+     *
+     * @param string $fieldName
+     * @param string $fieldValue
+     * @param mixed  $data
+     * @param array  $options
+     *
+     * @return mixed
+     */
+    public function updateBy($fieldName, $fieldValue, $data, $options = []);
+    /**
      * Delete the specified document.
      *
      * @param mixed $id
