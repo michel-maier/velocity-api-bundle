@@ -48,20 +48,6 @@ class ApiExtension extends AbstractTwigExtension
         ];
     }
     /**
-     * @return array
-     */
-    public function getFunctions()
-    {
-        return [];
-    }
-    /**
-     * @return array
-     */
-    public function getTokenParsers()
-    {
-        return [];
-    }
-    /**
      * @param string $string
      *
      * @return string

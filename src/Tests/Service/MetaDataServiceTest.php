@@ -59,6 +59,7 @@ class MetaDataServiceTest extends PHPUnit_Framework_TestCase
                 'ids' => [],
                 'types' => [],
                 'referenceLists' => [],
+                'fingerPrints' => [],
             ],
         ], $this->s->getModels());
     }

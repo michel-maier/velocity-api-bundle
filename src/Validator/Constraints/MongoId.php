@@ -28,6 +28,6 @@ class MongoId extends Constraint
      */
     public function validatedBy()
     {
-        return 'velocity_mongoId';
+        return 'velocity_mongo_id';
     }
 }

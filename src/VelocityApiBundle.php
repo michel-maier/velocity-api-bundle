@@ -16,6 +16,7 @@ use Doctrine\Common\Annotations\AnnotationReader;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Velocity\Bundle\ApiBundle\Service\VelocityService;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Symfony\Bundle\SecurityBundle\DependencyInjection\SecurityExtension;
 use Velocity\Bundle\ApiBundle\DependencyInjection\Security\Factory\ApiFactory;
 use Velocity\Bundle\ApiBundle\DependencyInjection\Compiler\VelocityCompilerPass;
 
@@ -29,13 +30,54 @@ class VelocityApiBundle extends Bundle
     /**
      * @var KernelInterface
      */
-    private $kernel;
+    protected $kernel;
+    /**
+     * @var ApiFactory
+     */
+    protected $apiFactory;
+    /**
+     * @var VelocityService
+     */
+    protected $velocityService;
     /**
      * @param KernelInterface $kernel
+     * @param ApiFactory      $apiFactory
+     * @param VelocityService $velocityService
      */
-    public function __construct(KernelInterface $kernel)
+    public function __construct(KernelInterface $kernel, $apiFactory = null, $velocityService = null)
     {
-        $this->kernel = $kernel;
+        if (null === $apiFactory) {
+            $apiFactory = new ApiFactory();
+        }
+
+        if (null === $velocityService) {
+            $velocityService = new VelocityService(new AnnotationReader());
+        }
+
+        $this->kernel          = $kernel;
+        $this->apiFactory      = $apiFactory;
+        $this->velocityService = $velocityService;
+    }
+    /**
+     * @return ApiFactory
+     */
+    public function getApiFactory()
+    {
+        return $this->apiFactory;
+    }
+    /**
+     * @return KernelInterface
+     */
+    public function getKernel()
+    {
+        return $this->kernel;
+    }
+    /**
+     * @return VelocityService
+     */
+    public function getVelocityService()
+    {
+        return $this->velocityService;
     }
     /**
      * @param ContainerBuilder $container
@@ -44,12 +86,12 @@ class VelocityApiBundle extends Bundle
     {
         parent::build($container);
 
-        $extension = $container->getExtension('security');
-        /** @noinspection PhpUndefinedMethodInspection */
-        $extension->addSecurityListenerFactory(new ApiFactory());
+        if ($container->hasExtension('security')) {
+            $extension = $container->getExtension('security');
+            /** @var SecurityExtension $extension */
+            $extension->addSecurityListenerFactory($this->getApiFactory());
+        }
 
-        $velocity = new VelocityService(new AnnotationReader());
-
-        $container->addCompilerPass(new VelocityCompilerPass($this->kernel, $velocity));
+        $container->addCompilerPass(new VelocityCompilerPass($this->getKernel(), $this->getVelocityService()));
     }
 }
