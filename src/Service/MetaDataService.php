@@ -113,6 +113,7 @@ class MetaDataService
                 'ids'                    => [],
                 'types'                  => [],
                 'fingerPrints'           => [],
+                'workflows'              => [],
             ];
         }
 
@@ -303,6 +304,21 @@ class MetaDataService
         unset($definition['value']);
 
         $this->models[$class]['storages'][$property] = $definition;
+
+        return $this;
+    }
+    /**
+     * @param string $class
+     * @param string $property
+     * @param array  $definition
+     *
+     * @return $this
+     */
+    public function addModelPropertyWorkflow($class, $property, $definition)
+    {
+        $this->checkModel($class);
+
+        $this->models[$class]['workflows'][$property] = $definition;
 
         return $this;
     }
@@ -529,6 +545,21 @@ class MetaDataService
         $this->checkModel($class);
 
         return $this->models[$class]['storages'];
+    }
+    /**
+     * @param string|Object $class
+     *
+     * @return array
+     */
+    public function getModelWorkflows($class)
+    {
+        if (is_object($class)) {
+            $class = get_class($class);
+        }
+
+        $this->checkModel($class);
+
+        return $this->models[$class]['workflows'];
     }
     /**
      * @param string|Object $class

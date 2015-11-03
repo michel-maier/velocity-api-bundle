@@ -168,6 +168,28 @@ trait UpdateServiceTrait
      */
     protected abstract function applyBusinessRules($operation, $model, array $options = []);
     /**
+     * @param mixed $model
+     * @param array $options
+     *
+     * @return bool
+     */
+    protected abstract function hasActiveWorkflows($model, array $options = []);
+    /**
+     * @param mixed $model
+     * @param array $options
+     *
+     * @return array
+     */
+    protected abstract function getActiveWorkflowsRequiredFields($model, array $options = []);
+    /**
+     * @param mixed $model
+     * @param mixed $previousModel
+     * @param array $options
+     *
+     * @return $this
+     */
+    protected abstract function applyActiveWorkflows($model, $previousModel, array $options = []);
+    /**
      * Test if specified document event has registered event listeners.
      *
      * @param string $event
@@ -217,16 +239,23 @@ trait UpdateServiceTrait
      */
     protected function prepareUpdate($id, $data = [], $options = [])
     {
-        $old = null;
-
-        if ($this->observed('updated_old') || $this->observed('updated_full_old')) {
-            $old = $this->get($id, array_keys($data), $options);
-        }
-
         $data = $this->callback('update.pre_validate', $data, $options);
         $doc  = $this->validateData($data, 'update', ['clearMissing' => false] + $options);
 
-        unset($data);
+        $old = null;
+        $hasWorkflows = false;
+        $activeWorkflowsRequiredFields = [];
+
+        if ($this->hasActiveWorkflows($doc, $options)) {
+            $hasWorkflows = true;
+            $activeWorkflowsRequiredFields = $this->getActiveWorkflowsRequiredFields($doc, $options);
+        }
+
+        if (true === $hasWorkflows || $this->observed('updated_old') || $this->observed('updated_full_old')) {
+            $old = $this->get($id, array_unique(array_merge($activeWorkflowsRequiredFields, array_keys($data))), $options);
+        }
+
+        unset($data, $activeWorkflowsRequiredFields);
 
         $doc = $this->callback('update.validated', $doc, $options);
         $doc = $this->refreshModel($doc, ['operation' => 'update', 'populateNulls' => false, 'id' => $id] + $options);
@@ -234,6 +263,10 @@ trait UpdateServiceTrait
         $doc = $this->callback('update.pre_save', $doc, $options);
 
         $this->applyBusinessRules('update', $doc, $options);
+
+        if ($hasWorkflows) {
+            $this->applyActiveWorkflows($doc, $old, $options);
+        }
 
         $doc   = $this->callback('update.pre_save_checked', $doc, $options);
         $array = $this->convertToArray($doc, $options);

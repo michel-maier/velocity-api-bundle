@@ -13,6 +13,7 @@ namespace Velocity\Bundle\ApiBundle\Traits\Document;
 
 use Velocity\Bundle\ApiBundle\Event;
 use Velocity\Bundle\ApiBundle\Service\MetaDataService;
+use Velocity\Bundle\ApiBundle\Service\WorkflowService;
 use Velocity\Bundle\ApiBundle\Service\BusinessRuleService;
 
 /**
@@ -37,6 +38,10 @@ trait HelperTrait
      * @return BusinessRuleService
      */
     public abstract function getBusinessRuleService();
+    /**
+     * @return WorkflowService
+     */
+    public abstract function getWorkflowService();
     /**
      * @return string
      */
@@ -96,6 +101,82 @@ trait HelperTrait
             $model,
             $options
         );
+
+        return $this;
+    }
+    /**
+     * @param mixed $model
+     * @param array $options
+     *
+     * @return bool
+     */
+    protected function hasActiveWorkflows($model, array $options = [])
+    {
+        foreach ($this->getMetaDataService()->getModelWorkflows($model) as $property => $definition) {
+            if (!isset($model->$property)) {
+                continue;
+            }
+
+            return true;
+        }
+
+        unset($options);
+
+        return false;
+    }
+    /**
+     * @param mixed $model
+     * @param array $options
+     *
+     * @return bool
+     */
+    protected function getActiveWorkflowsRequiredFields($model, array $options = [])
+    {
+        $requiredFields = [];
+
+        foreach ($this->getMetaDataService()->getModelWorkflows($model) as $property => $definition) {
+            if (!isset($model->$property)) {
+                continue;
+            }
+
+            if (isset($definition['requiredFields'])) {
+                if (!is_array($definition['requiredFields'])) {
+                    $definition['requiredFields'] = [$definition['requiredFields']];
+                }
+                $requiredFields = array_merge($requiredFields, $definition['requiredFields']);
+            }
+        }
+
+        $requiredFields = array_unique($requiredFields);
+
+        sort($requiredFields);
+
+        unset($options);
+
+        return $requiredFields;
+    }
+    /**
+     * @param mixed $model
+     * @param mixed $previousModel
+     * @param array $options
+     *
+     * @return $this
+     */
+    protected function applyActiveWorkflows($model, $previousModel, array $options = [])
+    {
+        foreach ($this->getMetaDataService()->getModelWorkflows($model) as $property => $definition) {
+            if (!isset($model->$property)) {
+                continue;
+            }
+            $this->getWorkflowService()->transitionModelProperty(
+                $this->getModelName(),
+                $model,
+                $property,
+                $previousModel,
+                $definition['id'],
+                $options
+            );
+        }
 
         return $this;
     }

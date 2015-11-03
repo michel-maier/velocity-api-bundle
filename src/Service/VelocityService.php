@@ -51,6 +51,7 @@ class VelocityService
             'storage.key'                         => 'velocity.storage',
             'formatter.key'                       => 'velocity.formatter',
             'businessRule.key'                    => 'velocity.businessRule',
+            'workflow.key'                        => 'velocity.workflow',
             'invitationEvent.key'                 => 'velocity.invitationEvent',
             'generator.key'                       => 'velocity.generator',
             'codeGenerator.key'                   => 'velocity.codeGenerator',
@@ -292,6 +293,16 @@ class VelocityService
                             }
                             $m->addMethodCall('addModelPropertyStorage', [$class, $property, $vars]);
                             break;
+                        case $a instanceof Velocity\Workflow:
+                            if (!$model) {
+                                throw $this->createRequiredException('Workflow annotation only allowed in models');
+                            }
+                            if (!isset($vars['id'])) {
+                                $vars['id'] = $vars['value'];
+                            }
+                            unset($vars['value']);
+                            $m->addMethodCall('addModelPropertyWorkflow', [$class, $property, $vars]);
+                            break;
                         case $a instanceof Velocity\Id:
                             if (!$model) {
                                 throw $this->createRequiredException('Id annotation only allowed in models');
@@ -479,6 +490,7 @@ class VelocityService
         $this->addFormSetterCall($d);
         $this->addMetaDataSetterCall($d);
         $this->addBusinessRuleSetterCall($d);
+        $this->addWorkflowSetterCall($d);
         $this->addLoggerSetterCall($d);
         $this->addEventDispatcherSetterCall($d);
 
@@ -1016,6 +1028,10 @@ class VelocityService
     protected function addBusinessRuleSetterCall(Definition $definition)
     {
         $definition->addMethodCall('setBusinessRuleService', [$this->ref('businessRule')]);
+    }
+    protected function addWorkflowSetterCall(Definition $definition)
+    {
+        $definition->addMethodCall('setWorkflowService', [$this->ref('workflow')]);
     }
     protected function addLoggerSetterCall(Definition $definition)
     {

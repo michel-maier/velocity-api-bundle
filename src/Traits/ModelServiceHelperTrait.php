@@ -26,6 +26,7 @@ trait ModelServiceHelperTrait
     use LoggerAwareTrait;
     use ServiceAware\FormServiceAwareTrait;
     use ServiceAware\MetaDataServiceAwareTrait;
+    use ServiceAware\WorkflowServiceAwareTrait;
     use ServiceAware\BusinessRuleServiceAwareTrait;
     /**
      * @return int|null

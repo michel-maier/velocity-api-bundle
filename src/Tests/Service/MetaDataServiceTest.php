@@ -61,6 +61,7 @@ class MetaDataServiceTest extends PHPUnit_Framework_TestCase
                 'referenceLists' => [],
                 'fingerPrints' => [],
                 'id' => 'm1',
+                'workflows' => [],
             ],
         ], $this->s->getModels());
     }

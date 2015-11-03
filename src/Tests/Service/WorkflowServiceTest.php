@@ -73,15 +73,21 @@ class WorkflowServiceTest extends PHPUnit_Framework_TestCase
         $this->assertTrue($this->s->hasTransition('w', 's2', 's1'));
         $this->assertFalse($this->s->hasTransition('w', 's3', 's1'));
     }
+    /**
+     * @group unit
+     */
     public function testTransition()
     {
-        $this->businessRule->expects($this->once())->method('ex')->with([]);
+        $this->businessRule->expects($this->exactly(2))->method('executeBusinessRulesForModelOperation');
 
         $this->s->registerFromDefinition('w', ['steps' => ['s1', 's2', 's3'], 'transitions' => ['s1' => ['s2'], 's2' => ['s3', 's1']]]);
 
+        $docBefore = new \stdClass();
+        $docBefore->status = 's1';
+
         $doc = new \stdClass();
-        $doc->value = 12;
-        
-        $this->s->transition('w', 's1', 's2', $doc);
+        $doc->status = 's2';
+
+        $this->s->transitionModelProperty('m', $doc, 'status', $docBefore, 'w');
     }
 }

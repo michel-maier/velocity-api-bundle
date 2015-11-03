@@ -102,10 +102,21 @@ class WorkflowService
 
         return $this;
     }
-    public function transitionModelProperty($model, $property, $currentStep, $targetStep, $id)
+    /**
+     * @param string $modelName
+     * @param mixed  $model
+     * @param string $property
+     * @param mixed  $previousModel
+     * @param string $id
+     * @param array  $options
+     *
+     * @throws \Exception
+     */
+    public function transitionModelProperty($modelName, $model, $property, $previousModel, $id, array $options = [])
     {
-        $this->checkTransitionExist($id, $currentStep, $targetStep);
+        $this->checkTransitionExist($id, $model->$property, $previousModel->$property);
 
-        $this->getBusinessRuleService()->executeBusinessRulesForModelOperation();
+        $this->getBusinessRuleService()->executeBusinessRulesForModelOperation($modelName, $property.'.'.$previousModel->$property.'.leaved', $previousModel, $options);
+        $this->getBusinessRuleService()->executeBusinessRulesForModelOperation($modelName, $property.'.'.$model->$property.'.entered', $model, $options);
     }
 }
