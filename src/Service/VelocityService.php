@@ -14,9 +14,7 @@ namespace Velocity\Bundle\ApiBundle\Service;
 use ReflectionClass;
 use ReflectionProperty;
 use JMS\Serializer\Annotation\Type;
-use Sensio\Bundle\FrameworkExtraBundle\Configuration\Route;
 use Symfony\Component\Finder\Finder;
-use Symfony\Component\Finder\SplFileInfo;
 use Symfony\Component\HttpKernel\KernelInterface;
 use Doctrine\Common\Annotations\AnnotationReader;
 use Velocity\Core\Traits\ServiceTrait;
@@ -24,6 +22,7 @@ use Symfony\Component\DependencyInjection\Reference;
 use Velocity\Bundle\ApiBundle\Annotation as Velocity;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
+use Velocity\Bundle\ApiBundle\Service\Velocity\RepositoryIds;
 
 /**
  * Velocity Service.
@@ -33,6 +32,18 @@ use Symfony\Component\DependencyInjection\ContainerBuilder;
 class VelocityService
 {
     use ServiceTrait;
+    /**
+     * Tag Processors
+     * @var array
+     */
+    protected $processors;
+    
+    /**
+     * 
+     * @var RepositoryIds
+     */
+    protected $repositoryIds;
+    
     /**
      * @param AnnotationReader $reader
      * @param array            $defaults
@@ -85,15 +96,6 @@ class VelocityService
             'param.storages'   => [],
 
             // classes
-            'repo.class'              => __NAMESPACE__.'\\RepositoryService',
-            'crud.class'              => __NAMESPACE__.'\\Base\\DocumentService',
-            'crud.sub.class'          => __NAMESPACE__.'\\Base\\SubDocumentService',
-            'crud.sub.sub.class'      => __NAMESPACE__.'\\Base\\SubSubDocumentService',
-            'volatile.class'          => __NAMESPACE__.'\\Base\\VolatileDocumentService',
-            'volatile.sub.class'      => __NAMESPACE__.'\\Base\\VolatileSubDocumentService',
-            'volatile.sub.sub.class'  => __NAMESPACE__.'\\Base\\VolatileSubSubDocumentService',
-            'decorated_client.class'  => __NAMESPACE__.'\\DecoratedClientService',
-
             'storage.file.class'      => 'Velocity\\Bundle\\ApiBundle\\Storage\\FileStorage',
             'storage.redis.class'     => 'Velocity\\Bundle\\ApiBundle\\Storage\\RedisStorage',
             'storage.memory.class'    => 'Velocity\\Bundle\\ApiBundle\\Storage\\MemoryStorage',
@@ -107,34 +109,61 @@ class VelocityService
             'annotation.namespace'    => 'Velocity\\Bundle\\ApiBundle\\Annotation',
 
             // tags
-            'repo.tag'                => 'velocity.repository',
-            'crud.tag'                => 'velocity.crud',
-            'crud.sub.tag'            => 'velocity.crud.sub',
-            'crud.sub.sub.tag'        => 'velocity.crud.sub.sub',
-            'volatile.tag'            => 'velocity.volatile',
-            'volatile.sub.tag'        => 'velocity.volatile.sub',
-            'volatile.sub.sub.tag'    => 'velocity.volatile.sub.sub',
-            'account_provider.tag'    => 'velocity.provider.account',
-            'client_provider.tag'     => 'velocity.provider.client',
-            'migrator.tag'            => 'velocity.migrator',
-            'action.tag'              => 'velocity.action',
-            'business_rule.tag'       => 'velocity.business_rule',
-            'invitation_event.tag'    => 'velocity.invitation_event',
-            'generator.tag'           => 'velocity.generator',
-            'codeGenerator.tag'       => 'velocity.codeGenerator',
-            'repositories_aware.tag'  => 'velocity.repositories_aware',
-            'cruds_aware.tag'         => 'velocity.cruds_aware',
-            'archiver.tag'            => 'velocity.archiver',
-            'job.tag'                 => 'velocity.job',
             'storage.tag'             => 'velocity.storage',
-            'formatter.tag'           => 'velocity.formatter',
-            'document_builder.tag'    => 'velocity.document_builder',
-
         ];
 
         foreach ($defaults as $k => $v) {
             $this->setParameter('default_'.$k, $v);
         }
+        
+        $this->repositoryIds = new RepositoryIds();
+        
+        $tagProcessors = [
+            'Repository',
+            'Crud',
+            'SubCrud',
+            'SubSubCrud',
+            'Volatile',
+            'SubVolatile',
+            'SubSubVolatile',
+            'ProviderClient',
+            'AccountProvider',
+            'Migrator',
+            'Action',
+            'BusinessRule',
+            'InvitationEvent',
+            'Generator',
+            'CodeGenerator',
+            'Archiver',
+            'Formatter',
+            'Job',
+            'Storage',
+            'DocumentBuilder',
+            'RepositoriesAware',
+            'CrudsAware',
+        ];
+        
+        foreach ($tagProcessors as $processor) {
+            $this->addProcessor($processor);
+        }
+    }
+    protected function addProcessor($processor)
+    {
+        $classname = 'Velocity\Bundle\ApiBundle\Service\Velocity\TagProcessor\\' . $processor . 'Processor';
+        $this->processors[] = new $classname($this->repositoryIds, $this->getAnnotationReader());
+    }
+    /**
+     * @param ContainerBuilder $container
+     *
+     * @return $this
+     */
+    public function analyzeTags(ContainerBuilder $container)
+    {
+        foreach ($this->processors as $processor) {
+            $processor->process($container);
+        }
+
+        return $this;
     }
     /**
      * @param AnnotationReader $reader
@@ -374,38 +403,6 @@ class VelocityService
         return false;
     }
     /**
-     * @param ContainerBuilder $container
-     *
-     * @return $this
-     */
-    public function analyzeTags(ContainerBuilder $container)
-    {
-        $this->processRepositoryTag($container);
-        $this->processCrudTag($container);
-        $this->processSubCrudTag($container);
-        $this->processSubSubCrudTag($container);
-        $this->processVolatileTag($container);
-        $this->processSubVolatileTag($container);
-        $this->processSubSubVolatileTag($container);
-        $this->processProviderClientTag($container);
-        $this->processProviderAccountTag($container);
-        $this->processMigratorTag($container);
-        $this->processActionTag($container);
-        $this->processBusinessRuleTag($container);
-        $this->processInvitationEventTag($container);
-        $this->processGeneratorTag($container);
-        $this->processCodeGeneratorTag($container);
-        $this->processArchiverTag($container);
-        $this->processFormatterTag($container);
-        $this->processJobTag($container);
-        $this->processStorageTag($container);
-        $this->processDocumentBuilderTag($container);
-        $this->processRepositoriesAwareTag($container);
-        $this->processCrudsAwareTag($container);
-
-        return $this;
-    }
-    /**
      * @param string $key
      * @param mixed  $defaultValue
      *
@@ -427,623 +424,6 @@ class VelocityService
     protected function getMetaDataDefinitionFromContainer(ContainerBuilder $container)
     {
         return $container->getDefinition($this->getDefault('metaData.key'));
-    }
-    /**
-     * Process repository tags.
-     *
-     * @param ContainerBuilder $container
-     */
-    protected function processRepositoryTag(ContainerBuilder $container)
-    {
-        foreach ($this->findVelocityTaggedServiceIds($container, 'repo') as $id => $attributes) {
-            $typeName = substr($id, strrpos($id, '.') + 1);
-            $d = $container->getDefinition($id);
-            if (!$d->getClass()) {
-                $d->setClass($this->getDefault('repo.class'));
-            }
-            $params = array_shift($attributes) + ['id' => $typeName];
-            $d->addMethodCall('setCollectionName', [isset($params['collection']) ? $params['collection'] : $typeName]);
-            $this->addLoggerSetterCall($d);
-            $this->addDatabaseSetterCall($d);
-            $this->addTranslatorSetterCall($d);
-            $this->addEventDispatcherSetterCall($d);
-            $this->setArrayParameterKey('repositoryIds', strtolower($params['id']), $id);
-        }
-    }
-    /**
-     * @param ContainerBuilder $container
-     * @param string           $id
-     * @param Definition       $d
-     * @param array            $types
-     *
-     * @return $this
-     */
-    protected function populateModelService(ContainerBuilder $container, $id, Definition $d, array $types)
-    {
-        $m = $this->getMetaDataDefinitionFromContainer($container);
-
-        $this->addFormSetterCall($d);
-        $this->addMetaDataSetterCall($d);
-        $this->addBusinessRuleSetterCall($d);
-        $this->addLoggerSetterCall($d);
-        $this->addEventDispatcherSetterCall($d);
-
-        $rClass = new ReflectionClass($d->getClass());
-
-        foreach ($rClass->getMethods(\ReflectionMethod::IS_PUBLIC) as $rMethod) {
-            foreach ($this->getAnnotationReader()->getMethodAnnotations($rMethod) as $a) {
-                $method = $rMethod->getName();
-                switch (true) {
-                    case $a instanceof Velocity\Callback:
-                        $m->addMethodCall('addCallback', ['.' === $a->value{0} ? (join('.', $types).$a->value) : $a->value, [$this->ref($id), $method]]);
-                        break;
-                }
-            }
-        }
-
-        return $this;
-    }
-    /**
-     * Process crud tags.
-     *
-     * @param ContainerBuilder $container
-     *
-     * @throws \Exception
-     */
-    protected function processCrudTag(ContainerBuilder $container)
-    {
-        foreach ($this->findVelocityTaggedServiceIds($container, 'crud') as $id => $attributes) {
-            list($type) = array_slice(explode('.', $id), -1);
-            $d = $container->getDefinition($id);
-            $this->ensureDefinitionClassSet($d, 'crud');
-            $d->addMethodCall('setTypes', [[$type]]);
-            $params = array_shift($attributes) + ['id' => $type, 'repo' => $type];
-            $this->addRepositorySetterCall($d, $this->getRepositoryId($params['repo']));
-            $this->populateModelService($container, $id, $d, [$type]);
-            $this->setArrayParameterKey('crudServiceIds', strtolower($params['id']), $id);
-        }
-    }
-    /**
-     * @param string $alias
-     * @return string
-     *
-     * @throws \Exception
-     */
-    protected function getRepositoryId($alias)
-    {
-        $alias = strtolower($alias);
-
-        if (!$this->hasArrayParameterKey('repositoryIds', $alias)) {
-            throw $this->createRequiredException("Unknown repository '%s'", $alias);
-        }
-
-        return $this->getArrayParameterKey('repositoryIds', $alias);
-    }
-    /**
-     * Process sub crud tags.
-     *
-     * @param ContainerBuilder $container
-     */
-    protected function processSubCrudTag(ContainerBuilder $container)
-    {
-        foreach ($this->findVelocityTaggedServiceIds($container, 'crud.sub') as $id => $attrs) {
-            list($type, $subType) = array_slice(explode('.', $id), -2);
-            $d = $container->getDefinition($id);
-            $this->ensureDefinitionClassSet($d, 'crud.sub');
-            $d->addMethodCall('setTypes', [[$type, $subType]]);
-            $params = array_shift($attrs) + ['id' => $type.'.'.$subType, 'repo' => $type];
-            $this->addRepositorySetterCall($d, $this->getRepositoryId($params['repo']));
-            $this->populateModelService($container, $id, $d, [$type, $subType]);
-            $this->setArrayParameterKey('crudServiceIds', strtolower($params['id']), $id);
-        }
-    }
-    /**
-     * Process sub crud tags.
-     *
-     * @param ContainerBuilder $container
-     */
-    protected function processSubSubCrudTag(ContainerBuilder $container)
-    {
-        foreach ($this->findVelocityTaggedServiceIds($container, 'crud.sub.sub') as $id => $attrs) {
-            list($type, $subType, $subSubType) = array_slice(explode('.', $id), -3);
-            $d = $container->getDefinition($id);
-            $this->ensureDefinitionClassSet($d, 'crud.sub.sub');
-            $d->addMethodCall('setTypes', [[$type, $subType, $subSubType]]);
-            $params = array_shift($attrs) + ['id' => $type.'.'.$subType.'.'.$subSubType, 'repo' => $type];
-            $this->addRepositorySetterCall($d, $this->getRepositoryId($params['repo']));
-            $this->populateModelService($container, $id, $d, [$type, $subType, $subSubType]);
-            $this->setArrayParameterKey('crudServiceIds', strtolower($params['id']), $id);
-        }
-    }
-    /**
-     * Process volatile tags.
-     *
-     * @param ContainerBuilder $container
-     */
-    protected function processVolatileTag(ContainerBuilder $container)
-    {
-        foreach ($this->findVelocityTaggedServiceIds($container, 'volatile') as $id => $attrs) {
-            list($type) = array_slice(explode('.', $id), -1);
-            $d = $container->getDefinition($id);
-            $this->ensureDefinitionClassSet($d, 'volatile');
-            $d->addMethodCall('setTypes', [[$type]]);
-            $params = array_shift($attrs) + ['id' => $type];
-            $this->populateModelService($container, $id, $d, [$type]);
-            $this->setArrayParameterKey('crudServiceIds', strtolower($params['id']), $id);
-        }
-    }
-    /**
-     * Process sub volatile tags.
-     *
-     * @param ContainerBuilder $container
-     */
-    protected function processSubVolatileTag(ContainerBuilder $container)
-    {
-        foreach ($this->findVelocityTaggedServiceIds($container, 'volatile.sub') as $id => $attrs) {
-            list($type, $subType) = array_slice(explode('.', $id), -3);
-            $d = $container->getDefinition($id);
-            $this->ensureDefinitionClassSet($d, 'volatile.sub');
-            $d->addMethodCall('setTypes', [[$type, $subType]]);
-            $params = array_shift($attrs) + ['id' => $type.'.'.$subType];
-            $this->populateModelService($container, $id, $d, [$type, $subType]);
-            $this->setArrayParameterKey('crudServiceIds', strtolower($params['id']), $id);
-        }
-    }
-    /**
-     * Process sub sub volatile tags.
-     *
-     * @param ContainerBuilder $container
-     */
-    protected function processSubSubVolatileTag(ContainerBuilder $container)
-    {
-        foreach ($this->findVelocityTaggedServiceIds($container, 'volatile.sub.sub') as $id => $attrs) {
-            list($type, $subType, $subSubType) = array_slice(explode('.', $id), -3);
-            $d = $container->getDefinition($id);
-            $this->ensureDefinitionClassSet($d, 'volatile.sub.sub');
-            $d->addMethodCall('setTypes', [[$type, $subType, $subSubType]]);
-            $params = array_shift($attrs) + ['id' => $type.'.'.$subType.'.'.$subSubType];
-            $this->populateModelService($container, $id, $d, [$type, $subType, $subSubType]);
-            $this->setArrayParameterKey('crudServiceIds', strtolower($params['id']), $id);
-        }
-    }
-    /**
-     * Process provider account tags.
-     *
-     * @param ContainerBuilder $container
-     */
-    protected function processProviderAccountTag(ContainerBuilder $container)
-    {
-        $userProviderDefinition = $container->getDefinition($this->getDefault('user_provider.default.key'));
-
-        foreach ($this->findVelocityTaggedServiceIds($container, 'account_provider') as $id => $attrs) {
-            foreach ($attrs as $params) {
-                $type   = isset($params['type']) ? $params['type'] : 'default';
-                $method = isset($params['method']) ? $params['method'] : 'get';
-                $format = isset($params['format']) ? $params['format'] : 'plain';
-                $userProviderDefinition->addMethodCall('setAccountProvider', [$this->ref($id), $type, $method, $format]);
-            }
-        }
-    }
-    /**
-     * Process provider client tags.
-     *
-     * @param ContainerBuilder $container
-     */
-    protected function processProviderClientTag(ContainerBuilder $container)
-    {
-        $authenticationProviderDefinition = $container->getDefinition($this->getDefault(('authentication_provider.default.key')));
-        $requestServiceDefinition         = $container->getDefinition($this->getDefault('request.key'));
-
-        foreach ($this->findVelocityTaggedServiceIds($container, 'client_provider') as $id => $attrs) {
-            $attribute = array_shift($attrs);
-            $refId = $id;
-            if ((isset($attribute['method']) && 'get' !== $attribute['method']) || isset($attribute['format'])) {
-                $ref = new Definition($this->getDefault('decorated_client.class'), [$this->ref($id), isset($attribute['method']) ? $attribute['method'] : 'get', isset($attribute['format']) ? $attribute['format'] : 'raw']);
-                $refId = sprintf($this->getDefault('generated_client.key.pattern'), md5(uniqid()));
-                $container->setDefinition($refId, $ref);
-            }
-            $authenticationProviderDefinition->addMethodCall('setClientProvider', [$this->ref($refId)]);
-            $requestServiceDefinition->addMethodCall('setClientProvider', [$this->ref($refId)]);
-        }
-    }
-    /**
-     * Process migrator tags.
-     *
-     * @param ContainerBuilder $container
-     */
-    protected function processMigratorTag(ContainerBuilder $container)
-    {
-        $containerAwareInterface    = $this->getDefault('container_aware.interface');
-        $loggerAwareInterface       = $this->getDefault('logger_aware.interface');
-        $migrationServiceDefinition = $container->getDefinition($this->getDefault('migration.key'));
-
-        foreach ($this->findVelocityTaggedServiceIds($container, 'migrator') as $id => $attributes) {
-            $d = $container->getDefinition($id);
-            foreach ($attributes as $params) {
-                $extension = $params['extension'];
-                $rClass = new \ReflectionClass($d->getClass());
-                if ($rClass->isSubclassOf($containerAwareInterface)) {
-                    $this->addContainerSetterCall($d);
-                }
-                if ($rClass->isSubclassOf($loggerAwareInterface)) {
-                    $this->addLoggerSetterCall($d);
-                }
-                $migrationServiceDefinition->addMethodCall('addMigrator', [$this->ref($id), $extension]);
-            }
-        }
-    }
-    /**
-     * Process event action tags.
-     *
-     * @param ContainerBuilder $container
-     */
-    protected function processActionTag(ContainerBuilder $container)
-    {
-        $actionDefinition = $container->getDefinition($this->getDefault('action.key'));
-
-        foreach ($this->findVelocityTaggedServiceIds($container, 'action') as $id => $attributes) {
-            $d = $container->getDefinition($id);
-            foreach ($attributes as $params) {
-                unset($params);
-                $rClass = new \ReflectionClass($d->getClass());
-                foreach ($rClass->getMethods(\ReflectionProperty::IS_PUBLIC) as $rMethod) {
-                    foreach ($this->getAnnotationReader()->getMethodAnnotations($rMethod) as $a) {
-                        $vars   = get_object_vars($a);
-                        $method = $rMethod->getName();
-                        switch (true) {
-                            case $a instanceof Velocity\Action:
-                                $name = $vars['value'];
-                                unset($vars['value']);
-                                $actionDefinition->addMethodCall('register', [$name, [$this->ref($id), $method], $vars]);
-                                break;
-                        }
-                    }
-                }
-            }
-        }
-    }
-    /**
-     * Process event action tags.
-     *
-     * @param ContainerBuilder $container
-     */
-    protected function processBusinessRuleTag(ContainerBuilder $container)
-    {
-        $businessRuleDefinition = $container->getDefinition($this->getDefault('businessRule.key'));
-
-        foreach ($this->findVelocityTaggedServiceIds($container, 'business_rule') as $id => $attributes) {
-            $d = $container->getDefinition($id);
-            foreach ($attributes as $params) {
-                unset($params);
-                $rClass = new \ReflectionClass($d->getClass());
-                foreach ($rClass->getMethods(\ReflectionProperty::IS_PUBLIC) as $rMethod) {
-                    foreach ($this->getAnnotationReader()->getMethodAnnotations($rMethod) as $a) {
-                        $vars   = get_object_vars($a);
-                        $method = $rMethod->getName();
-                        switch (true) {
-                            case $a instanceof Velocity\BusinessRule:
-                                if (!isset($vars['id'])) {
-                                    $vars['id'] = isset($vars['value']) ? $vars['value'] : null;
-                                }
-                                $brId = strtoupper($vars['id']);
-                                $brName = strtolower(isset($vars['name']) ? $vars['name'] : trim(join(' ', preg_split('/(?=\\p{Lu})/', ucfirst($method)))));
-                                unset($vars['value'], $vars['id'], $vars['name']);
-                                $businessRuleDefinition->addMethodCall('register', [$brId, $brName, [$this->ref($id), $method], $vars]);
-                                break;
-                        }
-                    }
-                }
-            }
-        }
-    }
-    /**
-     * Process invitation event tags.
-     *
-     * @param ContainerBuilder $container
-     */
-    protected function processInvitationEventTag(ContainerBuilder $container)
-    {
-        $invitationEventDefinition = $container->getDefinition($this->getDefault('invitationEvent.key'));
-
-        foreach ($this->findVelocityTaggedServiceIds($container, 'invitation_event') as $id => $attributes) {
-            $d = $container->getDefinition($id);
-            foreach ($attributes as $params) {
-                unset($params);
-                $rClass = new \ReflectionClass($d->getClass());
-                foreach ($rClass->getMethods(\ReflectionProperty::IS_PUBLIC) as $rMethod) {
-                    foreach ($this->getAnnotationReader()->getMethodAnnotations($rMethod) as $a) {
-                        $vars   = get_object_vars($a);
-                        $method = $rMethod->getName();
-                        switch (true) {
-                            case $a instanceof Velocity\InvitationEvent:
-                                if (!isset($vars['type'])) {
-                                    $vars['type'] = isset($vars['value']) ? $vars['value'] : null;
-                                }
-                                $ieType = $vars['type'];
-                                $ieTransition = $vars['transition'];
-                                unset($vars['value'], $vars['type'], $vars['transition']);
-                                $invitationEventDefinition->addMethodCall('register', [$ieType, $ieTransition, [$this->ref($id), $method], $vars]);
-                                break;
-                        }
-                    }
-                }
-            }
-        }
-    }
-    /**
-     * Process generator tags.
-     *
-     * @param ContainerBuilder $container
-     */
-    protected function processGeneratorTag(ContainerBuilder $container)
-    {
-        $generatorDefinition = $container->getDefinition($this->getDefault('generator.key'));
-
-        foreach ($this->findVelocityTaggedServiceIds($container, 'generator') as $id => $attributes) {
-            $d = $container->getDefinition($id);
-            foreach ($attributes as $params) {
-                unset($params);
-                $rClass = new \ReflectionClass($d->getClass());
-                foreach ($rClass->getMethods(\ReflectionProperty::IS_PUBLIC) as $rMethod) {
-                    foreach ($this->getAnnotationReader()->getMethodAnnotations($rMethod) as $a) {
-                        $vars   = get_object_vars($a);
-                        $method = $rMethod->getName();
-                        switch (true) {
-                            case $a instanceof Velocity\Generator:
-                                $name = $vars['value'];
-                                unset($vars['value']);
-                                $generatorDefinition->addMethodCall('register', [$name, [$this->ref($id), $method], $vars]);
-                                break;
-                        }
-                    }
-                }
-            }
-        }
-    }
-    /**
-     * Process codeGenerator tags.
-     *
-     * @param ContainerBuilder $container
-     */
-    protected function processCodeGeneratorTag(ContainerBuilder $container)
-    {
-        $codeGeneratorDefinition = $container->getDefinition($this->getDefault('codeGenerator.key'));
-
-        foreach ($this->findVelocityTaggedServiceIds($container, 'codeGenerator') as $id => $attributes) {
-            $d = $container->getDefinition($id);
-            foreach ($attributes as $params) {
-                unset($params);
-                $rClass = new \ReflectionClass($d->getClass());
-                foreach ($rClass->getMethods(\ReflectionProperty::IS_PUBLIC) as $rMethod) {
-                    foreach ($this->getAnnotationReader()->getMethodAnnotations($rMethod) as $a) {
-                        $vars   = get_object_vars($a);
-                        $method = $rMethod->getName();
-                        switch (true) {
-                            case $a instanceof Velocity\CodeGeneratorMethodType:
-                                $name = $vars['value'];
-                                unset($vars['value']);
-                                $codeGeneratorDefinition->addMethodCall('registerMethodType', [$name, [$this->ref($id), $method], $vars]);
-                                break;
-                        }
-                    }
-                }
-            }
-        }
-    }
-    /**
-     * Process document builder tags.
-     *
-     * @param ContainerBuilder $container
-     */
-    protected function processDocumentBuilderTag(ContainerBuilder $container)
-    {
-        $dbDefinition = $container->getDefinition($this->getDefault('documentBuilder.key'));
-
-        foreach ($this->findVelocityTaggedServiceIds($container, 'document_builder') as $id => $attributes) {
-            foreach ($attributes as $params) {
-                $type = $params['type'];
-                unset($params['type']);
-                $dbDefinition->addMethodCall('register', [$type, [$this->ref($id), 'build'], $params]);
-            }
-        }
-    }
-    /**
-     * Process archiver tags.
-     *
-     * @param ContainerBuilder $container
-     */
-    protected function processArchiverTag(ContainerBuilder $container)
-    {
-        $archiverDefinition = $container->getDefinition($this->getDefault('archiver.key'));
-
-        foreach ($this->findVelocityTaggedServiceIds($container, 'archiver') as $id => $attributes) {
-            $d = $container->getDefinition($id);
-            foreach ($attributes as $params) {
-                unset($params);
-                $rClass = new \ReflectionClass($d->getClass());
-                foreach ($rClass->getMethods(\ReflectionProperty::IS_PUBLIC) as $rMethod) {
-                    foreach ($this->getAnnotationReader()->getMethodAnnotations($rMethod) as $a) {
-                        $vars   = get_object_vars($a);
-                        $method = $rMethod->getName();
-                        switch (true) {
-                            case $a instanceof Velocity\Archiver:
-                                $type = $vars['value'];
-                                unset($vars['value']);
-                                $archiverDefinition->addMethodCall('register', [$type, [$this->ref($id), $method], $vars]);
-                                break;
-                        }
-                    }
-                }
-            }
-        }
-    }
-    /**
-     * Process formatter tags.
-     *
-     * @param ContainerBuilder $container
-     */
-    protected function processFormatterTag(ContainerBuilder $container)
-    {
-        $formatterDefinition = $container->getDefinition($this->getDefault('formatter.key'));
-
-        foreach ($this->findVelocityTaggedServiceIds($container, 'formatter') as $id => $attributes) {
-            $d = $container->getDefinition($id);
-            foreach ($attributes as $params) {
-                unset($params);
-                $rClass = new \ReflectionClass($d->getClass());
-                foreach ($rClass->getMethods(\ReflectionProperty::IS_PUBLIC) as $rMethod) {
-                    foreach ($this->getAnnotationReader()->getMethodAnnotations($rMethod) as $a) {
-                        $vars   = get_object_vars($a);
-                        $method = $rMethod->getName();
-                        switch (true) {
-                            case $a instanceof Velocity\Formatter:
-                                $type = $vars['value'];
-                                unset($vars['value']);
-                                $formatterDefinition->addMethodCall('register', [$type, [$this->ref($id), $method], $vars]);
-                                break;
-                        }
-                    }
-                }
-            }
-        }
-    }
-    /**
-     * Process job tags.
-     *
-     * @param ContainerBuilder $container
-     */
-    protected function processJobTag(ContainerBuilder $container)
-    {
-        $jobDefinition = $container->getDefinition($this->getDefault('job.key'));
-
-        foreach ($this->findVelocityTaggedServiceIds($container, 'job') as $id => $attributes) {
-            $d = $container->getDefinition($id);
-            foreach ($attributes as $params) {
-                unset($params);
-                $rClass = new \ReflectionClass($d->getClass());
-                foreach ($rClass->getMethods(\ReflectionProperty::IS_PUBLIC) as $rMethod) {
-                    foreach ($this->getAnnotationReader()->getMethodAnnotations($rMethod) as $a) {
-                        $vars   = get_object_vars($a);
-                        $method = $rMethod->getName();
-                        switch (true) {
-                            case $a instanceof Velocity\Job:
-                                $name = $vars['value'];
-                                unset($vars['value']);
-                                $jobDefinition->addMethodCall('register', [$name, [$this->ref($id), $method], $vars]);
-                                break;
-                        }
-                    }
-                }
-            }
-        }
-    }
-    /**
-     * Process storage tags.
-     *
-     * @param ContainerBuilder $container
-     */
-    protected function processStorageTag(ContainerBuilder $container)
-    {
-        $storageDefinition = $container->getDefinition($this->getDefault('storage.key'));
-
-        foreach ($this->findVelocityTaggedServiceIds($container, 'storage') as $id => $attributes) {
-            foreach ($attributes as $params) {
-                $params += ['name' => null, 'mount' => '/'];
-                $storageDefinition->addMethodCall('mount', [$params['name'], $params['mount'], $this->ref($id)]);
-            }
-        }
-    }
-    /**
-     * Process repositories aware tags.
-     *
-     * @param ContainerBuilder $container
-     */
-    protected function processRepositoriesAwareTag(ContainerBuilder $container)
-    {
-        foreach ($this->findVelocityTaggedServiceIds($container, 'repositories_aware') as $id => $attributes) {
-            $d = $container->getDefinition($id);
-            foreach ($attributes as $params) {
-                $params += ['method' => 'addRepository'];
-                foreach ($this->getArrayParameter('repositoryIds') as $repoAlias => $repoId) {
-                    $d->addMethodCall($params['method'], [$repoAlias, new Reference($repoId)]);
-                }
-            }
-        }
-    }
-    /**
-     * Process cruds aware tags.
-     *
-     * @param ContainerBuilder $container
-     */
-    protected function processCrudsAwareTag(ContainerBuilder $container)
-    {
-        foreach ($this->findVelocityTaggedServiceIds($container, 'cruds_aware') as $id => $attributes) {
-            $d = $container->getDefinition($id);
-            foreach ($attributes as $params) {
-                $params += ['method' => 'addCrudService'];
-                foreach ($this->getArrayParameter('crudServiceIds') as $serviceAlias => $serviceId) {
-                    $d->addMethodCall($params['method'], [$serviceAlias, new Reference($serviceId)]);
-                }
-            }
-        }
-    }
-    protected function addRepositorySetterCall(Definition $definition, $repoId)
-    {
-        $definition->addMethodCall('setRepository', [$this->ref($repoId)]);
-    }
-    protected function addFormSetterCall(Definition $definition)
-    {
-        $definition->addMethodCall('setFormService', [$this->ref('form')]);
-    }
-    protected function addMetaDataSetterCall(Definition $definition)
-    {
-        $definition->addMethodCall('setMetaDataService', [$this->ref('metaData')]);
-    }
-    protected function addBusinessRuleSetterCall(Definition $definition)
-    {
-        $definition->addMethodCall('setBusinessRuleService', [$this->ref('businessRule')]);
-    }
-    protected function addLoggerSetterCall(Definition $definition)
-    {
-        $definition->addMethodCall('setLogger', [$this->ref('logger')]);
-    }
-    protected function addEventDispatcherSetterCall(Definition $definition)
-    {
-        $definition->addMethodCall('setEventDispatcher', [$this->ref('event_dispatcher')]);
-    }
-    protected function addDatabaseSetterCall(Definition $definition)
-    {
-        $definition->addMethodCall('setDatabaseService', [$this->ref('db')]);
-    }
-    protected function addTranslatorSetterCall(Definition $definition)
-    {
-        $definition->addMethodCall('setTranslator', [$this->ref('translator')]);
-    }
-    protected function addContainerSetterCall(Definition $definition)
-    {
-        $definition->addMethodCall('setContainer', [$this->ref('service_container')]);
-    }
-    /**
-     * @param Definition $definition
-     * @param string     $defaultClassType
-     */
-    protected function ensureDefinitionClassSet(Definition $definition, $defaultClassType)
-    {
-        if ($definition->getClass()) {
-            return;
-        }
-
-        $definition->setClass($this->getDefault($defaultClassType.'.class'));
-    }
-    /**
-     * @param ContainerBuilder $container
-     * @param string           $tagAlias
-     *
-     * @return array
-     */
-    protected function findVelocityTaggedServiceIds(ContainerBuilder $container, $tagAlias)
-    {
-        return $container->findTaggedServiceIds($this->getDefault($tagAlias.'.tag'));
     }
     /**
      * @param string $alias
