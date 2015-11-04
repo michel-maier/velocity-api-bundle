@@ -37,13 +37,12 @@ class VelocityService
      * @var array
      */
     protected $processors;
-    
     /**
      *
      * @var IdsRegistry
      */
     protected $idsRegistry;
-    
+
     /**
      * @param AnnotationReader $reader
      * @param array            $defaults
@@ -115,9 +114,9 @@ class VelocityService
         foreach ($defaults as $k => $v) {
             $this->setParameter('default_'.$k, $v);
         }
-        
+
         $this->idsRegistry = new IdsRegistry();
-        
+
         $tagProcessors = [
             'Repository',
             'Crud',
@@ -142,15 +141,9 @@ class VelocityService
             'RepositoriesAware',
             'CrudsAware',
         ];
-        
         foreach ($tagProcessors as $processor) {
             $this->addProcessor($processor);
         }
-    }
-    protected function addProcessor($processor)
-    {
-        $classname = 'Velocity\Bundle\ApiBundle\Service\Velocity\TagProcessor\\'.$processor.'Processor';
-        $this->processors[] = new $classname($this->idsRegistry, $this->getAnnotationReader());
     }
     /**
      * @param ContainerBuilder $container
@@ -401,6 +394,11 @@ class VelocityService
         }
 
         return false;
+    }
+    protected function addProcessor($processor)
+    {
+        $classname = 'Velocity\Bundle\ApiBundle\Service\Velocity\TagProcessor\\'.$processor.'Processor';
+        $this->processors[] = new $classname($this->idsRegistry, $this->getAnnotationReader());
     }
     /**
      * @param string $key

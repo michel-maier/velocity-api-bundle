@@ -17,7 +17,6 @@ class RepositoryProcessor extends AbstractTagProcessor
      */
     public function process(ContainerBuilder $container)
     {
-        
         foreach ($this->findVelocityTaggedServiceIds($container, 'repo') as $id => $attributes) {
             $typeName = substr($id, strrpos($id, '.') + 1);
             $d = $container->getDefinition($id);
@@ -33,7 +32,7 @@ class RepositoryProcessor extends AbstractTagProcessor
             $this->setRepositoryId(strtolower($params['id']), $id);
         }
     }
-    
+
     protected function setRepositoryId($name, $id)
     {
         $this->idsRegistry->setRepository($name, $id);

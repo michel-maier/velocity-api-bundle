@@ -40,11 +40,10 @@ class CrudProcessor extends AbstractTagProcessor
     protected function getRepositoryId($alias)
     {
         $alias = strtolower($alias);
-        
         if (!$this->idsRegistry->hasRepository($alias)) {
             throw $this->createRequiredException("Unknown repository '%s'", $alias);
         }
-    
+
         return $this->idsRegistry->getRepository($alias);
     }
 }

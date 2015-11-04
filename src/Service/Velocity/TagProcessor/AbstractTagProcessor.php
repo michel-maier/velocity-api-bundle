@@ -12,26 +12,29 @@ use Velocity\Bundle\ApiBundle\Annotation as Velocity;
 
 /**
  * Superclass for all Tag Processors.
- * 
+ *
  * @author Gabriele Santini <gab.santini@gmail.com>
  */
 abstract class AbstractTagProcessor
 {
     use ServiceTrait;
-    
+
     /**
      * @var IdsRegistry
      */
     protected $idsRegistry;
 
+    /**
+     * @param IdsRegistry      $idsRegistry
+     * @param AnnotationReader $reader
+     */
     public function __construct($idsRegistry, $reader)
     {
         $this->setAnnotationReader($reader);
-        
         $this->idsRegistry = $idsRegistry;
+
         $defaults = [
-        
-//             // container keys
+            // container keys
             'metaData.key'                        => 'velocity.metaData',
             'action.key'                          => 'velocity.action',
             'documentBuilder.key'                 => 'velocity.documentBuilder',
@@ -50,29 +53,11 @@ abstract class AbstractTagProcessor
             'migration.key'                       => 'velocity.migration',
             'user_provider.default.key'           => 'velocity.security.provider.user.api',
             'authentication_provider.default.key' => 'velocity.security.authentication.provider',
-//             'logger.key'                          => 'logger',
-//             'event_dispatcher.key'                => 'event_dispatcher',
-//             'translator.key'                      => 'translator',
-//             'service_container.key'               => 'service_container',
-//             'database.key'                        => 'velocity.database',
-//             'redis.key'                           => 'redis',
-        
-//             // container keys patterns
+
+            // container keys patterns
             'generated_client.key.pattern' => 'app.client_%s',
-        
-//             // parameters keys
-//             'param.bundles.key'    => 'app_bundles',
-//             'param.events.key'     => 'app_events',
-//             'param.event_sets.key' => 'app_event_sets',
-//             'param.storages.key'   => 'app_storages',
-        
-//             // parameters default values
-//             'param.bundles'    => [],
-//             'param.events'     => [],
-//             'param.event_sets' => [],
-//             'param.storages'   => [],
-        
-//             // classes
+
+            // classes
             'repo.class'              => 'Velocity\\Bundle\\ApiBundle\\Service\\RepositoryService',
             'crud.class'              => 'Velocity\\Bundle\\ApiBundle\\Service\\Base\\DocumentService',
             'crud.sub.class'          => 'Velocity\\Bundle\\ApiBundle\\Service\\Base\\SubDocumentService',
@@ -81,15 +66,14 @@ abstract class AbstractTagProcessor
             'volatile.sub.class'      => 'Velocity\\Bundle\\ApiBundle\\Service\\Base\\VolatileSubDocumentService',
             'volatile.sub.sub.class'  => 'Velocity\\Bundle\\ApiBundle\\Service\\Base\\VolatileSubSubDocumentService',
             'decorated_client.class'  => 'Velocity\\Bundle\\ApiBundle\\Service\\DecoratedClientService',
-        
-        
+
 //             // interfaces
             'container_aware.interface' => 'Symfony\\Component\\DependencyInjection\\ContainerAwareInterface',
             'logger_aware.interface'    => 'Psr\\Log\\LoggerAwareInterface',
-        
+
 //             // namespaces
             'annotation.namespace'    => 'Velocity\\Bundle\\ApiBundle\\Annotation',
-        
+
             // tags
             'repo.tag'                => 'velocity.repository',
             'crud.tag'                => 'velocity.crud',
@@ -122,8 +106,8 @@ abstract class AbstractTagProcessor
     /**
      * @param ContainerBuilder $container
      */
-    abstract function process(ContainerBuilder $container);
-    
+    abstract public function process(ContainerBuilder $container);
+
     /**
      * @param ContainerBuilder $container
      * @param string           $tagAlias
@@ -145,7 +129,7 @@ abstract class AbstractTagProcessor
         if (null !== $defaultValue) {
             return $this->getParameterIfExists('default_'.$key, $defaultValue);
         }
-    
+
         return $this->getParameter('default_'.$key);
     }
     /**
@@ -159,15 +143,15 @@ abstract class AbstractTagProcessor
     protected function populateModelService(ContainerBuilder $container, $id, Definition $d, array $types)
     {
         $m = $this->getMetaDataDefinitionFromContainer($container);
-    
+
         $this->addFormSetterCall($d);
         $this->addMetaDataSetterCall($d);
         $this->addBusinessRuleSetterCall($d);
         $this->addLoggerSetterCall($d);
         $this->addEventDispatcherSetterCall($d);
-    
+
         $rClass = new \ReflectionClass($d->getClass());
-    
+
         foreach ($rClass->getMethods(\ReflectionMethod::IS_PUBLIC) as $rMethod) {
             foreach ($this->getAnnotationReader()->getMethodAnnotations($rMethod) as $a) {
                 $method = $rMethod->getName();
@@ -178,7 +162,7 @@ abstract class AbstractTagProcessor
                 }
             }
         }
-    
+
         return $this;
     }
     /**
@@ -186,14 +170,14 @@ abstract class AbstractTagProcessor
      *
      * @return $this
      */
-    public function setAnnotationReader(AnnotationReader $reader)
+    protected function setAnnotationReader(AnnotationReader $reader)
     {
         return $this->setService('annotationReader', $reader);
     }
     /**
      * @return AnnotationReader
      */
-    public function getAnnotationReader()
+    protected function getAnnotationReader()
     {
         return $this->getService('annotationReader');
     }
@@ -207,11 +191,11 @@ abstract class AbstractTagProcessor
         return $this->getDefault($alias.'.key', $alias);
     }
     /**
-     * @param $alias
+     * @param string $alias
      *
      * @return Reference
      */
-    public function ref($alias)
+    protected function ref($alias)
     {
         return new Reference($this->getServiceKey($alias));
     }
@@ -270,10 +254,13 @@ abstract class AbstractTagProcessor
         if ($definition->getClass()) {
             return;
         }
-    
+
         $definition->setClass($this->getDefault($defaultClassType.'.class'));
     }
-
+    /**
+     * @param string $name
+     * @param string $id
+     */
     protected function setCrudService($name, $id)
     {
         $this->idsRegistry->setCrud($name, $id);

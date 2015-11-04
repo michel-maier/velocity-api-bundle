@@ -4,6 +4,11 @@ namespace Velocity\Bundle\ApiBundle\Service\Velocity\TagProcessor;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Definition;
 
+/**
+ * Provider Client Processor.
+ *
+ * @author Gabriele Santini <gab.santini@gmail.com>
+ */
 class ProviderClientProcessor extends AbstractTagProcessor
 {
     /**
@@ -17,7 +22,7 @@ class ProviderClientProcessor extends AbstractTagProcessor
     {
         $authenticationProviderDefinition = $container->getDefinition($this->getDefault(('authentication_provider.default.key')));
         $requestServiceDefinition         = $container->getDefinition($this->getDefault('request.key'));
-        
+
         foreach ($this->findVelocityTaggedServiceIds($container, 'client_provider') as $id => $attrs) {
             $attribute = array_shift($attrs);
             $refId = $id;
@@ -28,7 +33,7 @@ class ProviderClientProcessor extends AbstractTagProcessor
                     ),
                     [$this->ref($id), isset($attribute['method']) ?
                         $attribute['method'] :
-                        'get', isset($attribute['format']) ? $attribute['format'] : 'raw']
+                        'get', isset($attribute['format']) ? $attribute['format'] : 'raw', ]
                 );
                 $refId = sprintf($this->getDefault('generated_client.key.pattern'), md5(uniqid()));
                 $container->setDefinition($refId, $ref);

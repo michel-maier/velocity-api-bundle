@@ -6,7 +6,7 @@ use Velocity\Bundle\ApiBundle\Annotation as Velocity;
 
 /**
  * Account Provider Tag Processor.
- * 
+ *
  * @author Gabriele Santini <gab.santini@gmail.com>
  */
 class AccountProviderProcessor extends AbstractTagProcessor
@@ -21,7 +21,7 @@ class AccountProviderProcessor extends AbstractTagProcessor
     public function process(ContainerBuilder $container)
     {
         $userProviderDefinition = $container->getDefinition($this->getDefault('user_provider.default.key'));
-    
+
         foreach ($this->findVelocityTaggedServiceIds($container, 'account_provider') as $id => $attrs) {
             foreach ($attrs as $params) {
                 $type   = isset($params['type']) ? $params['type'] : 'default';
