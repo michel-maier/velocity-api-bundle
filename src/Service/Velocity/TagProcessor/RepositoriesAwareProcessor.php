@@ -19,7 +19,7 @@ class RepositoriesAwareProcessor extends AbstractTagProcessor
             $d = $container->getDefinition($id);
             foreach ($attributes as $params) {
                 $params += ['method' => 'addRepository'];
-                foreach ($this->getArrayParameter('repositoryIds') as $repoAlias => $repoId) {
+                foreach ($this->idsRegistry->getRepositories() as $repoAlias => $repoId) {
                     $d->addMethodCall($params['method'], [$repoAlias, new Reference($repoId)]);
                 }
             }

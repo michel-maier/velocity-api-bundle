@@ -28,6 +28,11 @@ class IdsRegistry
         return array_key_exists($name, $this->ids['crudService']);
     }
     
+    public function getRepositories()
+    {
+        return $this->ids['repository'];
+    }
+    
     public function setRepository($name, $id)
     {
         $this->ids['repository'][$name] = $id;
