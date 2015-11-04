@@ -32,13 +32,14 @@ use Velocity\Bundle\ApiBundle\Service\Velocity\IdsRegistry;
 class VelocityService
 {
     use ServiceTrait;
+
     /**
-     * Tag Processors
+     * Tag Processors.
+     * 
      * @var array
      */
     protected $processors;
     /**
-     *
      * @var IdsRegistry
      */
     protected $idsRegistry;
@@ -55,23 +56,7 @@ class VelocityService
 
             // container keys
             'metaData.key'                        => 'velocity.metaData',
-            'action.key'                          => 'velocity.action',
-            'documentBuilder.key'                 => 'velocity.documentBuilder',
             'event.key'                           => 'velocity.event',
-            'storage.key'                         => 'velocity.storage',
-            'formatter.key'                       => 'velocity.formatter',
-            'businessRule.key'                    => 'velocity.businessRule',
-            'invitationEvent.key'                 => 'velocity.invitationEvent',
-            'generator.key'                       => 'velocity.generator',
-            'codeGenerator.key'                   => 'velocity.codeGenerator',
-            'archiver.key'                        => 'velocity.archiver',
-            'job.key'                             => 'velocity.job',
-            'db.key'                              => 'velocity.database',
-            'form.key'                            => 'velocity.form',
-            'request.key'                         => 'velocity.request',
-            'migration.key'                       => 'velocity.migration',
-            'user_provider.default.key'           => 'velocity.security.provider.user.api',
-            'authentication_provider.default.key' => 'velocity.security.authentication.provider',
             'logger.key'                          => 'logger',
             'event_dispatcher.key'                => 'event_dispatcher',
             'translator.key'                      => 'translator',
@@ -338,7 +323,6 @@ class VelocityService
         ;
 
         $classes = [];
-
         foreach ($f as $file) {
             $matches = null;
             $ns = null;
