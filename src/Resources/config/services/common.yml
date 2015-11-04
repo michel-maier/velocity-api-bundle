@@ -140,6 +140,10 @@ services:
       - @velocity.exception
   velocity.callable:
     class: Velocity\Bundle\ApiBundle\Service\CallableService
+  velocity.workflow:
+    class: Velocity\Bundle\ApiBundle\Service\WorkflowService
+    arguments:
+      - @velocity.businessRule
   velocity.storage:
     class: Velocity\Bundle\ApiBundle\Service\StorageService
     arguments:
