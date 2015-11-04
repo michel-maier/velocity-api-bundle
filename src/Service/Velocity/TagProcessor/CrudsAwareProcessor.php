@@ -19,7 +19,7 @@ class CrudsAwareProcessor extends AbstractTagProcessor
             $d = $container->getDefinition($id);
             foreach ($attributes as $params) {
                 $params += ['method' => 'addCrudService'];
-                foreach ($this->getArrayParameter('crudServiceIds') as $serviceAlias => $serviceId) {
+                foreach ($this->idsRegistry->getCruds() as $serviceAlias => $serviceId) {
                     $d->addMethodCall($params['method'], [$serviceAlias, new Reference($serviceId)]);
                 }
             }

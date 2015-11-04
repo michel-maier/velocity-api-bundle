@@ -31,6 +31,6 @@ class RepositoryProcessor extends AbstractTagProcessor
     
     protected function setRepositoryId($name, $id)
     {
-        $this->repositoryIds->set($name, $id);
+        $this->idsRegistry->setRepository($name, $id);
     }
 }

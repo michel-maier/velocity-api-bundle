@@ -6,7 +6,7 @@ use Velocity\Core\Traits\ServiceTrait;
 use Symfony\Component\DependencyInjection\Definition;
 use Velocity\Bundle\ApiBundle\Annotation\Callback;
 use Symfony\Component\DependencyInjection\Reference;
-use Velocity\Bundle\ApiBundle\Service\Velocity\RepositoryIds;
+use Velocity\Bundle\ApiBundle\Service\Velocity\IdsRegistry;
 use Doctrine\Common\Annotations\AnnotationReader;
 use Velocity\Bundle\ApiBundle\Annotation as Velocity;
 
@@ -15,15 +15,15 @@ abstract class AbstractTagProcessor
     use ServiceTrait;
     
     /**
-     * @var RepositoryIds
+     * @var IdsRegistry
      */
-    protected $repositoryIds;
+    protected $idsRegistry;
 
-    public function __construct($repositoryIds, $reader)
+    public function __construct($idsRegistry, $reader)
     {
         $this->setAnnotationReader($reader);
         
-        $this->repositoryIds = $repositoryIds;
+        $this->idsRegistry = $idsRegistry;
         $defaults = [
         
 //             // container keys
@@ -77,10 +77,6 @@ abstract class AbstractTagProcessor
             'volatile.sub.sub.class'  => 'Velocity\\Bundle\\ApiBundle\\Service\\Base\\VolatileSubSubDocumentService',
             'decorated_client.class'  => 'Velocity\\Bundle\\ApiBundle\\Service\\DecoratedClientService',
         
-//             'storage.file.class'      => 'Velocity\\Bundle\\ApiBundle\\Storage\\FileStorage',
-//             'storage.redis.class'     => 'Velocity\\Bundle\\ApiBundle\\Storage\\RedisStorage',
-//             'storage.memory.class'    => 'Velocity\\Bundle\\ApiBundle\\Storage\\MemoryStorage',
-//             'storage.database.class'  => 'Velocity\\Bundle\\ApiBundle\\Storage\\DatabaseStorage',
         
 //             // interfaces
             'container_aware.interface' => 'Symfony\\Component\\DependencyInjection\\ContainerAwareInterface',
@@ -272,5 +268,10 @@ abstract class AbstractTagProcessor
         }
     
         $definition->setClass($this->getDefault($defaultClassType.'.class'));
+    }
+
+    protected function setCrudService($name, $id)
+    {
+        $this->idsRegistry->setCrud($name, $id);
     }
 }

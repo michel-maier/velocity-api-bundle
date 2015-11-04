@@ -22,7 +22,7 @@ class SubSubCrudProcessor extends CrudProcessor
             $params = array_shift($attrs) + ['id' => $type.'.'.$subType.'.'.$subSubType, 'repo' => $type];
             $this->addRepositorySetterCall($d, $this->getRepositoryId($params['repo']));
             $this->populateModelService($container, $id, $d, [$type, $subType, $subSubType]);
-            $this->setArrayParameterKey('crudServiceIds', strtolower($params['id']), $id);
+            $this->setCrudService(strtolower($params['id']), $id);
         }
     }
 }

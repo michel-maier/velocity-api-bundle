@@ -21,7 +21,7 @@ class SubVolatileProcessor extends AbstractTagProcessor
             $d->addMethodCall('setTypes', [[$type, $subType]]);
             $params = array_shift($attrs) + ['id' => $type.'.'.$subType];
             $this->populateModelService($container, $id, $d, [$type, $subType]);
-            $this->setArrayParameterKey('crudServiceIds', strtolower($params['id']), $id);
+            $this->setCrudService(strtolower($params['id']), $id);
         }
     }
 }

@@ -23,7 +23,7 @@ class CrudProcessor extends AbstractTagProcessor
             $params = array_shift($attributes) + ['id' => $type, 'repo' => $type];
             $this->addRepositorySetterCall($d, $this->getRepositoryId($params['repo']));
             $this->populateModelService($container, $id, $d, [$type]);
-            $this->setArrayParameterKey('crudServiceIds', strtolower($params['id']), $id);
+            $this->setCrudService(strtolower($params['id']), $id);
         }
     }
     /**
@@ -36,10 +36,10 @@ class CrudProcessor extends AbstractTagProcessor
     {
         $alias = strtolower($alias);
         
-        if (!$this->repositoryIds->has($alias)) {
+        if (!$this->idsRegistry->hasRepository($alias)) {
             throw $this->createRequiredException("Unknown repository '%s'", $alias);
         }
     
-        return $this->repositoryIds->get($alias);
+        return $this->idsRegistry->getRepository($alias);
     }
 }

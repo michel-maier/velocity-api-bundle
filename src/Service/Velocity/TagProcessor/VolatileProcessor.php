@@ -21,7 +21,7 @@ class VolatileProcessor extends AbstractTagProcessor
             $d->addMethodCall('setTypes', [[$type]]);
             $params = array_shift($attrs) + ['id' => $type];
             $this->populateModelService($container, $id, $d, [$type]);
-            $this->setArrayParameterKey('crudServiceIds', strtolower($params['id']), $id);
+            $this->setCrudService(strtolower($params['id']), $id);
         }
     }
 }

@@ -22,7 +22,7 @@ use Symfony\Component\DependencyInjection\Reference;
 use Velocity\Bundle\ApiBundle\Annotation as Velocity;
 use Symfony\Component\DependencyInjection\Definition;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
-use Velocity\Bundle\ApiBundle\Service\Velocity\RepositoryIds;
+use Velocity\Bundle\ApiBundle\Service\Velocity\IdsRegistry;
 
 /**
  * Velocity Service.
@@ -40,9 +40,9 @@ class VelocityService
     
     /**
      * 
-     * @var RepositoryIds
+     * @var IdsRegistry
      */
-    protected $repositoryIds;
+    protected $idsRegistry;
     
     /**
      * @param AnnotationReader $reader
@@ -116,7 +116,7 @@ class VelocityService
             $this->setParameter('default_'.$k, $v);
         }
         
-        $this->repositoryIds = new RepositoryIds();
+        $this->idsRegistry = new IdsRegistry();
         
         $tagProcessors = [
             'Repository',
@@ -150,7 +150,7 @@ class VelocityService
     protected function addProcessor($processor)
     {
         $classname = 'Velocity\Bundle\ApiBundle\Service\Velocity\TagProcessor\\' . $processor . 'Processor';
-        $this->processors[] = new $classname($this->repositoryIds, $this->getAnnotationReader());
+        $this->processors[] = new $classname($this->idsRegistry, $this->getAnnotationReader());
     }
     /**
      * @param ContainerBuilder $container
