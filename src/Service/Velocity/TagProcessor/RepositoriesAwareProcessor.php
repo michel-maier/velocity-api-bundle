@@ -4,6 +4,11 @@ namespace Velocity\Bundle\ApiBundle\Service\Velocity\TagProcessor;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\DependencyInjection\Reference;
 
+/**
+ * Repository Aware Processor.
+ *
+ * @author Gabriele Santini <gab.santini@gmail.com>
+ */
 class RepositoriesAwareProcessor extends AbstractTagProcessor
 {
     /**

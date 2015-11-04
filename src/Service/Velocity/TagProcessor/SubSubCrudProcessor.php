@@ -3,6 +3,11 @@ namespace Velocity\Bundle\ApiBundle\Service\Velocity\TagProcessor;
 
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
+/**
+ * Sub Sub Crud Processor.
+ *
+ * @author Gabriele Santini <gab.santini@gmail.com>
+ */
 class SubSubCrudProcessor extends CrudProcessor
 {
     /**

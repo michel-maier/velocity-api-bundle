@@ -4,6 +4,11 @@ namespace Velocity\Bundle\ApiBundle\Service\Velocity\TagProcessor;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Velocity\Bundle\ApiBundle\Annotation as Velocity;
 
+/**
+ * Formatter Processor.
+ *
+ * @author Gabriele Santini <gab.santini@gmail.com>
+ */
 class FormatterProcessor extends AbstractTagProcessor
 {
     /**

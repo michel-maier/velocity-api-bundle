@@ -3,6 +3,11 @@ namespace Velocity\Bundle\ApiBundle\Service\Velocity\TagProcessor;
 
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
+/**
+ * Document Builder Processor.
+ *
+ * @author Gabriele Santini <gab.santini@gmail.com>
+ */
 class DocumentBuilderProcessor extends AbstractTagProcessor
 {
     /**
@@ -13,7 +18,7 @@ class DocumentBuilderProcessor extends AbstractTagProcessor
      * @throws \Exception
      */
     public function process(ContainerBuilder $container)
-    {        
+    {
         $dbDefinition = $container->getDefinition($this->getDefault('documentBuilder.key'));
 
         foreach ($this->findVelocityTaggedServiceIds($container, 'document_builder') as $id => $attributes) {

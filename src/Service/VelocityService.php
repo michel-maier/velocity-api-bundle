@@ -39,7 +39,7 @@ class VelocityService
     protected $processors;
     
     /**
-     * 
+     *
      * @var IdsRegistry
      */
     protected $idsRegistry;
@@ -149,7 +149,7 @@ class VelocityService
     }
     protected function addProcessor($processor)
     {
-        $classname = 'Velocity\Bundle\ApiBundle\Service\Velocity\TagProcessor\\' . $processor . 'Processor';
+        $classname = 'Velocity\Bundle\ApiBundle\Service\Velocity\TagProcessor\\'.$processor.'Processor';
         $this->processors[] = new $classname($this->idsRegistry, $this->getAnnotationReader());
     }
     /**

@@ -4,6 +4,11 @@ namespace Velocity\Bundle\ApiBundle\Service\Velocity\TagProcessor;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Velocity\Bundle\ApiBundle\Annotation as Velocity;
 
+/**
+ * Job Processor.
+ *
+ * @author Gabriele Santini <gab.santini@gmail.com>
+ */
 class JobProcessor extends AbstractTagProcessor
 {
     /**
@@ -14,7 +19,7 @@ class JobProcessor extends AbstractTagProcessor
      * @throws \Exception
      */
     public function process(ContainerBuilder $container)
-    {        
+    {
         $jobDefinition = $container->getDefinition($this->getDefault('job.key'));
 
         foreach ($this->findVelocityTaggedServiceIds($container, 'job') as $id => $attributes) {

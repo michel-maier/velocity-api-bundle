@@ -4,6 +4,11 @@ namespace Velocity\Bundle\ApiBundle\Service\Velocity\TagProcessor;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Velocity\Bundle\ApiBundle\Annotation as Velocity;
 
+/**
+ * Code Generator Processor.
+ *
+ * @author Gabriele Santini <gab.santini@gmail.com>
+ */
 class CodeGeneratorProcessor extends AbstractTagProcessor
 {
     /**

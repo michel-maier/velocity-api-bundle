@@ -3,6 +3,11 @@ namespace Velocity\Bundle\ApiBundle\Service\Velocity\TagProcessor;
 
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
+/**
+ * Volatile Processor.
+ *
+ * @author Gabriele Santini <gab.santini@gmail.com>
+ */
 class VolatileProcessor extends AbstractTagProcessor
 {
     /**

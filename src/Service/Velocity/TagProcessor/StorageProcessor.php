@@ -3,6 +3,11 @@ namespace Velocity\Bundle\ApiBundle\Service\Velocity\TagProcessor;
 
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
+/**
+ * Storage Processor.
+ *
+ * @author Gabriele Santini <gab.santini@gmail.com>
+ */
 class StorageProcessor extends AbstractTagProcessor
 {
     /**
@@ -13,7 +18,7 @@ class StorageProcessor extends AbstractTagProcessor
      * @throws \Exception
      */
     public function process(ContainerBuilder $container)
-    {        
+    {
         $storageDefinition = $container->getDefinition($this->getDefault('storage.key'));
 
         foreach ($this->findVelocityTaggedServiceIds($container, 'storage') as $id => $attributes) {

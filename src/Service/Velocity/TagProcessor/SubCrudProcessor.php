@@ -3,6 +3,11 @@ namespace Velocity\Bundle\ApiBundle\Service\Velocity\TagProcessor;
 
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
+/**
+ * Sub Crud Processor.
+ *
+ * @author Gabriele Santini <gab.santini@gmail.com>
+ */
 class SubCrudProcessor extends CrudProcessor
 {
     /**
@@ -14,7 +19,7 @@ class SubCrudProcessor extends CrudProcessor
      */
     public function process(ContainerBuilder $container)
     {
-            foreach ($this->findVelocityTaggedServiceIds($container, 'crud.sub') as $id => $attrs) {
+        foreach ($this->findVelocityTaggedServiceIds($container, 'crud.sub') as $id => $attrs) {
             list($type, $subType) = array_slice(explode('.', $id), -2);
             $d = $container->getDefinition($id);
             $this->ensureDefinitionClassSet($d, 'crud.sub');

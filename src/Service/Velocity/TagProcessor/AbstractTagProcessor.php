@@ -10,6 +10,11 @@ use Velocity\Bundle\ApiBundle\Service\Velocity\IdsRegistry;
 use Doctrine\Common\Annotations\AnnotationReader;
 use Velocity\Bundle\ApiBundle\Annotation as Velocity;
 
+/**
+ * Superclass for all Tag Processors.
+ * 
+ * @author Gabriele Santini <gab.santini@gmail.com>
+ */
 abstract class AbstractTagProcessor
 {
     use ServiceTrait;
@@ -108,10 +113,9 @@ abstract class AbstractTagProcessor
             'job.tag'                 => 'velocity.job',
             'storage.tag'             => 'velocity.storage',
             'document_builder.tag'    => 'velocity.document_builder',
-            'repositories_aware.tag'  => 'velocity.repositories_aware',    
+            'repositories_aware.tag'  => 'velocity.repositories_aware',
         ];
         foreach ($defaults as $k => $v) {
-            
             $this->setParameter('default_'.$k, $v);
         }
     }

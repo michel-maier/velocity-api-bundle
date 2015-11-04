@@ -3,6 +3,11 @@ namespace Velocity\Bundle\ApiBundle\Service\Velocity\TagProcessor;
 
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 
+/**
+ * Repository Processor.
+ *
+ * @author Gabriele Santini <gab.santini@gmail.com>
+ */
 class RepositoryProcessor extends AbstractTagProcessor
 {
     /**

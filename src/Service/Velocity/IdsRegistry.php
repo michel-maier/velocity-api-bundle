@@ -1,6 +1,13 @@
 <?php
 namespace Velocity\Bundle\ApiBundle\Service\Velocity;
 
+/**
+ * Ids Registry.
+ * 
+ * Registry class for persistence between tag processors.
+ *
+ * @author Gabriele Santini <gab.santini@gmail.com>
+ */
 class IdsRegistry
 {
     private $ids = [
@@ -13,12 +20,12 @@ class IdsRegistry
         return $this->ids['crudService'];
     }
     
-    public function setCrud($name, $id) 
+    public function setCrud($name, $id)
     {
         $this->ids['crudService'][$name] = $id;
     }
     
-    public function getCrud($name) 
+    public function getCrud($name)
     {
         return $this->ids['crudService'][$name];
     }

@@ -22,11 +22,14 @@ class ProviderClientProcessor extends AbstractTagProcessor
             $attribute = array_shift($attrs);
             $refId = $id;
             if ((isset($attribute['method']) && 'get' !== $attribute['method']) || isset($attribute['format'])) {
-                $ref = new Definition($this->getDefault(
-                    'decorated_client.class'),
+                $ref = new Definition(
+                    $this->getDefault(
+                        'decorated_client.class'
+                    ),
                     [$this->ref($id), isset($attribute['method']) ?
                         $attribute['method'] :
-                        'get', isset($attribute['format']) ? $attribute['format'] : 'raw']);
+                        'get', isset($attribute['format']) ? $attribute['format'] : 'raw']
+                );
                 $refId = sprintf($this->getDefault('generated_client.key.pattern'), md5(uniqid()));
                 $container->setDefinition($refId, $ref);
             }
