@@ -13,10 +13,6 @@ services:
     arguments:
       - @request_stack
       - @velocity.form
-  velocity.supervision:
-    class: Velocity\Bundle\ApiBundle\Service\SupervisionService
-    arguments:
-      - @security.context
   velocity.math:
     class: Velocity\Bundle\ApiBundle\Service\MathService
   velocity.date:

@@ -74,6 +74,7 @@ class MetaDataService
     /**
      * @param StorageService   $storageService
      * @param GeneratorService $generatorService
+     * @param WorkflowService  $workflowService
      */
     public function __construct(StorageService $storageService, GeneratorService $generatorService, WorkflowService $workflowService)
     {
