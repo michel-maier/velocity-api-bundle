@@ -1,0 +1,27 @@
+services:
+  velocity.paymentprovider.mangopay:
+    class: Velocity\Bundle\ApiBundle\PaymentProvider\MangoPayPaymentProvider
+    arguments:
+      - @velocity.mangopay
+    tags:
+      - { name: velocity.payment_provider, provider: mangopay }
+  velocity.paymentprovider.stripe:
+    class: Velocity\Bundle\ApiBundle\PaymentProvider\StripePaymentProvider
+    arguments:
+      - @velocity.stripe
+    tags:
+      - { name: velocity.payment_provider, provider: stripe }
+  velocity.paymentprovider.paypal:
+    class: Velocity\Bundle\ApiBundle\PaymentProvider\PayPalPaymentProvider
+    arguments:
+      - @velocity.paypal
+    tags:
+      - { name: velocity.payment_provider, provider: paypal }
+  velocity.paymentprovider.fake:
+    class: Velocity\Bundle\ApiBundle\PaymentProvider\FakePaymentProvider
+    tags:
+      - { name: velocity.payment_provider, provider: fake }
+  velocity.paymentprovider.free:
+    class: Velocity\Bundle\ApiBundle\PaymentProvider\FreePaymentProvider
+    tags:
+      - { name: velocity.payment_provider, provider: free }

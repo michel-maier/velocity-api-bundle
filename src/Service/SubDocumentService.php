@@ -43,7 +43,7 @@ class SubDocumentService implements SubDocumentServiceInterface
      *
      * @return string
      */
-    protected function getParentIdBy($field, $value)
+    public function getParentIdBy($field, $value)
     {
         return (string) $this->getRepository()->get([$field => $value], ['_id'])['_id'];
     }
@@ -188,24 +188,5 @@ class SubDocumentService implements SubDocumentServiceInterface
             $this->buildEventName($event),
             new Event\DocumentEvent($data, $this->buildTypeVars([$parentId]))
         );
-    }
-    /**
-     * @param string $parentId
-     * @param string $operation
-     * @param mixed  $model
-     * @param array  $options
-     *
-     * @return $this
-     */
-    protected function applyBusinessRules($parentId, $operation, $model, array $options = [])
-    {
-        $this->getBusinessRuleService()->executeBusinessRulesForModelOperation(
-            $this->getModelName(),
-            $operation,
-            $model,
-            $this->buildTypeVars([$parentId]) + $options
-        );
-
-        return $this;
     }
 }

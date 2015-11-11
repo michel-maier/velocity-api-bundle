@@ -25,6 +25,7 @@ class MetaDataService
 {
     use ServiceTrait;
     use ServiceAware\StorageServiceAwareTrait;
+    use ServiceAware\WorkflowServiceAwareTrait;
     use ServiceAware\GeneratorServiceAwareTrait;
     /**
      * @var array
@@ -74,10 +75,11 @@ class MetaDataService
      * @param StorageService   $storageService
      * @param GeneratorService $generatorService
      */
-    public function __construct(StorageService $storageService, GeneratorService $generatorService)
+    public function __construct(StorageService $storageService, GeneratorService $generatorService, WorkflowService $workflowService)
     {
         $this->setStorageService($storageService);
         $this->setGeneratorService($generatorService);
+        $this->setWorkflowService($workflowService);
     }
     /**
      * @param string $class
@@ -119,7 +121,7 @@ class MetaDataService
 
         $this->models[$class] += $definition;
 
-        $this->modelIds[$definition['id']] = $class;
+        $this->modelIds[strtolower($definition['id'])] = $class;
 
         return $this;
     }
@@ -320,6 +322,14 @@ class MetaDataService
 
         $this->models[$class]['workflows'][$property] = $definition;
 
+        if (!isset($this->models[$class]['types'][$property])) {
+            $this->models[$class]['types'][$property] = [];
+        }
+
+        $this->models[$class]['types'][$property]['type'] = 'workflow';
+
+        $this->getWorkflowService()->registerFromDefinition($definition['id'], $definition);
+
         return $this;
     }
     /**
@@ -408,11 +418,11 @@ class MetaDataService
      */
     public function getModelClassForId($id)
     {
-        if (!isset($this->modelIds[$id])) {
+        if (!isset($this->modelIds[strtolower($id)])) {
             throw $this->createRequiredException("Unknown model '%s'", $id);
         }
 
-        return $this->modelIds[$id];
+        return $this->modelIds[strtolower($id)];
     }
     /**
      * @param string|Object $class
@@ -654,6 +664,8 @@ class MetaDataService
                 }
 
                 return new TypeGuess('choice', ['multiple' => true, 'choices' => $choices], Guess::HIGH_CONFIDENCE);
+            case 'workflow':
+                return new TypeGuess('text', [], Guess::HIGH_CONFIDENCE);
             default:
                 return new TypeGuess(null, [], Guess::LOW_CONFIDENCE);
         }

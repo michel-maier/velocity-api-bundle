@@ -114,7 +114,7 @@ class WorkflowService
      */
     public function transitionModelProperty($modelName, $model, $property, $previousModel, $id, array $options = [])
     {
-        $this->checkTransitionExist($id, $model->$property, $previousModel->$property);
+        $this->checkTransitionExist($id, $previousModel->$property, $model->$property);
 
         $this->getBusinessRuleService()->executeBusinessRulesForModelOperation($modelName, $property.'.'.$previousModel->$property.'.leaved', $previousModel, $options);
         $this->getBusinessRuleService()->executeBusinessRulesForModelOperation($modelName, $property.'.'.$model->$property.'.entered', $model, $options);

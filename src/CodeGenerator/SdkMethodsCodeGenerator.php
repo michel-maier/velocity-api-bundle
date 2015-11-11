@@ -327,6 +327,36 @@ class SdkMethodsCodeGenerator
      * @param MethodGenerator $zMethod
      * @param array           $definition
      *
+     * @Velocity\CodeGeneratorMethodType("crud.sub.setPropertyBy")
+     */
+    public function generateCrudSubSetPropertyByMethod(MethodGenerator $zMethod, $definition = [])
+    {
+        $definition['route'] = str_replace(['{id}', '{'.$definition['key'].'}'], ['%s', '%s'], $definition['route']);
+
+        $zMethod->setDocBlock(new DocBlockGenerator(
+            sprintf('Set the %s of the %s %s to %s', $definition['property'], $definition['type'], $definition['subType'], $definition['value']),
+            null,
+            [
+                new ParamTag($definition['key'], ['string'], sprintf($definition['key'].' of the %s', $definition['type'])),
+                new ParamTag('id', ['mixed'], sprintf('ID of the %s %s', $definition['type'], $definition['subType'])),
+                new ParamTag('options', ['array'], 'Options'),
+                new ReturnTag(['array']),
+                new ThrowsTag(['\\Exception'], 'if an error occured'),
+            ]
+        ));
+        $zMethod->setParameters([
+            new ParameterGenerator($definition['key'], 'string'),
+            new ParameterGenerator('id', 'string'),
+            new ParameterGenerator('options', 'array', []),
+        ]);
+        $zMethod->setBody(
+            sprintf('return $this->getSdk()->update(sprintf(\'%s\', $%s, $id), [\'%s\' => %s], $options);', $definition['route'], $definition['key'], $definition['property'], var_export($definition['value'], true))
+        );
+    }
+    /**
+     * @param MethodGenerator $zMethod
+     * @param array           $definition
+     *
      * @Velocity\CodeGeneratorMethodType("crud.updateProperty")
      */
     public function generateCrudUpdatePropertyMethod(MethodGenerator $zMethod, $definition = [])

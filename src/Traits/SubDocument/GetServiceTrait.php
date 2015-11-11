@@ -102,6 +102,7 @@ trait GetServiceTrait
     public function get($parentId, $id, $fields = [], $options = [])
     {
         return $this->callback(
+            $parentId,
             'fetched',
             $this->convertToModel(
                 $this->getRepository()->getHashProperty($parentId, $this->getRepoKey([$id], $options), $fields, $options),

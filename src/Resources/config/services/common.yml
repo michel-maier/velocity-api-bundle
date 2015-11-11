@@ -5,6 +5,7 @@ services:
     arguments:
       - @velocity.storage
       - @velocity.generator
+      - @velocity.workflow
     tags:
       - {name: velocity.cruds_aware}
   velocity.exception:
@@ -20,6 +21,27 @@ services:
     class: Velocity\Bundle\ApiBundle\Service\MathService
   velocity.date:
     class: Velocity\Bundle\ApiBundle\Service\DateService
+  velocity.stripe:
+    class: Velocity\Bundle\ApiBundle\Service\StripeService
+  velocity.paypal:
+    class: Velocity\Bundle\ApiBundle\Service\PayPalService
+    arguments:
+      - @velocity.paypalapi
+      - %app_paypal_environment%
+  velocity.paypalapi:
+    class: PayPal\Service\PayPalAPIInterfaceServiceService
+    arguments:
+      -
+        mode: %app_paypal_environment%
+        "acct1.UserName": %app_paypal_username%
+        "acct1.Password": %app_paypal_password%
+        "acct1.Signature": %app_paypal_signature%
+  velocity.paymentProvider:
+    class: Velocity\Bundle\ApiBundle\Service\PaymentProviderService
+    arguments:
+      - @velocity.expression
+      - []
+      - %app_payment_provider_rules%
   velocity.request:
     class: Velocity\Bundle\ApiBundle\Service\RequestService
     arguments:

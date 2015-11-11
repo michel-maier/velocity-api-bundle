@@ -27,6 +27,13 @@ interface SubDocumentServiceInterface
      */
     public function getTypes();
     /**
+     * @param string $field
+     * @param mixed  $value
+     *
+     * @return string
+     */
+    public function getParentIdBy($field, $value);
+    /**
      * Retrieve the documents matching the specified criteria.
      *
      * @param mixed    $parentId

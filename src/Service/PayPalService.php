@@ -45,7 +45,6 @@ use Velocity\Bundle\ApiBundle\Exception\PayPalExecuteConfirmOrderFailedException
  */
 class PayPalService
 {
-    use ServiceTrait;
     /**
      * Default PayPal API version
      */
@@ -69,6 +68,17 @@ class PayPalService
 
     use ServiceTrait;
     use LoggerAwareTrait;
+    /**
+     * PayPalService constructor.
+     *
+     * @param PayPalAPIInterfaceServiceService $payPalSdk
+     * @param string                           $environment
+     */
+    public function __construct(PayPalAPIInterfaceServiceService $payPalSdk, $environment)
+    {
+        $this->setPayPal($payPalSdk);
+        $this->setEnvironment($environment);
+    }
     /**
      * @param string $version
      *
@@ -195,13 +205,13 @@ class PayPalService
                 foreach ($data['items'] as $i => $item) {
                     $itemDetails = new PaymentDetailsItemType($item);
                     // @codingStandardsIgnoreStart
-                    $itemDetails->Name = (string) $item['name'] ?: sprintf('Item %s', is_numeric($i) ? ($i + 1) : $i);
-                    $itemDetails->Number = (string) $item['number'] ?: null;
-                    $itemDetails->Amount = (string) $item['amount'] ?: '0.0';
-                    $itemDetails->Quantity = (string) $item['quantity'] ?: '1';
-                    $itemDetails->Description = (string) $item['description'] ?: null;
-                    $itemDetails->PromoCode = (string) $item['code'] ?: null;
-                    $itemDetails->ProductCategory = (string) $item['category'] ?: null;
+                    $itemDetails->Name = (string) (isset($item['name']) ? $item['name'] : sprintf('Item %s', is_numeric($i) ? ($i + 1) : $i));
+                    $itemDetails->Number = (string) (isset($item['number']) ? $item['number'] : null);
+                    $itemDetails->Amount = (string) (isset($item['amount']) ? $item['amount'] : '0.0');
+                    $itemDetails->Quantity = (string) (isset($item['quantity']) ? $item['quantity'] : '1');
+                    $itemDetails->Description = (string) (isset($item['description']) ? $item['description'] : null);
+                    $itemDetails->PromoCode = (string) (isset($item['code']) ? $item['code'] : null);
+                    $itemDetails->ProductCategory = (string) (isset($item['category']) ? $item['category'] : null);
                     // @codingStandardsIgnoreEnd
                     if (isset($item['tax']) && $item['tax']) {
                         $itemDetailsTax = new BasicAmountType();

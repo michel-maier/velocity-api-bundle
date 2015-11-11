@@ -47,6 +47,7 @@ class VelocityService
             'metaData.key'                        => 'velocity.metaData',
             'action.key'                          => 'velocity.action',
             'documentBuilder.key'                 => 'velocity.documentBuilder',
+            'paymentProvider.key'                 => 'velocity.paymentProvider',
             'event.key'                           => 'velocity.event',
             'storage.key'                         => 'velocity.storage',
             'formatter.key'                       => 'velocity.formatter',
@@ -130,6 +131,7 @@ class VelocityService
             'storage.tag'             => 'velocity.storage',
             'formatter.tag'           => 'velocity.formatter',
             'document_builder.tag'    => 'velocity.document_builder',
+            'payment_provider.tag'    => 'velocity.payment_provider',
 
         ];
 
@@ -422,6 +424,7 @@ class VelocityService
         $this->processCodeGeneratorTag($container);
         $this->processArchiverTag($container);
         $this->processFormatterTag($container);
+        $this->processPaymentProviderTag($container);
         $this->processJobTag($container);
         $this->processStorageTag($container);
         $this->processDocumentBuilderTag($container);
@@ -930,6 +933,21 @@ class VelocityService
                         }
                     }
                 }
+            }
+        }
+    }
+    /**
+     * Process formatter tags.
+     *
+     * @param ContainerBuilder $container
+     */
+    protected function processPaymentProviderTag(ContainerBuilder $container)
+    {
+        $paymentProviderDefinition = $container->getDefinition($this->getDefault('paymentProvider.key'));
+
+        foreach ($this->findVelocityTaggedServiceIds($container, 'payment_provider') as $id => $attributes) {
+            foreach ($attributes as $params) {
+                $paymentProviderDefinition->addMethodCall('addProvider', [$this->ref($id), $params['provider']]);
             }
         }
     }

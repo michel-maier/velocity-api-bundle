@@ -60,6 +60,25 @@ trait FindServiceTrait
         return $data;
     }
     /**
+     * @param array $criteria
+     * @param array $fields
+     * @param int   $offset
+     * @param array $sorts
+     * @param array $options
+     *
+     * @return mixed|null
+     */
+    public function findOne($criteria = [], $fields = [], $offset = 0, $sorts = [], $options = [])
+    {
+        $items = $this->find($criteria, $fields, 1, $offset, $sorts, $options);
+
+        if (!count($items)) {
+            return null;
+        }
+
+        return array_shift($items);
+    }
+    /**
      * Retrieve the documents matching the specified criteria and return a page with total count.
      *
      * @param array    $criteria

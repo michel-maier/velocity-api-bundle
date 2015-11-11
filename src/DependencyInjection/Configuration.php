@@ -40,6 +40,7 @@ class Configuration implements ConfigurationInterface
             ->addEventsSection($rootNode)
             ->addEventSetsSection($rootNode)
             ->addStoragesSection($rootNode)
+            ->addPaymentProviderRulesSection($rootNode)
         ;
 
         return $treeBuilder;
@@ -363,6 +364,24 @@ class Configuration implements ConfigurationInterface
                                 return $v;
                             })
                         ->end()
+                    ->end()
+                ->end()
+            ->end()
+        ;
+
+        return $this;
+    }
+    /**
+     * @param ArrayNodeDefinition $rootNode
+     *
+     * @return $this
+     */
+    protected function addPaymentProviderRulesSection(ArrayNodeDefinition $rootNode)
+    {
+        $rootNode
+            ->children()
+                ->arrayNode('payment_provider_rules')
+                    ->prototype('variable')
                     ->end()
                 ->end()
             ->end()

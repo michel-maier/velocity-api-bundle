@@ -47,6 +47,7 @@ class VelocityApiExtension extends Extension
         $container->setParameter('app_events', $config['events']);
         $container->setParameter('app_event_sets', $config['event_sets']);
         $container->setParameter('app_storages', $config['storages']);
+        $container->setParameter('app_payment_provider_rules', $config['payment_provider_rules']);
 
         foreach ($config['recipients'] as $type => $emails) {
             $container->setParameter(sprintf('app_recipients_%s', $type), $emails);
@@ -69,6 +70,7 @@ class VelocityApiExtension extends Extension
         $loader->load('codeGenerators.yml');
         $loader->load('documentBuilders.yml');
         $loader->load('formatters.yml');
+        $loader->load('paymentProviders.yml');
         $loader->load('jobs.yml');
     }
 }

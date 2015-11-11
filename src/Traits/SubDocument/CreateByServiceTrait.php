@@ -54,5 +54,5 @@ trait CreateByServiceTrait
      *
      * @return string
      */
-    protected abstract function getParentIdBy($field, $value);
+    public abstract function getParentIdBy($field, $value);
 }

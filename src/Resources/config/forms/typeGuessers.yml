@@ -11,3 +11,9 @@ services:
       - @velocity.metaData
     tags:
       - { name: form.type_guesser }
+  velocity.typeGuesser.workflow:
+    class: Velocity\Bundle\ApiBundle\Form\TypeGuesser\WorkflowTypeGuesser
+    arguments:
+      - @velocity.metaData
+    tags:
+      - { name: form.type_guesser }
