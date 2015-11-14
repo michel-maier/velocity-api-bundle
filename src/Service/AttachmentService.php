@@ -49,6 +49,10 @@ class AttachmentService
             return $this->buildFromGenerator($definition, $params, $options);
         }
 
+        if (isset($definition['content'])) {
+            return $this->buildFromContent($definition, $params, $options);
+        }
+
         throw $this->createRequiredException('Missing source for attachment');
     }
     /**
@@ -86,6 +90,20 @@ class AttachmentService
         return $this->package(
             $definition,
             base64_encode($this->getGeneratorService()->generate($definition['generator'], $params, $options))
+        );
+    }
+    /**
+     * @param array $definition
+     * @param array $params
+     * @param array $options
+     *
+     * @return array
+     */
+    protected function buildFromContent(array $definition, array $params = [], array $options = [])
+    {
+        return $this->package(
+            $definition,
+            base64_encode($definition['content'])
         );
     }
     /**

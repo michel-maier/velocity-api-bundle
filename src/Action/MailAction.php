@@ -119,7 +119,7 @@ class MailAction extends AbstractTextNotificationAction
                 $this->renderTemplate('mail/'.$template.'.html.twig', $vars),
                 $this->cleanRecipients($vars->get('recipients')),
                 array_map(function ($attachment) use ($vars) {
-                    return $this->getAttachmentService()->build($attachment, $vars);
+                    return $this->getAttachmentService()->build($attachment, $vars->all());
                 }, $params->get('attachments', [])),
                 $vars->get('images', []),
                 $vars->get('sender', null),
