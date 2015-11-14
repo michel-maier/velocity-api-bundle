@@ -27,13 +27,13 @@ trait UpdateServiceTrait
      */
     public function update($id, $data, $options = [])
     {
-        list($doc, $array, $old) = $this->prepareUpdate($id, $data, $options);
+        list($doc, $array, $old, $transitions) = $this->prepareUpdate($id, $data, $options);
 
         unset($data);
 
         $this->saveUpdate($id, $array, $options);
 
-        return $this->completeUpdate($id, $doc, $array, $old, $options);
+        return $this->completeUpdate($id, $doc, $array, $old, $transitions, $options);
     }
     /**
      * @param mixed $fieldName
@@ -60,11 +60,12 @@ trait UpdateServiceTrait
         $docs   = [];
         $arrays = [];
         $olds   = [];
+        $transitions = [];
 
         foreach ($bulkData as $i => $data) {
             $id = $data['id'];
             unset($data['id']);
-            list($docs[$i], $arrays[$i], $olds[$i]) = $this->prepareUpdate($id, $data, $options);
+            list($docs[$i], $arrays[$i], $olds[$i], $transitions[$i]) = $this->prepareUpdate($id, $data, $options);
             unset($bulkData[$i]);
         }
 
@@ -72,8 +73,8 @@ trait UpdateServiceTrait
 
         foreach ($this->saveUpdateBulk($arrays, $options) as $i => $array) {
             unset($arrays[$i]);
-            $this->completeUpdate($docs[$i], $array, $olds[$i], $options);
-            unset($olds[$i]);
+            $this->completeUpdate($docs[$i], $array, $olds[$i], $transitions[$i], $options);
+            unset($olds[$i], $transitions[$i]);
         }
 
         unset($olds);
@@ -186,7 +187,7 @@ trait UpdateServiceTrait
      * @param mixed $previousModel
      * @param array $options
      *
-     * @return $this
+     * @return array
      */
     protected abstract function applyActiveWorkflows($model, $previousModel, array $options = []);
     /**
@@ -264,26 +265,29 @@ trait UpdateServiceTrait
 
         $this->applyBusinessRules('update', $doc, $options);
 
+        $transitions = [];
+
         if ($hasWorkflows) {
-            $this->applyActiveWorkflows($doc, $old, $options);
+            $transitions = $this->applyActiveWorkflows($doc, $old, $options);
         }
 
         $doc   = $this->callback('update.pre_save_checked', $doc, $options);
         $array = $this->convertToArray($doc, $options);
         $array = $this->callback('update.pre_save_array', $array, $options);
 
-        return [$doc, $array, $old];
+        return [$doc, $array, $old, $transitions];
     }
     /**
      * @param mixed $id
      * @param mixed $doc
      * @param array $array
      * @param mixed $old
+     * @param array $transitions
      * @param array $options
      *
      * @return mixed
      */
-    protected function completeUpdate($id, $doc, $array, $old, $options = [])
+    protected function completeUpdate($id, $doc, $array, $old, $transitions = [], $options = [])
     {
         $this->callback('update.saved_array', $array, $options);
 
@@ -295,19 +299,36 @@ trait UpdateServiceTrait
 
         $this->applyBusinessRules('complete_update', $doc, $options);
 
+        foreach ($transitions as $transition) {
+            $this->applyBusinessRules('complete_update.'.$transition, $doc, $options);
+        }
+
         $this->event('updated', $doc);
+
+        foreach ($transitions as $transition) {
+            $this->event('updated.'.$transition, $doc);
+        }
 
         if ($this->observed('updated_old')) {
             $this->event('updated_old', ['new' => $doc, 'old' => $old]);
+            foreach ($transitions as $transition) {
+                $this->event('updated_old.'.$transition, ['new' => $doc, 'old' => $old]);
+            }
         }
 
         if ($this->observed('updated_full') || $this->observed('updated_full_old')) {
             $full = $this->get($id, [], $options);
             if ($this->observed('updated_full')) {
                 $this->event('updated_full', $doc);
+                foreach ($transitions as $transition) {
+                    $this->event('updated_full.'.$transition, $doc);
+                }
             }
             if ($this->observed('updated_full_old')) {
                 $this->event('updated_full_old', ['new' => $full, 'old' => $old]);
+                foreach ($transitions as $transition) {
+                    $this->event('updated_full_old.'.$transition, ['new' => $full, 'old' => $old]);
+                }
             }
             unset($full);
         }

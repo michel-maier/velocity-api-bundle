@@ -11,6 +11,7 @@
 
 namespace Velocity\Bundle\ApiBundle\PaymentProvider;
 
+use Symfony\Component\HttpFoundation\Request;
 use Velocity\Bundle\ApiBundle\PaymentProviderInterface;
 
 /**
@@ -80,6 +81,18 @@ class FakePaymentProvider implements PaymentProviderInterface
      * @throws \Exception
      */
     public function get($id, $options = [])
+    {
+        return [];
+    }
+    /**
+     * @param string  $callback
+     * @param Request $request
+     *
+     * @return array
+     *
+     * @todo implement this
+     */
+    public function parseCallbackRequest($callback, Request $request)
     {
         return [];
     }

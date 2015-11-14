@@ -110,6 +110,10 @@ services:
     class: Velocity\Bundle\ApiBundle\Service\GeneratorService
     arguments:
       - @velocity.callable
+  velocity.converter:
+    class: Velocity\Bundle\ApiBundle\Service\ConverterService
+    arguments:
+      - @velocity.callable
   velocity.documentBuilder:
     class: Velocity\Bundle\ApiBundle\Service\DocumentBuilderService
     arguments:

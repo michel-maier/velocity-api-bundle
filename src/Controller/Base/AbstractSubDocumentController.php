@@ -88,6 +88,30 @@ abstract class AbstractSubDocumentController extends AbstractRestController
         );
     }
     /**
+     * Retrieve the specified document.
+     *
+     * @param Request $request
+     * @param string  $parentFieldName
+     * @param array   $options
+     *
+     * @return Response
+     */
+    protected function handleGetByParentField(Request $request, $parentFieldName, $options = [])
+    {
+        return $this->returnResponse(
+            $this->getService()->get(
+                $this->getService()->getParentIdBy($parentFieldName, $this->getRequestService()->fetchRouteParameter($request, $parentFieldName)),
+                $this->getRequestService()->fetchRouteParameter($request, 'id'),
+                $this->getRequestService()->fetchQueryFields($request),
+                $options
+            ),
+            200,
+            [],
+            ['groups' => ['Default', 'detailed']],
+            $request
+        );
+    }
+    /**
      * Return the specified document.
      *
      * @param Request $request

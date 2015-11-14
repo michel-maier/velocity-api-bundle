@@ -11,6 +11,7 @@
 
 namespace Velocity\Bundle\ApiBundle\Service;
 
+use Symfony\Component\HttpFoundation\Request;
 use Velocity\Core\Traits\ServiceTrait;
 use Velocity\Bundle\ApiBundle\Traits\ServiceAware;
 use Velocity\Bundle\ApiBundle\PaymentProviderInterface;
@@ -138,5 +139,18 @@ class PaymentProviderService
     public function isValidCondition($condition, $data = [])
     {
         return (bool) $this->getExpressionService()->evaluate($condition, $data);
+    }
+    /**
+     * @param string  $provider
+     * @param string  $callback
+     * @param Request $request
+     *
+     * @return array
+     *
+     * @throws \Exception
+     */
+    public function parseCallbackRequest($provider, $callback, Request $request)
+    {
+        return $this->getProviderByName($provider)->parseCallbackRequest($callback, $request);
     }
 }

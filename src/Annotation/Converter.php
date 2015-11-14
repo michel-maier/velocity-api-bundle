@@ -14,33 +14,13 @@ namespace Velocity\Bundle\ApiBundle\Annotation;
 use Velocity\Bundle\ApiBundle\Annotation\Base\Annotation;
 
 /**
- * Workflow annotation
+ * Converter annotation
  *
  * @author Olivier Hoareau <olivier@phppro.fr>
  *
  * @Annotation
- * @Target("PROPERTY")
+ * @Target("METHOD")
  */
-final class Workflow extends Annotation
+final class Converter extends Annotation
 {
-    /**
-     * @var string
-     */
-    public $id;
-    /**
-     * @var array
-     */
-    public $steps = [];
-    /**
-     * @var array
-     */
-    public $transitions = [];
-    /**
-     * @var array
-     */
-    public $transitionAliases = [];
-    /**
-     * @var array
-     */
-    public $requiredFields = [];
 }

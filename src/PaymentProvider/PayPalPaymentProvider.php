@@ -11,6 +11,7 @@
 
 namespace Velocity\Bundle\ApiBundle\PaymentProvider;
 
+use Symfony\Component\HttpFoundation\Request;
 use Velocity\Core\Traits\ServiceTrait;
 use Velocity\Bundle\ApiBundle\Traits\ServiceAware;
 use Velocity\Bundle\ApiBundle\Service\PayPalService;
@@ -80,7 +81,11 @@ class PayPalPaymentProvider implements PaymentProviderInterface
      */
     public function confirm($id, $data = [], $options = [])
     {
-        return $this->getPayPalService()->confirmOrder($id, $data, $options);
+        if (!isset($data['payerId'])) {
+            throw $this->createRequiredException('Payer id is missing');
+        }
+
+        return $this->getPayPalService()->confirmOrder($id, ['payerId' => $data['payerId']], $options);
     }
     /**
      * @param string|array $id
@@ -93,9 +98,11 @@ class PayPalPaymentProvider implements PaymentProviderInterface
      */
     public function fail($id, $data = [], $options = [])
     {
-        // @todo implement PayPal fail
+        if (!isset($data['payerId'])) {
+            throw $this->createRequiredException('Payer id is missing');
+        }
 
-        return [];
+        return $this->getPayPalService()->failOrder($id, ['payerId' => $data['payerId']], $options);
     }
     /**
      * @param string|array $id
@@ -108,9 +115,11 @@ class PayPalPaymentProvider implements PaymentProviderInterface
      */
     public function cancel($id, $data = [], $options = [])
     {
-        // @todo implement PayPal cancel
+        if (!isset($data['payerId'])) {
+            throw $this->createRequiredException('Payer id is missing');
+        }
 
-        return [];
+        return $this->getPayPalService()->cancelOrder($id, ['payerId' => $data['payerId']], $options);
     }
     /**
      * @param string|array $id
@@ -123,5 +132,29 @@ class PayPalPaymentProvider implements PaymentProviderInterface
     public function get($id, $options = [])
     {
         return $this->getPayPalService()->getOrder($id, $options);
+    }
+    /**
+     * @param string  $callback
+     * @param Request $request
+     *
+     * @return array
+     *
+     * @throws \Exception
+     */
+    public function parseCallbackRequest($callback, Request $request)
+    {
+        switch ($callback) {
+            case 'paid':
+                if (!$request->query->has('token')) {
+                    throw $this->createMalformedException('Malformed callback parameters (#1)');
+                }
+                if (!$request->query->has('PayerID')) {
+                    throw $this->createMalformedException('Malformed callback parameters (#2)');
+                }
+
+                return ['transaction' => $request->query->get('token'), 'payer' => $request->query->get('PayerID')];
+            default:
+                return [];
+        }
     }
 }

@@ -389,7 +389,7 @@ class PayPalService
             $DoECRequestDetails->Token = $token;
 
             $orderTotal = new BasicAmountType();
-            $orderTotal->currencyID = 'EUR';
+            $orderTotal->currencyID = $data['currency'];
             $orderTotal->value = $data['amount'];
             $paymentDetails->OrderTotal = $orderTotal;
 
@@ -426,7 +426,7 @@ class PayPalService
         /** @noinspection PhpUndefinedFieldInspection */
         // @codingStandardsIgnoreStart
         return [
-            'token' => $token,
+            'token'              => $token,
             'billingAgreementId' => $payPalResponse->DoExpressCheckoutPaymentResponseDetails->BillingAgreementID,
             'note'               => $payPalResponse->DoExpressCheckoutPaymentResponseDetails->Note,
             'transactionId'      => $payPalResponse->PaymentInfo->TransactionID,
@@ -447,6 +447,40 @@ class PayPalService
             'amount'             => $payPalResponse->Amount,
         ];
         // @codingStandardsIgnoreEnd
+    }
+    /**
+     * @param string $token
+     * @param array  $data
+     * @param array  $options
+     *
+     * @return array
+     *
+     * @throws \Exception
+     *
+     * @todo see in PayPal API what we can use for that (for now, no real cancellation is needed)
+     */
+    public function cancelOrder($token, $data = [], $options = [])
+    {
+        unset($token, $data, $options);
+
+        return [];
+    }
+    /**
+     * @param string $token
+     * @param array  $data
+     * @param array  $options
+     *
+     * @return array
+     *
+     * @throws \Exception
+     *
+     * @todo see in PayPal API what we can use for that (for now, no real failure is needed)
+     */
+    public function failOrder($token, $data = [], $options = [])
+    {
+        unset($token, $data, $options);
+
+        return [];
     }
     /**
      * @param string $token

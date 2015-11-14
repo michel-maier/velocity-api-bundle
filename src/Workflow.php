@@ -27,11 +27,19 @@ class Workflow implements WorkflowInterface
      */
     protected $transitions;
     /**
+     * @var array
+     */
+    protected $transitionAliases;
+    /**
+     * @var array
+     */
+    protected $requiredFields;
+    /**
      * @param array $definition
      */
     public function __construct(array $definition = [])
     {
-        $definition += ['steps' => [], 'transitions' => []];
+        $definition += ['steps' => [], 'transitions' => [], 'transitionAliases' => [], 'requiredFields' => []];
 
         if (!is_array($definition['steps'])) {
             $definition['steps'] = [];
@@ -53,6 +61,38 @@ class Workflow implements WorkflowInterface
                 $this->addTransition($stepName, $targetStep);
             }
         }
+
+        if (!is_array($definition['transitionAliases'])) {
+            $definition['transitionAliases'] = [];
+        }
+
+        foreach ($definition['transitionAliases'] as $alias => $transition) {
+            $this->addTransitionAlias($alias, $transition);
+        }
+
+        if (!is_array($definition['requiredFields'])) {
+            $definition['requiredFields'] = [];
+        }
+
+        $this->setRequiredFields($definition['requiredFields']);
+    }
+    /**
+     * @param array $requiredFields
+     *
+     * @return $this
+     */
+    public function setRequiredFields(array $requiredFields)
+    {
+        $this->requiredFields = $requiredFields;
+
+        return $this;
+    }
+    /**
+     * @return array
+     */
+    public function getRequiredFields()
+    {
+        return $this->requiredFields;
     }
     /**
      * @param string $currentStep
@@ -93,6 +133,35 @@ class Workflow implements WorkflowInterface
         $this->transitions[$from][$to] = [];
 
         return $this;
+    }
+    /**
+     * @param string $alias
+     * @param string $transition
+     *
+     * @return $this
+     */
+    public function addTransitionAlias($alias, $transition)
+    {
+        if (!isset($this->transitionAliases[$transition])) {
+            $this->transitionAliases[$transition] = [];
+        }
+
+        $this->transitionAliases[$transition][] = $alias;
+
+        return $this;
+    }
+    /**
+     * @param string $transition
+     *
+     * @return array
+     */
+    public function getTransitionAliases($transition)
+    {
+        if (!isset($this->transitionAliases[$transition])) {
+            return [];
+        }
+
+        return $this->transitionAliases[$transition];
     }
     /**
      * @param string $step

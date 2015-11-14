@@ -11,6 +11,7 @@
 
 namespace Velocity\Bundle\ApiBundle\PaymentProvider;
 
+use Symfony\Component\HttpFoundation\Request;
 use Velocity\Bundle\ApiBundle\Service\MangoPayService;
 use Velocity\Core\Traits\ServiceTrait;
 use Velocity\Bundle\ApiBundle\Traits\ServiceAware;
@@ -97,5 +98,18 @@ class MangoPayPaymentProvider implements PaymentProviderInterface
     public function get($id, $options = [])
     {
         throw $this->createNotYetImplementedException('MangoPay payment provider not yet implemented');
+    }
+    /**
+     * @param string  $callback
+     * @param Request $request
+     *
+     * @return array
+     */
+    public function parseCallbackRequest($callback, Request $request)
+    {
+        switch ($callback) {
+            default:
+                return [];
+        }
     }
 }

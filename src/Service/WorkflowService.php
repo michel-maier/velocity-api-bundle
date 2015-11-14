@@ -97,7 +97,11 @@ class WorkflowService
     public function checkTransitionExist($id, $currentStep, $targetStep)
     {
         if (!$this->hasTransition($id, $currentStep, $targetStep)) {
-            throw $this->createRequiredException("No transitions from step '%s' to step '%s' in workflow '%s'", $currentStep, $targetStep, $id);
+            if ($currentStep === $targetStep) {
+                throw $this->createRequiredException("Already %s", $targetStep);
+            }
+
+            throw $this->createRequiredException("Transitionning to %s is not allowed", $targetStep);
         }
 
         return $this;
@@ -110,6 +114,8 @@ class WorkflowService
      * @param string $id
      * @param array  $options
      *
+     * @return array
+     *
      * @throws \Exception
      */
     public function transitionModelProperty($modelName, $model, $property, $previousModel, $id, array $options = [])
@@ -118,5 +124,36 @@ class WorkflowService
 
         $this->getBusinessRuleService()->executeBusinessRulesForModelOperation($modelName, $property.'.'.$previousModel->$property.'.leaved', $previousModel, $options);
         $this->getBusinessRuleService()->executeBusinessRulesForModelOperation($modelName, $property.'.'.$model->$property.'.entered', $model, $options);
+
+        $workflow = $this->get($id);
+
+        foreach ($workflow->getTransitionAliases($previousModel->$property.'->'.$model->$property) as $alias) {
+            $this->getBusinessRuleService()->executeBusinessRulesForModelOperation($modelName, $this->replaceVariables($alias, (array) $previousModel), $model, $options + ['old' => $previousModel]);
+        }
+
+        return [
+            $property.'.'.$previousModel->$property.'.leaved',
+            $property.'.'.$model->$property.'.entered',
+        ];
+    }
+    /**
+     * @param string $value
+     * @param array  $vars
+     *
+     * @return string
+     */
+    protected function replaceVariables($value, $vars = [])
+    {
+        $matches = null;
+
+        if (0 >= preg_match_all('/\{([^\}]+)\}/', $value, $matches)) {
+            return $value;
+        }
+
+        foreach ($matches[1] as $i => $match) {
+            $value = str_replace($matches[0][$i], isset($vars[$match]) ? $vars[$match] : null, $value);
+        }
+
+        return $value;
     }
 }

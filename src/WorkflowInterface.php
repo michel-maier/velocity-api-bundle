@@ -25,4 +25,10 @@ interface WorkflowInterface
      * @return bool
      */
     public function hasTransition($currentStep, $targetStep);
+    /**
+     * @param string $transition
+     *
+     * @return array
+     */
+    public function getTransitionAliases($transition);
 }

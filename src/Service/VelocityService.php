@@ -55,6 +55,7 @@ class VelocityService
             'workflow.key'                        => 'velocity.workflow',
             'invitationEvent.key'                 => 'velocity.invitationEvent',
             'generator.key'                       => 'velocity.generator',
+            'converter.key'                       => 'velocity.converter',
             'codeGenerator.key'                   => 'velocity.codeGenerator',
             'archiver.key'                        => 'velocity.archiver',
             'job.key'                             => 'velocity.job',
@@ -123,6 +124,7 @@ class VelocityService
             'business_rule.tag'       => 'velocity.business_rule',
             'invitation_event.tag'    => 'velocity.invitation_event',
             'generator.tag'           => 'velocity.generator',
+            'converter.tag'           => 'velocity.converter',
             'codeGenerator.tag'       => 'velocity.codeGenerator',
             'repositories_aware.tag'  => 'velocity.repositories_aware',
             'cruds_aware.tag'         => 'velocity.cruds_aware',
@@ -421,6 +423,7 @@ class VelocityService
         $this->processBusinessRuleTag($container);
         $this->processInvitationEventTag($container);
         $this->processGeneratorTag($container);
+        $this->processConverterTag($container);
         $this->processCodeGeneratorTag($container);
         $this->processArchiverTag($container);
         $this->processFormatterTag($container);
@@ -822,6 +825,36 @@ class VelocityService
                                 $name = $vars['value'];
                                 unset($vars['value']);
                                 $generatorDefinition->addMethodCall('register', [$name, [$this->ref($id), $method], $vars]);
+                                break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+    /**
+     * Process generator tags.
+     *
+     * @param ContainerBuilder $container
+     */
+    protected function processConverterTag(ContainerBuilder $container)
+    {
+        $converterDefinition = $container->getDefinition($this->getDefault('converter.key'));
+
+        foreach ($this->findVelocityTaggedServiceIds($container, 'converter') as $id => $attributes) {
+            $d = $container->getDefinition($id);
+            foreach ($attributes as $params) {
+                unset($params);
+                $rClass = new \ReflectionClass($d->getClass());
+                foreach ($rClass->getMethods(\ReflectionProperty::IS_PUBLIC) as $rMethod) {
+                    foreach ($this->getAnnotationReader()->getMethodAnnotations($rMethod) as $a) {
+                        $vars   = get_object_vars($a);
+                        $method = $rMethod->getName();
+                        switch (true) {
+                            case $a instanceof Velocity\Converter:
+                                $name = $vars['value'];
+                                unset($vars['value']);
+                                $converterDefinition->addMethodCall('register', [$name, [$this->ref($id), $method], $vars]);
                                 break;
                         }
                     }

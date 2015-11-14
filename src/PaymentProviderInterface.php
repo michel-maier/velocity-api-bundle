@@ -10,6 +10,7 @@
  */
 
 namespace Velocity\Bundle\ApiBundle;
+use Symfony\Component\HttpFoundation\Request;
 
 /**
  * Payment Provider Interface.
@@ -56,4 +57,11 @@ interface PaymentProviderInterface
      * @return array
      */
     public function get($id, $options = []);
+    /**
+     * @param string  $callback
+     * @param Request $request
+     *
+     * @return array
+     */
+    public function parseCallbackRequest($callback, Request $request);
 }

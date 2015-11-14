@@ -243,6 +243,39 @@ class SdkMethodsCodeGenerator
      * @param MethodGenerator $zMethod
      * @param array           $definition
      *
+     * @Velocity\CodeGeneratorMethodType("crud.sub.getBy")
+     */
+    public function generateCrudSubGetByMethod(MethodGenerator $zMethod, $definition = [])
+    {
+        $definition += ['field' => 'id', 'subType' => 'subType'];
+        $definition['route'] = str_replace(['{'.$definition['field'].'}', '{id}'], '%s', $definition['route']);
+
+        $zMethod->setDocBlock(new DocBlockGenerator(
+            sprintf('Return the specified %s %s by %s %s', $definition['type'], $definition['subType'], $definition['type'], $definition['field']),
+            null,
+            [
+                new ParamTag($definition['field'], ['mixed'], sprintf('%s of the %s', ucfirst($definition['field']), $definition['type'])),
+                new ParamTag('id', ['string'], 'The id'),
+                new ParamTag('fields', ['array'], 'Data to store'),
+                new ParamTag('options', ['array'], 'Options'),
+                new ReturnTag(['array']),
+                new ThrowsTag(['\\Exception'], 'if an error occured'),
+            ]
+        ));
+        $zMethod->setParameters([
+            new ParameterGenerator($definition['field'], 'mixed'),
+            new ParameterGenerator('id', 'string'),
+            new ParameterGenerator('fields', 'array', []),
+            new ParameterGenerator('options', 'array', []),
+        ]);
+        $zMethod->setBody(
+            sprintf('return $this->getSdk()->get(sprintf(\'%s\', $%s, $id), $fields, $options);', $definition['route'], $definition['field'])
+        );
+    }
+    /**
+     * @param MethodGenerator $zMethod
+     * @param array           $definition
+     *
      * @Velocity\CodeGeneratorMethodType("crud.delete")
      */
     public function generateCrudDeleteMethod(MethodGenerator $zMethod, $definition = [])

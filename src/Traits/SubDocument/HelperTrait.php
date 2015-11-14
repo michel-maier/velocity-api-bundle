@@ -173,25 +173,30 @@ trait HelperTrait
      * @param mixed  $previousModel
      * @param array  $options
      *
-     * @return $this
+     * @return array
      */
     protected function applyActiveWorkflows($parentId, $model, $previousModel, array $options = [])
     {
+        $transitions = [];
+
         foreach ($this->getMetaDataService()->getModelWorkflows($model) as $property => $definition) {
             if (!isset($model->$property)) {
                 continue;
             }
-            $this->getWorkflowService()->transitionModelProperty(
-                $this->getModelName(),
-                $model,
-                $property,
-                $previousModel,
-                $definition['id'],
-                $this->buildTypeVars([$parentId]) + $options
+            $transitions = array_merge(
+                $transitions,
+                $this->getWorkflowService()->transitionModelProperty(
+                    $this->getModelName(),
+                    $model,
+                    $property,
+                    $previousModel,
+                    $definition['id'],
+                    $this->buildTypeVars([$parentId]) + $options
+                )
             );
         }
 
-        return $this;
+        return $transitions;
     }
     /**
      * @param array $values

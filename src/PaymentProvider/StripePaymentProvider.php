@@ -11,6 +11,7 @@
 
 namespace Velocity\Bundle\ApiBundle\PaymentProvider;
 
+use Symfony\Component\HttpFoundation\Request;
 use Velocity\Core\Traits\ServiceTrait;
 use Velocity\Bundle\ApiBundle\Traits\ServiceAware;
 use Velocity\Bundle\ApiBundle\Service\StripeService;
@@ -96,5 +97,17 @@ class StripePaymentProvider implements PaymentProviderInterface
     public function get($id, $options = [])
     {
         throw $this->createNotYetImplementedException('Stripe payment provider not yet implemented');
+    }
+    /**
+     * @param string  $callback
+     * @param Request $request
+     *
+     * @return array
+     *
+     * @todo implement this
+     */
+    public function parseCallbackRequest($callback, Request $request)
+    {
+        return [];
     }
 }
