@@ -10,6 +10,7 @@
  */
 
 namespace Velocity\Bundle\ApiBundle;
+
 use Symfony\Component\HttpFoundation\Request;
 
 /**

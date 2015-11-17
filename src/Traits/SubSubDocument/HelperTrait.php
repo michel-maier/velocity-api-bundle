@@ -191,7 +191,7 @@ trait HelperTrait
             }
             $transitions = array_merge(
                 $transitions,
-                    $this->getWorkflowService()->transitionModelProperty(
+                $this->getWorkflowService()->transitionModelProperty(
                     $this->getModelName(),
                     $model,
                     $property,
