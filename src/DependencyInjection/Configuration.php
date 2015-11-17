@@ -32,7 +32,7 @@ class Configuration implements ConfigurationInterface
 
         $this
             ->addRootSection($rootNode)
-            ->addFrontSection($rootNode)
+            ->addAppsSection($rootNode)
             ->addSdkSection($rootNode)
             ->addSendersSection($rootNode)
             ->addBundlesSection($rootNode)
@@ -65,15 +65,17 @@ class Configuration implements ConfigurationInterface
      *
      * @return $this
      */
-    protected function addFrontSection(ArrayNodeDefinition $rootNode)
+    protected function addAppsSection(ArrayNodeDefinition $rootNode)
     {
         $rootNode
             ->children()
-                ->arrayNode('front')
+                ->arrayNode('apps')
                     ->isRequired()
-                    ->children()
-                        ->scalarNode('name')->end()
-                        ->scalarNode('url')->end()
+                    ->prototype('array')
+                        ->children()
+                            ->scalarNode('name')->end()
+                            ->scalarNode('url')->end()
+                        ->end()
                     ->end()
                 ->end()
             ->end()

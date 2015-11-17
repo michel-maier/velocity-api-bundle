@@ -54,7 +54,7 @@ class VelocityApiExtensionTest extends PHPUnit_Framework_TestCase
      */
     public function testLoadForModelsSectionSetAppropriateParameters()
     {
-        $c = $this->load([['tenant' => 'test', 'front' => ['name' => 'a', 'url' => 'b'], 'bundles' => ['AppBundle']]]);
+        $c = $this->load([['tenant' => 'test', 'apps' => ['front' => ['name' => 'a', 'url' => 'b']], 'bundles' => ['AppBundle']]]);
 
         $this->assertTrue($c->hasParameter('app_bundles'));
         $this->assertEquals(['AppBundle'], $c->getParameter('app_bundles'));
@@ -67,7 +67,7 @@ class VelocityApiExtensionTest extends PHPUnit_Framework_TestCase
         $c = $this->load([
             [
                 'tenant' => 'test',
-                'front' => ['name' => 'a', 'url' => 'b'],
+                'apps' => ['front' => ['name' => 'a', 'url' => 'b']],
                 'recipients' => [
                     'admins' => [
                         'a@b.com' => ['name' => 'A B'],
@@ -90,7 +90,7 @@ class VelocityApiExtensionTest extends PHPUnit_Framework_TestCase
     {
         $c = $this->load([[
             'tenant' => 'test',
-            'front' => ['name' => 'a', 'url' => 'b'],
+            'apps' => ['front' => ['name' => 'a', 'url' => 'b']],
             'events' => [
                 'user_created' => [
                     'actions' => [
