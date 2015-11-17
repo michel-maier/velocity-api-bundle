@@ -690,6 +690,18 @@ class MetaDataService
         return $doc;
     }
     /**
+     * @param mixed $doc
+     * @param array $options
+     *
+     * @return mixed
+     */
+    public function clean($doc, $options = [])
+    {
+        $doc = $this->populateStorages($doc, $options);
+
+        return $doc;
+    }
+    /**
      * Process the registered callbacks.
      *
      * @param string $type

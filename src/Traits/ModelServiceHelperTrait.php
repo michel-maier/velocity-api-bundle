@@ -197,6 +197,16 @@ trait ModelServiceHelperTrait
         return $this->getMetaDataService()->refresh($model, $options);
     }
     /**
+     * @param mixed $model
+     * @param array $options
+     *
+     * @return mixed
+     */
+    protected function cleanModel($model, array $options = [])
+    {
+        return $this->getMetaDataService()->clean($model, $options);
+    }
+    /**
      * Convert provided model (object) to an array.
      *
      * @param mixed $model

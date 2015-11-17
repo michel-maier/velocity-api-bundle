@@ -137,6 +137,13 @@ trait CreateServiceTrait
      */
     protected abstract function refreshModel($model, array $options = []);
     /**
+     * @param mixed $model
+     * @param array $options
+     *
+     * @return mixed
+     */
+    protected abstract function cleanModel($model, array $options = []);
+    /**
      * Convert provided model (object) to an array.
      *
      * @param mixed $model
@@ -183,6 +190,8 @@ trait CreateServiceTrait
         $array = $this->callback('create.saved_array', $array, $options);
 
         $doc->id = (string) $array['_id'];
+
+        $doc = $this->cleanModel($doc, ['operation' => 'create'] + $options);
 
         $doc = $this->callback('create.saved', $doc, $options);
         $doc = $this->callback('saved', $doc, $options);
