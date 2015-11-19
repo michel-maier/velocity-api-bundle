@@ -189,7 +189,9 @@ trait CreateServiceTrait
     {
         $array = $this->callback('create.saved_array', $array, $options);
 
-        $doc->id = (string) $array['_id'];
+        if (property_exists($doc, 'id') && isset($array['id'])) {
+            $doc->id = (string)$array['_id'];
+        }
 
         $doc = $this->cleanModel($doc, ['operation' => 'create'] + $options);
 
