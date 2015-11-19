@@ -147,6 +147,7 @@ services:
       - @velocity.metadata
       - @velocity.codeGenerator
       - %app_variables%
+      - %app_sdk_custom_template_dir%
   velocity.codeGenerator:
     class: Velocity\Bundle\ApiBundle\Service\CodeGeneratorService
     arguments:

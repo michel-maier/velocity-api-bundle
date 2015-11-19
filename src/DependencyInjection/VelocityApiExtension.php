@@ -41,6 +41,7 @@ class VelocityApiExtension extends Extension
             'senders' => $config['senders'],
             'sdk'     => isset($config['sdk']) ? $config['sdk'] : null,
         ]);
+        $container->setParameter('app_sdk_custom_template_dir', isset($config['sdk']['custom_template_dir']) ? $config['sdk']['custom_template_dir'] : null);
         $container->setParameter('app_senders', $config['senders']);
         $container->setParameter('app_recipients', $config['recipients']);
         $container->setParameter('app_bundles', $config['bundles']);

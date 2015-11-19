@@ -15,11 +15,12 @@ use Symfony\Component\Config\FileLocator;
 use Symfony\Component\DependencyInjection\Loader;
 use Symfony\Component\DependencyInjection\ContainerBuilder;
 use Symfony\Component\HttpKernel\DependencyInjection\Extension;
+use Symfony\Component\DependencyInjection\Extension\PrependExtensionInterface;
 
 /**
  * @author {{ velocity.sdk.company_author_name }} <{{ velocity.sdk.company_author_email }}>
  */
-class {{ velocity.sdk.bundle_prefix }}Extension extends Extension
+class {{ velocity.sdk.bundle_prefix }}Extension extends Extension implements PrependExtensionInterface
 {
     /**
      * @param array            $configs
@@ -33,5 +34,17 @@ class {{ velocity.sdk.bundle_prefix }}Extension extends Extension
         $loader = new Loader\YamlFileLoader($container, new FileLocator(__DIR__.'/../Resources/config'));
         $loader->load('services/common.yml');
         $loader->load('services/sdk.yml');
+        {% if extension_load is defined %}{{ extension_load|raw }}{% endif %}
+
+    }
+    /**
+     * Allow an extension to prepend the extension configurations.
+     *
+     * @param ContainerBuilder $container
+     */
+    public function prepend(ContainerBuilder $container)
+    {
+        {% if extension_prepend is defined %}{{ extension_prepend|raw }}{% endif %}
+
     }
 }

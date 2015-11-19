@@ -43,8 +43,9 @@ class SdkService
      * @param MetaDataService      $metaDataService
      * @param CodeGeneratorService $codeGeneratorService
      * @param array                $variables
+     * @param string|null          $customTemplateDir
      */
-    public function __construct(Filesystem $filesystem, LoggerInterface $logger, EngineInterface $templating, MetaDataService $metaDataService, CodeGeneratorService $codeGeneratorService, array $variables = [])
+    public function __construct(Filesystem $filesystem, LoggerInterface $logger, EngineInterface $templating, MetaDataService $metaDataService, CodeGeneratorService $codeGeneratorService, array $variables = [], $customTemplateDir = null)
     {
         $this->setLogger($logger);
         $this->setVariables($variables);
@@ -52,6 +53,25 @@ class SdkService
         $this->setTemplating($templating);
         $this->setMetaDataService($metaDataService);
         $this->setCodeGeneratorService($codeGeneratorService);
+        $this->setCustomTemplateDir($customTemplateDir);
+    }
+    /**
+     * @param string $dir
+     *
+     * @return $this
+     */
+    public function setCustomTemplateDir($dir)
+    {
+        return $this->setParameter('customTemplateDir', $dir);
+    }
+    /**
+     * @return string|null
+     *
+     * @throws \Exception
+     */
+    public function getCustomTemplateDir()
+    {
+        return $this->getParameterIfExists('customTemplateDir');
     }
     /**
      * @param array $variables
@@ -92,8 +112,19 @@ class SdkService
             throw $this->createRequiredException("No information set for SDK");
         }
 
+        $root = dirname(dirname((new \ReflectionClass($this))->getFileName()));
+
+        if (is_file($this->getCustomTemplateDir().'/extension/load.php')) {
+            $options['extension_load'] = trim(preg_replace('/<\?php/', '', file_get_contents($this->getCustomTemplateDir().'/extension/load.php')));
+        }
+
+        if (is_file($this->getCustomTemplateDir().'/extension/prepend.php')) {
+            $options['extension_prepend'] = trim(preg_replace('/<\?php/', '', file_get_contents($this->getCustomTemplateDir().'/extension/prepend.php')));
+        }
+
         $this
-            ->generateStaticFiles($path, $exceptions, $options)
+            ->generateStaticFiles($root.'/Resources/views/sdk/root', $path, 'VelocityApiBundle:sdk:root/', $exceptions, $options)
+            ->generateStaticFiles($this->getCustomTemplateDir().'/root', $path, null, $exceptions, $options)
             ->generateServices($path, $exceptions, $options)
             ->generateContainer($path, $exceptions, $options)
         ;
@@ -107,23 +138,25 @@ class SdkService
         return $this;
     }
     /**
-     * @param string       $path
-     * @param \Exception[] $exceptions
-     * @param array        $options
+     * @param string $sourceDir
+     * @param string $targetDir
+     * @param array  $exceptions
+     * @param array  $options
      *
      * @return $this
      */
-    protected function generateStaticFiles($path, array &$exceptions, array $options = [])
+    protected function generateStaticFiles($sourceDir, $targetDir, $twigPrefix, array &$exceptions, array $options = [])
     {
-        unset($options);
+        if (!is_dir($sourceDir)) {
+            return $this;
+        }
 
         $f = new Finder();
         $f->ignoreDotFiles(false);
-        $rClass = new \ReflectionClass($this);
-        $root = dirname(dirname($rClass->getFileName()));
-        foreach ($f->in($root.'/Resources/views/sdk/root') as $file) {
+
+        foreach ($f->in($sourceDir) as $file) {
             /** @var SplFileInfo $file */
-            $realPath = $path.'/'.$file->getRelativePathname();
+            $realPath = $targetDir.'/'.$file->getRelativePathname();
             if (false !== strpos($realPath, '{')) {
                 $realPath = $this->getTemplating()->render('VelocityApiBundle:sdk:filename.txt.twig', ['name' => $realPath]);
             }
@@ -131,7 +164,7 @@ class SdkService
                 $this->getFilesystem()->mkdir($realPath);
             } else {
                 try {
-                    $content = 'twig' === strtolower($file->getExtension()) ? $this->getTemplating()->render('VelocityApiBundle:sdk:root/'.$file->getRelativePathname()) : $file->getContents();
+                    $content = 'twig' === strtolower($file->getExtension()) && null !== $twigPrefix ? $this->getTemplating()->render($twigPrefix.$file->getRelativePathname(), $options) : $file->getContents();
                     $this->getFilesystem()->dumpFile(preg_replace('/\.twig$/', '', $realPath), $content);
                 } catch (\Exception $e) {
                     $exceptions[] = $e;
@@ -181,6 +214,8 @@ class SdkService
         }
 
         $this->getFilesystem()->dumpFile($path.'/src/Resources/config/services/sdk.yml', Yaml::dump($d, 5));
+
+        unset($options);
 
         return $this;
     }

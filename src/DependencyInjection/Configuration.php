@@ -95,6 +95,7 @@ class Configuration implements ConfigurationInterface
                 ->arrayNode('sdk')
                     ->children()
                         ->scalarNode('name')->end()
+                        ->scalarNode('custom_template_dir')->end()
                         ->scalarNode('company_name')->end()
                         ->scalarNode('company_email')->end()
                         ->scalarNode('package')->end()
