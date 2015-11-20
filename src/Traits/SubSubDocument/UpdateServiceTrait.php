@@ -401,6 +401,10 @@ trait UpdateServiceTrait
     {
         $this->callback($pParentId, $parentId, 'update.saved_array', $array, $options);
 
+        if (property_exists($doc, 'id') && null === $doc->id) {
+            $doc->id = (string) $id;
+        }
+
         unset($array);
 
         $doc = $this->callback($pParentId, $parentId, 'update.saved', $doc, $options);
