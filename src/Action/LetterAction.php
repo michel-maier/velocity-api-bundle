@@ -19,7 +19,7 @@ use Velocity\Bundle\ApiBundle\Action\Base\AbstractLetterAction;
 /**
  * @author Olivier Hoareau <olivier@phppro.fr>
  */
-class LetterAction extends AbstractMailAction
+class LetterAction extends AbstractLetterAction
 {
     /**
      * @param Bag $params
