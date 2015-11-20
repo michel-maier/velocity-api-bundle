@@ -61,6 +61,21 @@ services:
     class: Velocity\Bundle\ApiBundle\Action\ContextAction
     tags:
       - { name: velocity.action }
+  velocity.action.letter:
+    class: Velocity\Bundle\ApiBundle\Action\LetterAction
+    arguments:
+      - @templating
+      - @translator
+      - @velocity.attachment
+      - @event_dispatcher
+      - %app_senders%
+      - %app_recipients%
+      - %app_env%
+      - @request_stack
+      - %app_tenant%
+      - %locale%
+    tags:
+      - { name: velocity.action }
   velocity.action.mail:
     class: Velocity\Bundle\ApiBundle\Action\MailAction
     arguments:

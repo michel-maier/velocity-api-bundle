@@ -38,7 +38,7 @@
     "phppro/supervision": "1.*"
   },
   "require-dev": {
-    "phpunit/phpunit": "4.*",
+    "phpunit/phpunit": "5.*",
     "phploc/phploc": "2.*",
     "escapestudios/symfony2-coding-standard": "~2.0"
   },
