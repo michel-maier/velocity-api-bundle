@@ -279,6 +279,12 @@ class VelocityService
                             }
                             $m->addMethodCall('addModelPropertyEnum', [$class, $property, $vars]);
                             break;
+                        case $a instanceof Velocity\DefaultValue:
+                            if (!$model) {
+                                throw $this->createRequiredException('Default value annotation only allowed in models');
+                            }
+                            $m->addMethodCall('addModelPropertyDefaultValue', [$class, $property, $vars]);
+                            break;
                         case $a instanceof Velocity\Generated:
                             if (!$model) {
                                 throw $this->createRequiredException('Generated annotation only allowed in models');

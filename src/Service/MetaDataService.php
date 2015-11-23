@@ -256,6 +256,27 @@ class MetaDataService
      *
      * @return $this
      */
+    public function addModelPropertyDefaultValue($class, $property, $definition)
+    {
+        $this->checkModel($class);
+
+        $value = isset($definition['value']) ? $definition['value'] : null;
+
+        if (!isset($this->models[$class]['types'][$property])) {
+            $this->models[$class]['types'][$property] = [];
+        }
+
+        $this->models[$class]['types'][$property]['default'] = $value;
+
+        return $this;
+    }
+    /**
+     * @param string $class
+     * @param string $property
+     * @param array  $definition
+     *
+     * @return $this
+     */
     public function addModelPropertyGenerated($class, $property, $definition)
     {
         $this->checkModel($class);
@@ -328,6 +349,7 @@ class MetaDataService
         }
 
         $this->models[$class]['types'][$property]['type'] = 'workflow';
+        $this->models[$class]['types'][$property]['values'] = isset($definition['steps']) ? $definition['steps'] : [];
 
         $this->getWorkflowService()->registerFromDefinition($definition['id'], $definition);
 
@@ -363,9 +385,11 @@ class MetaDataService
     {
         $this->checkModel($class);
 
-        $this->models[$class]['types'][$property] = [
-            'type' => $definition['name'],
-        ];
+        if (!isset($this->models[$class]['types'][$property])) {
+            $this->models[$class]['types'][$property] = [];
+        }
+
+        $this->models[$class]['types'][$property]['type'] = $definition['name'];
 
         return $this;
     }
@@ -511,6 +535,30 @@ class MetaDataService
         $this->checkModel($class);
 
         return $this->models[$class]['types'];
+    }
+    /**
+     * @param string|Object $class
+     *
+     * @return array
+     */
+    public function getModelDefaults($class)
+    {
+        if (is_object($class)) {
+            $class = get_class($class);
+        }
+
+        $this->checkModel($class);
+
+        $defaults = [];
+
+        foreach ($this->models[$class]['types'] as $property => $type) {
+            if (!isset($type['default'])) {
+                continue;
+            }
+            $defaults[$property] = $type['default'];
+        }
+
+        return $defaults;
     }
     /**
      * @param string|Object $class
@@ -666,7 +714,7 @@ class MetaDataService
 
                 return new TypeGuess('choice', ['multiple' => true, 'choices' => $choices], Guess::HIGH_CONFIDENCE);
             case 'workflow':
-                return new TypeGuess('text', [], Guess::HIGH_CONFIDENCE);
+                return new TypeGuess('choice', ['choices' => $propertyType['steps']], Guess::HIGH_CONFIDENCE);
             default:
                 return new TypeGuess(null, [], Guess::LOW_CONFIDENCE);
         }
@@ -679,13 +727,14 @@ class MetaDataService
      */
     public function refresh($doc, $options = [])
     {
-        $doc   = $this->convertScalarProperties($doc, $options);
-        $doc   = $this->fetchEmbeddedReferences($doc, $options);
-        $doc   = $this->fetchEmbeddedReferenceLists($doc, $options);
-        $doc   = $this->triggerRefreshes($doc, $options);
-        $doc   = $this->buildGenerateds($doc, $options);
-        $doc   = $this->computeFingerPrints($doc, $options);
-        $doc   = $this->saveStorages($doc, $options);
+        $doc = $this->convertScalarProperties($doc, $options);
+        $doc = $this->fetchEmbeddedReferences($doc, $options);
+        $doc = $this->fetchEmbeddedReferenceLists($doc, $options);
+        $doc = $this->triggerRefreshes($doc, $options);
+        $doc = $this->buildGenerateds($doc, $options);
+        $doc = $this->computeFingerPrints($doc, $options);
+        $doc = $this->saveStorages($doc, $options);
+        $doc = $this->loadDefaultValues($doc, $options);
 
         return $doc;
     }
@@ -999,6 +1048,33 @@ class MetaDataService
             if (true === $generate) {
                 $doc->$k = $this->generateValue($v, $doc);
             }
+        }
+
+        return $doc;
+    }
+    /**
+     * @param mixed $doc
+     * @param array $options
+     *
+     * @return mixed
+     */
+    protected function loadDefaultValues($doc, $options = [])
+    {
+        if (!is_object($doc)) {
+            return $doc;
+        }
+
+        if (!isset($options['operation']) || 'create' !== $options['operation']) {
+            return $doc;
+        }
+
+        $defaults = $this->getModelDefaults($doc);
+
+        foreach ($defaults as $k => $v) {
+            if (!$this->isPopulableModelProperty($doc, $k, $options)) {
+                continue;
+            }
+            $doc->$k = $v;
         }
 
         return $doc;
