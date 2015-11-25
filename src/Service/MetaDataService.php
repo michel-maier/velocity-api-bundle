@@ -11,6 +11,7 @@
 
 namespace Velocity\Bundle\ApiBundle\Service;
 
+use Velocity\Bundle\ApiBundle\RepositoryInterface;
 use Velocity\Core\Traits\ServiceTrait;
 use Symfony\Component\Form\Guess\Guess;
 use Symfony\Component\Form\Guess\TypeGuess;
@@ -117,6 +118,8 @@ class MetaDataService
                 'types'                  => [],
                 'fingerPrints'           => [],
                 'workflows'              => [],
+                'triggers'               => [],
+                'cachedLists'            => [],
             ];
         }
 
@@ -125,6 +128,15 @@ class MetaDataService
         $this->modelIds[strtolower($definition['id'])] = $class;
 
         return $this;
+    }
+    /**
+     * @param $modelClass
+     *
+     * @return mixed|DocumentServiceInterface|SubDocumentServiceInterface|SubSubDocumentServiceInterface
+     */
+    public function getCrudServiceByModelClass($modelClass)
+    {
+        return $this->getCrudService($this->getModel($modelClass)['id']);
     }
     /**
      * @param string $type
@@ -168,6 +180,33 @@ class MetaDataService
         $this->checkModel($class);
 
         $this->models[$class]['embeddedReferenceLists'][$property] = $definition;
+
+        return $this;
+    }
+    /**
+     * @param string $class
+     * @param string $property
+     * @param array  $definition
+     *
+     * @return $this
+     */
+    public function addModelPropertyCachedList($class, $property, $definition)
+    {
+        $this->checkModel($class);
+
+        $this->models[$class]['cachedLists'][$property] = $definition;
+
+        $modelId = $this->models[$class]['id'];
+
+        foreach ($definition['triggers'] as $triggerName => $trigger) {
+            $sourceClass = $this->getModelClassForId($trigger['model']);
+            unset($trigger['model']);
+            $this->checkModel($sourceClass);
+            if (!isset($this->models[$sourceClass]['triggers'])) {
+                $this->models[$sourceClass]['triggers'] = [];
+            }
+            $this->models[$sourceClass]['triggers'][$modelId.'.'.$triggerName] = ['targetDocType' => $modelId, 'targetDocProperty' => $property] + $trigger;
+        }
 
         return $this;
     }
@@ -481,6 +520,23 @@ class MetaDataService
     }
     /**
      * @param string|Object $class
+     *
+     * @return array
+     */
+    public function getModelTriggers($class, array $options = [])
+    {
+        if (is_object($class)) {
+            $class = get_class($class);
+        }
+
+        $this->checkModel($class);
+
+        unset($options);
+
+        return $this->models[$class]['triggers'];
+    }
+    /**
+     * @param string|Object $class
      * @param string        $property
      *
      * @return array
@@ -638,6 +694,21 @@ class MetaDataService
     /**
      * @param string|Object $class
      *
+     * @return array
+     */
+    public function getModelCachedLists($class)
+    {
+        if (is_object($class)) {
+            $class = get_class($class);
+        }
+
+        $this->checkModel($class);
+
+        return $this->models[$class]['cachedLists'];
+    }
+    /**
+     * @param string|Object $class
+     *
      * @return array|null
      */
     public function getModelIdProperty($class)
@@ -748,7 +819,193 @@ class MetaDataService
     {
         $doc = $this->populateStorages($doc, $options);
 
+        $this->refreshCached($doc, $options);
+
         return $doc;
+    }
+    /**
+     * @param mixed $doc
+     * @param array $options
+     */
+    protected function refreshCached($doc, array $options = [])
+    {
+        $triggers = $this->getModelTriggers($doc, $options);
+
+        $options += ['operation' => null];
+
+
+        foreach ($triggers as $triggerName => $trigger) {
+            $targetId = $this->replaceProperty($doc, $trigger['targetId']);
+            $updateData = $this->replaceProperty($doc, $trigger['targetData']);
+            $requiredFields = [];
+            foreach ($trigger['targetData'] as $kkk => $vvv) {
+                if ('@' === $vvv{0}) {
+                    $requiredFields[substr($vvv, 1)] = true;
+                }
+            }
+            $requiredFields = array_values($requiredFields);
+            $createData = $updateData;
+            $updateCriteria = [];
+            $createCriteria = [];
+            $deleteCriteria = [];
+            $skip = true;
+            $list = isset($trigger['joinFieldType']) && 'list' === $trigger['joinFieldType'];
+            $processNew = false;
+            $processUpdated = false;
+            $processDeleted = false;
+            switch ($options['operation']) {
+                case 'create':
+                    if ($list) {
+                        if (count($doc->{$trigger['joinField']})) {
+                            $createCriteria['$or'] = [];
+                            foreach ($doc->{$trigger['joinField']} as $kk => $vv) {
+                                $createCriteria['$or'][] = ['_id' => $vv->id];
+                            }
+                            $processNew = true;
+                            $skip = false;
+                        }
+                    } else {
+                        $createCriteria['_id'] = $doc->{$trigger['joinField']}->id;
+                        $processNew = true;
+                        $skip = false;
+                    }
+                    break;
+                case 'update':
+                    $updateData = array_filter($updateData, function ($v) { return null !== $v;});
+                    if ($list) {
+                        $expectedIds = [];
+                        $existingIds = [];
+                        if (count($doc->{$trigger['joinField']})) {
+                            foreach ($doc->{$trigger['joinField']} as $kk => $vv) {
+                                $expectedIds[$vv->id] = true;
+                            }
+                        }
+
+                        $criteria = [
+                            $trigger['targetDocProperty'] . '.' . $targetId => '*notempty*',
+                        ];
+                        $docs = $this->getCrudService($trigger['targetDocType'])->find($criteria, ['id']);
+
+                        if (count($docs)) {
+                            foreach ($docs as $_doc) {
+                                $existingIds[$_doc->id] = true;
+                            }
+                        }
+
+                        $newIds = array_diff_key($expectedIds, $existingIds);
+                        $deletedIds = array_diff_key($existingIds, $expectedIds);
+                        $updatedIds = array_intersect_key($existingIds, $expectedIds);
+
+                        if (count($newIds)) {
+                            $createCriteria['$or'] = [];
+                            foreach(array_keys($newIds) as $newId) {
+                                $createCriteria['$or'][] = ['_id' => $newId];
+                            }
+                            $realDoc = $this->getCrudService($this->getModel($doc)['id'])->get($doc->id, $requiredFields);
+                            foreach($requiredFields as $requiredField) {
+                                if (isset($realDoc->$requiredField) && !isset($doc->$requiredField)) {
+                                    $doc->$requiredField = $realDoc->$requiredField;
+                                }
+                            }
+                            $skip = false;
+                            $processNew = true;
+                        }
+                        if (count($deletedIds)) {
+                            $deleteCriteria['$or'] = [];
+                            foreach(array_keys($deletedIds) as $deletedId) {
+                                $deleteCriteria['$or'][] = ['_id' => $deletedId];
+                            }
+                            $skip = false;
+                            $processDeleted = true;
+                        }
+                        if (count($updatedIds)) {
+                            $updateCriteria['$or'] = [];
+                            foreach(array_keys($updatedIds) as $updatedId) {
+                                $updateCriteria['$or'][] = ['_id' => $updatedId];
+                            }
+                            $skip = false;
+                            $processUpdated = true;
+                        }
+                    } else {
+                        $criteria = [
+                            $trigger['targetDocProperty'] . '.' . $targetId => '*notempty*',
+                        ];
+                        $docs = $this->getCrudService($trigger['targetDocType'])->find($criteria, ['id']);
+
+                        if (count($docs)) {
+                            $updateCriteria['$or'] = [];
+                            foreach ($docs as $_doc) {
+                                $updateCriteria['$or'][] = ['_id' => $_doc->id];
+                            }
+                            $processUpdated = true;
+                            $skip = false;
+                        }
+                    }
+                    break;
+                case 'delete':
+                    $criteria = [
+                        $trigger['targetDocProperty'].'.'.$targetId => '*notempty*',
+                    ];
+                    $docs = $this->getCrudService($trigger['targetDocType'])->find($criteria, ['id']);
+
+                    if (count($docs)) {
+                        $deleteCriteria['$or'] = [];
+                        foreach ($docs as $_doc) {
+                            $deleteCriteria['$or'][] = ['_id' => $_doc->id];
+                        }
+                        $skip = false;
+                        $processDeleted = true;
+                    }
+                    break;
+            }
+            if (!$skip) {
+                /** @var RepositoryInterface $repo */
+                $repo = $this->getCrudService($trigger['targetDocType'])->getRepository();
+                if ($processDeleted) {
+                    $repo->unsetProperty($deleteCriteria, $trigger['targetDocProperty'] . '.' . $targetId);
+                }
+                if ($processNew) {
+                    $repo->alter($createCriteria, ['$set' => [$trigger['targetDocProperty'].'.'.$targetId => $createData]], ['multiple' => true]);
+                }
+                if ($processUpdated) {
+                    $updates = [];
+                    foreach ($updateData as $k => $v) {
+                        $updates[$trigger['targetDocProperty'].'.'.$targetId.'.'.$k] = $v;
+                    }
+                    if (count($updates)) {
+                        $repo->alter($updateCriteria, ['$set' => $updates], ['multiple' => true]);
+                    }
+                }
+            }
+        }
+    }
+    /**
+     * @param mixed $doc
+     * @param mixed $value
+     *
+     * @return mixed
+     */
+    protected function replaceProperty($doc, $value)
+    {
+        if (is_array($value)) {
+            foreach ($value as $k => $v) {
+                $value[$k] = $this->replaceProperty($doc, $v);
+            }
+
+            return $value;
+        }
+
+        if ('@' !== $value{0}) {
+            return $value;
+        }
+
+        $key = substr($value, 1);
+
+        if (!property_exists($doc, $key)) {
+            return null;
+        }
+
+        return $doc->$key;
     }
     /**
      * Process the registered callbacks.
@@ -859,10 +1116,6 @@ class MetaDataService
      */
     public function populateObject($doc, $data = [], $options = [])
     {
-        $embeddedReferences = $this->getModelEmbeddedReferences($doc);
-        $embeddedReferenceLists = $this->getModelEmbeddedReferenceLists($doc);
-        $types = $this->getModelTypes($doc);
-
         if (isset($data['_id']) && !isset($data['id'])) {
             $data['id'] = (string) $data['_id'];
             unset($data['_id']);
@@ -872,42 +1125,7 @@ class MetaDataService
             }
         }
 
-        foreach ($data as $k => $v) {
-            if (!property_exists($doc, $k)) {
-                continue;
-            }
-            if (isset($embeddedReferences[$k])) {
-                $v = $this->mutateArrayToObject($v, $embeddedReferences[$k]['class']);
-            }
-            if (isset($embeddedReferenceLists[$k])) {
-                $tt = isset($embeddedReferenceLists[$k]['class']) ? $embeddedReferenceLists[$k]['class'] : (isset($types[$k]) ? $types[$k]['type'] : null);
-                if (null !== $tt) {
-                    $tt = preg_replace('/^array<([^>]+)>$/', '\\1', $tt);
-                }
-                if (!is_array($v)) {
-                    $v = [];
-                }
-                $subDocs = [];
-                foreach ($v as $kk => $vv) {
-                    $subDocs[$kk] = $this->mutateArrayToObject($vv, $tt);
-                }
-                $v = $subDocs;
-            }
-            if (isset($types[$k])) {
-                switch (true) {
-                    case 'DateTime' === substr($types[$k]['type'], 0, 8):
-                        $data = $this->revertDocumentMongoDateWithTimeZoneFieldToDateTime($data, $k);
-                        $v = $data[$k];
-                }
-                $doc->$k = $v;
-            } else {
-                $doc->$k = $v;
-            }
-        }
-
-        $doc = $this->populateStorages($doc);
-
-        unset($options);
+        $doc = $this->mutateArrayToObject($data, $doc, $options);
 
         return $doc;
     }
@@ -1294,21 +1512,66 @@ class MetaDataService
     }
     /**
      * @param array $data
-     * @param string $class
+     * @param mixed $doc
+     * @param array $options
      *
      * @return Object
      */
-    protected function mutateArrayToObject($data, $class)
+    protected function mutateArrayToObject($data, $doc, array $options = [])
     {
-        if (is_object($class)) {
-            $class = get_class($class);
-        }
-
-        $doc = $this->createModelInstance(['model' => $class]);
+        $embeddedReferences = $this->getModelEmbeddedReferences($doc);
+        $embeddedReferenceLists = $this->getModelEmbeddedReferenceLists($doc);
+        $cachedLists = $this->getModelCachedLists($doc);
+        $types = $this->getModelTypes($doc);
 
         foreach ($data as $k => $v) {
-            $doc->$k = $v;
+            if (!property_exists($doc, $k)) {
+                continue;
+            }
+            if (isset($embeddedReferences[$k])) {
+                $v = $this->mutateArrayToObject($v, $this->createModelInstance(['model' => $embeddedReferences[$k]['class']]), $options);
+            }
+            if (isset($embeddedReferenceLists[$k])) {
+                $tt = isset($embeddedReferenceLists[$k]['class']) ? $embeddedReferenceLists[$k]['class'] : (isset($types[$k]) ? $types[$k]['type'] : null);
+                if (null !== $tt) {
+                    $tt = preg_replace('/^array<([^>]+)>$/', '\\1', $tt);
+                }
+                if (!is_array($v)) {
+                    $v = [];
+                }
+                $subDocs = [];
+                foreach ($v as $kk => $vv) {
+                    $subDocs[$kk] = $this->mutateArrayToObject($vv, $this->createModelInstance(['model' => $tt]), $options);
+                }
+                $v = $subDocs;
+            }
+            if (isset($cachedLists[$k])) {
+                $tt = isset($cachedLists[$k]['class']) ? $cachedLists[$k]['class'] : (isset($types[$k]) ? $types[$k]['type'] : null);
+                if (null !== $tt) {
+                    $tt = preg_replace('/^array<([^>]+)>$/', '\\1', $tt);
+                }
+                if (!is_array($v)) {
+                    $v = [];
+                }
+                $subDocs = [];
+                foreach ($v as $kk => $vv) {
+                    $subDocs[$kk] = $this->mutateArrayToObject($vv, $this->createModelInstance(['model' => $tt]), $options);
+                }
+                $v = $subDocs;
+            }
+            if (isset($types[$k])) {
+                switch (true) {
+                    case 'DateTime' === substr($types[$k]['type'], 0, 8):
+                        $data = $this->revertDocumentMongoDateWithTimeZoneFieldToDateTime($data, $k);
+                        $v = $data[$k];
+                }
+                $doc->$k = $v;
+            } else {
+                $doc->$k = $v;
+            }
         }
+
+        $doc = $this->populateStorages($doc);
 
         return $doc;
     }

@@ -127,6 +127,8 @@ trait DeleteServiceTrait
      */
     protected function completeDelete($id, $old, $options = [])
     {
+        $this->cleanModel($old, ['operation' => 'delete'] + $options);
+
         $this->callback('delete.saved', $old, $options);
         $this->callback('deleted', $old, $options);
 
@@ -165,6 +167,13 @@ trait DeleteServiceTrait
      * @return $this
      */
     protected abstract function event($event, $data = null);
+    /**
+     * @param mixed $model
+     * @param array $options
+     *
+     * @return mixed
+     */
+    protected abstract function cleanModel($model, array $options = []);
     /**
      * Test if specified document event has registered event listeners.
      *

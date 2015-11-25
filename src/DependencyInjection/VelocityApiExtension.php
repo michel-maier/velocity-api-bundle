@@ -74,5 +74,6 @@ class VelocityApiExtension extends Extension
         $loader->load('formatters.yml');
         $loader->load('paymentProviders.yml');
         $loader->load('jobs.yml');
+        $loader->load('dataCollectors.yml');
     }
 }

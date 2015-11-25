@@ -66,6 +66,7 @@ services:
     class: Velocity\Bundle\ApiBundle\Service\DatabaseService
     arguments:
       - @velocity.mongo
+      - @event_dispatcher
       - %app_mongo_db%
       - %app_mongo_db_random%
   velocity.migration:

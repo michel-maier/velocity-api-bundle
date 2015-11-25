@@ -208,9 +208,10 @@ class VelocityService
      */
     public function loadClassesMetaData($classes, Definition $m)
     {
+        $models = [];
+
         foreach ($classes as $class) {
             $rClass = new \ReflectionClass($class);
-            $model = false;
             foreach ($this->getAnnotationReader()->getClassAnnotations($rClass) as $a) {
                 $vars = get_object_vars($a);
                 switch (true) {
@@ -223,10 +224,14 @@ class VelocityService
                             throw $this->createRequiredException("No id specified for model '%s'", $class);
                         }
                         $m->addMethodCall('addModel', [$class, $vars]);
-                        $model = true;
+                        $models[$class] = true;
                         break;
                 }
             }
+        }
+        foreach ($classes as $class) {
+            $rClass = new \ReflectionClass($class);
+            $model = isset($models[$class]);
             foreach ($rClass->getMethods(\ReflectionMethod::IS_PUBLIC) as $rMethod) {
                 foreach ($this->getAnnotationReader()->getMethodAnnotations($rMethod) as $a) {
                     $vars = get_object_vars($a);
@@ -260,6 +265,12 @@ class VelocityService
                                 throw $this->createRequiredException('EmbeddedReferenceList annotation only allowed in models');
                             }
                             $m->addMethodCall('addModelPropertyEmbeddedReferenceList', [$class, $property, $vars]);
+                            break;
+                        case $a instanceof Velocity\CachedList:
+                            if (!$model) {
+                                throw $this->createRequiredException('CachedList annotation only allowed in models');
+                            }
+                            $m->addMethodCall('addModelPropertyCachedList', [$class, $property, $vars]);
                             break;
                         case $a instanceof Velocity\ReferenceList:
                             if (!$model) {

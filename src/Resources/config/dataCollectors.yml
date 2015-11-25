@@ -1,0 +1,6 @@
+services:
+  velocity.datacollector.database:
+    class: Velocity\Bundle\ApiBundle\DataCollector\DatabaseDataCollector
+    tags:
+      - { name: data_collector, template: "VelocityApiBundle:data-collector:database.html.twig", id: "velocity_database" }
+      - { name: kernel.event_listener, event: database.query.executed, method: onDatabaseQueryExecuted }
