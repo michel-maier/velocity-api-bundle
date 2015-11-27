@@ -21,6 +21,8 @@ use Velocity\Bundle\ApiBundle\RepositoryInterface;
 trait ModelServiceTrait
 {
     use ModelServiceHelperTrait;
+    use BuildCriteriaTrait;
+
     /**
      * @return RepositoryInterface
      */
@@ -117,26 +119,7 @@ trait ModelServiceTrait
             $fieldFiltered = true;
             foreach ($criteria as $criteriaKey => $criteriaValue) {
                 if (false !== strpos($criteriaKey, ':')) {
-                    list($criteriaKey, $criteriaValueType) = explode(':', $criteriaKey, 2);
-                    switch (trim($criteriaValueType)) {
-                        case 'int':
-                            $criteriaValue = (int) $criteriaValue;
-                            break;
-                        case 'string':
-                            $criteriaValue = (string) $criteriaValue;
-                            break;
-                        case 'bool':
-                            $criteriaValue = (bool) $criteriaValue;
-                            break;
-                        case 'array':
-                            $criteriaValue = json_decode($criteriaValue, true);
-                            break;
-                        case 'float':
-                            $criteriaValue = (double) $criteriaValue;
-                            break;
-                        default:
-                            break;
-                    }
+                    $this->prepareCompositeCriteria($criteriaKey, $criteriaValue);
                 }
                 foreach ($items as $id => $item) {
                     if ('*empty*' === $criteriaValue) {

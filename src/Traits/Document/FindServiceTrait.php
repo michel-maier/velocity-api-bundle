@@ -12,6 +12,7 @@
 namespace Velocity\Bundle\ApiBundle\Traits\Document;
 
 use Velocity\Bundle\ApiBundle\RepositoryInterface;
+use Velocity\Bundle\ApiBundle\Traits\BuildCriteriaTrait;
 
 /**
  * Find service trait.
@@ -46,7 +47,8 @@ trait FindServiceTrait
      */
     public function find($criteria = [], $fields = [], $limit = null, $offset = 0, $sorts = [], $options = [])
     {
-        $cursor = $this->getRepository()->find($criteria, $fields, $limit, $offset, $sorts, $options);
+
+        $cursor = $this->getRepository()->find($this->prepareCriteria($criteria), $fields, $limit, $offset, $sorts, $options);
         $data   = [];
 
         unset($criteria, $fields, $limit, $offset, $sorts);
